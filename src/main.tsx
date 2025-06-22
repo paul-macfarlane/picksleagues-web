@@ -20,6 +20,7 @@ const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
+  trailingSlash: "never", // attempt to see if this works when deploying to vercel
 });
 
 // Register the router instance for type safety
