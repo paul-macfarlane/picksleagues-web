@@ -1,20 +1,22 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import googleLogo from "@/assets/google.svg";
 import { Link } from "@tanstack/react-router";
+import { signInWithGoogle } from "@/helpers/auth";
 
 export const Route = createFileRoute("/login/")({
   component: RouteComponent,
-  loader: async () => {
-    const authed = false; // todo replace with actual auth check
-    if (authed) {
-      return redirect({ to: "/app" });
+  beforeLoad: async ({ context }) => {
+    if (context.user) {
+      throw redirect({ to: "/app" });
     }
   },
 });
 
 function RouteComponent() {
+  const navigate = useNavigate();
+
   return (
     <div className={"flex min-h-screen items-center justify-center p-4"}>
       <Card className="w-full max-w-sm">
@@ -27,9 +29,13 @@ function RouteComponent() {
           <Button
             variant="outline"
             className="w-full flex items-center gap-2 py-6 text-base font-semibold"
-            onClick={() => {
-              // TODO: Replace with actual Google sign-in logic
-              console.log("Sign in with Google clicked");
+            onClick={async () => {
+              try {
+                await signInWithGoogle();
+                navigate({ to: "/app" });
+              } catch (error) {
+                console.error(error);
+              }
             }}
           >
             <img src={googleLogo} alt="Google" className="h-6 w-6 mr-2" />

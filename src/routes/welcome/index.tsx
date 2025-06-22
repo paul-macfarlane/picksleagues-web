@@ -2,10 +2,9 @@ import { redirect, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/welcome/")({
   component: RouteComponent,
-  loader: async () => {
-    const authed = false; // todo replace with actual auth check
-    if (authed) {
-      return redirect({ to: "/app" });
+  beforeLoad: async ({ context }) => {
+    if (context.user) {
+      throw redirect({ to: "/app" });
     }
   },
 });
