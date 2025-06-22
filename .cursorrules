@@ -1,7 +1,11 @@
 # shadcn instructions
 
-Use the latest version of Shadcn to install new components, like this command to add a button component:
+Use the canary version of Shadcn to install new components, like this command to add a button component:
 
 ```bash
-pnpx shadcn@latest add button
+npx shadcn@canary add button
 ```
+
+# Tanstack Router instructions
+
+See .cursor/rules for tanstack router guides
