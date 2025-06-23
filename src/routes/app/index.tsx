@@ -1,36 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { useAuthContext } from "@/helpers/authContext";
-import { auth } from "@/helpers/firebaseConfig";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { signOut } from "firebase/auth";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/app/")({
   component: RouteComponent,
-  beforeLoad: async ({ context }) => {
-    if (!context.user) {
+  beforeLoad: async () => {
+    const authed = true; // TODO: check if user is authed
+    if (!authed) {
       throw redirect({ to: "/login" });
     }
   },
 });
 
 function RouteComponent() {
-  const { user } = useAuthContext();
-  const navigate = useNavigate();
+  async function signOut() {
+    // TODO: implement
+  }
+
   return (
     <div>
-      <p>Hello {user?.displayName}!</p>
-      <Button
-        onClick={async () => {
-          try {
-            await signOut(auth);
-            navigate({ to: "/login" });
-          } catch (error) {
-            console.error(error);
-          }
-        }}
-      >
-        Sign out
-      </Button>
+      <p>Hello!</p>
+      <Button onClick={signOut}>Sign out</Button>
     </div>
   );
 }

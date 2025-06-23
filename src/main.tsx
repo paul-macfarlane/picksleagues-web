@@ -8,14 +8,11 @@ import { routeTree } from "./routeTree.gen";
 
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
-import { AuthContextProvider, useAuthContext } from "./helpers/authContext.tsx";
 
 // Create a new router instance
 const router = createRouter({
   routeTree,
-  context: {
-    user: undefined!, // This will be set after we wrap the app in an AuthProvider
-  },
+  context: {},
   defaultPreload: "intent",
   scrollRestoration: true,
   defaultStructuralSharing: true,
@@ -31,12 +28,6 @@ declare module "@tanstack/react-router" {
 
 const queryClient = new QueryClient();
 
-function InnerApp() {
-  const { user } = useAuthContext();
-
-  return <RouterProvider router={router} context={{ user }} />;
-}
-
 // Render the app
 const rootElement = document.getElementById("app");
 if (rootElement && !rootElement.innerHTML) {
@@ -44,9 +35,7 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <AuthContextProvider>
-          <InnerApp />
-        </AuthContextProvider>
+        <RouterProvider router={router} />
       </QueryClientProvider>
     </StrictMode>,
   );
