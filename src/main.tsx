@@ -8,11 +8,14 @@ import { routeTree } from "./routeTree.gen";
 
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
+import { authClient } from "./lib/auth-client.ts";
 
 // Create a new router instance
 const router = createRouter({
   routeTree,
-  context: {},
+  context: {
+    session: undefined!,
+  },
   defaultPreload: "intent",
   scrollRestoration: true,
   defaultStructuralSharing: true,
@@ -28,15 +31,27 @@ declare module "@tanstack/react-router" {
 
 const queryClient = new QueryClient();
 
+function App() {
+  const { data, isPending } = authClient.useSession();
+  if (isPending) {
+    // session is used to determine routing, so need to block until it is loaded before rendering the router
+    return <></>;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} context={{ session: data?.session }} />
+    </QueryClientProvider>
+  );
+}
+
 // Render the app
 const rootElement = document.getElementById("app");
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
+      <App />
     </StrictMode>,
   );
 }
