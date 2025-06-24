@@ -1,19 +1,27 @@
 import { Button } from "@/components/ui/button";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { authClient } from "@/lib/auth-client";
+
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/app/")({
   component: RouteComponent,
-  beforeLoad: async () => {
-    const authed = true; // TODO: check if user is authed
-    if (!authed) {
+  beforeLoad: async ({ context }) => {
+    if (!context.session) {
       throw redirect({ to: "/login" });
     }
   },
 });
 
 function RouteComponent() {
+  const { navigate } = useRouter();
   async function signOut() {
-    // TODO: implement
+    try {
+      await authClient.signOut();
+
+      navigate({ to: "/login", reloadDocument: true });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (

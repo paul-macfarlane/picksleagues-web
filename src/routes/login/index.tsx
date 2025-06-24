@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import googleLogo from "@/assets/google.svg";
 import { Link } from "@tanstack/react-router";
+import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login/")({
   component: RouteComponent,
-  beforeLoad: async () => {
-    const authed = false; // TODO: check if user is authed
-    if (authed) {
+  beforeLoad: async ({ context }) => {
+    if (context.session) {
       throw redirect({ to: "/app" });
     }
   },
@@ -16,11 +16,22 @@ export const Route = createFileRoute("/login/")({
 
 function RouteComponent() {
   async function signInWithGoogle() {
-    // TODO: implement
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/post-oauth-callback",
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
-    <div className={"flex min-h-screen items-center justify-center p-4"}>
+    <div
+      className={
+        "flex min-h-screen items-center justify-center p-4 bg-background"
+      }
+    >
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold">
