@@ -9,6 +9,7 @@ import { routeTree } from "./routeTree.gen";
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
 import { authClient } from "./lib/auth-client.ts";
+import { ThemeProvider } from "./components/theme-provider.tsx";
 
 // Create a new router instance
 const router = createRouter({
@@ -40,7 +41,9 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} context={{ session: data?.session }} />
+      <ThemeProvider>
+        <RouterProvider router={router} context={{ session: data?.session }} />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
