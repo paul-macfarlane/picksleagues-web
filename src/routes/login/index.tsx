@@ -28,7 +28,7 @@ function RouteComponent() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/post-oauth-callback",
+        callbackURL: "/api/post-oauth-callback",
       });
     } catch (error) {
       console.error(error);
@@ -39,7 +39,7 @@ function RouteComponent() {
     try {
       await authClient.signIn.social({
         provider: "apple",
-        callbackURL: "/post-oauth-callback",
+        callbackURL: "/api/post-oauth-callback",
       });
     } catch (error) {
       console.error(error);

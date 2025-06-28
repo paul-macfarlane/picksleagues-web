@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WelcomeIndexRouteImport } from './routes/welcome/index'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as HelloIndexRouteImport } from './routes/hello/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const LoginIndexRoute = LoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelloIndexRoute = HelloIndexRouteImport.update({
+  id: '/hello/',
+  path: '/hello/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/app/',
   path: '/app/',
@@ -38,12 +44,14 @@ const AppIndexRoute = AppIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppIndexRoute
+  '/hello': typeof HelloIndexRoute
   '/login': typeof LoginIndexRoute
   '/welcome': typeof WelcomeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppIndexRoute
+  '/hello': typeof HelloIndexRoute
   '/login': typeof LoginIndexRoute
   '/welcome': typeof WelcomeIndexRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app/': typeof AppIndexRoute
+  '/hello/': typeof HelloIndexRoute
   '/login/': typeof LoginIndexRoute
   '/welcome/': typeof WelcomeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/login' | '/welcome'
+  fullPaths: '/' | '/app' | '/hello' | '/login' | '/welcome'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/login' | '/welcome'
-  id: '__root__' | '/' | '/app/' | '/login/' | '/welcome/'
+  to: '/' | '/app' | '/hello' | '/login' | '/welcome'
+  id: '__root__' | '/' | '/app/' | '/hello/' | '/login/' | '/welcome/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppIndexRoute: typeof AppIndexRoute
+  HelloIndexRoute: typeof HelloIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
   WelcomeIndexRoute: typeof WelcomeIndexRoute
 }
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hello/': {
+      id: '/hello/'
+      path: '/hello'
+      fullPath: '/hello'
+      preLoaderRoute: typeof HelloIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/': {
       id: '/app/'
       path: '/app'
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppIndexRoute: AppIndexRoute,
+  HelloIndexRoute: HelloIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
   WelcomeIndexRoute: WelcomeIndexRoute,
 }
