@@ -11,7 +11,7 @@ export const Route = createFileRoute("/login/")({
   component: RouteComponent,
   beforeLoad: async ({ context }) => {
     if (context.session) {
-      throw redirect({ to: "/app" });
+      throw redirect({ to: "/" });
     }
   },
 });
