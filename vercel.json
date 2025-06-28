@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://api.picksleagues.com/api/:path*"
+      "destination": "https://picksleagues.com/api/:path*"
     },
     {
       "source": "/(.*)",
