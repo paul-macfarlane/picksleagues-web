@@ -25,9 +25,11 @@ function RouteComponent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-background gap-4">
+    <div className="flex min-h-screen items-center justify-center p-4 gap-4">
       <p>Hello {session?.user?.name}!</p>
-      <Button onClick={signOut}>Sign out</Button>
+      <Button variant="default" onClick={signOut}>
+        Sign out
+      </Button>
     </div>
   );
 }
