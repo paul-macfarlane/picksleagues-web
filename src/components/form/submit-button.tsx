@@ -2,7 +2,7 @@ import { Button, type ButtonProps } from "../ui/button";
 import { useFormContext } from ".";
 
 type SubmitButtonProps = ButtonProps & {
-  submitError?: string;
+  submiterror?: string;
 };
 
 export function SubmitButton(props: SubmitButtonProps) {
@@ -12,8 +12,8 @@ export function SubmitButton(props: SubmitButtonProps) {
       {(isSubmitting) => (
         <div className={"flex flex-col items-center gap-1.5"}>
           <Button type="submit" disabled={isSubmitting} {...props} />
-          {props.submitError && (
-            <div className="text-destructive text-sm">{props.submitError}</div>
+          {props.submiterror && (
+            <div className="text-destructive text-sm">{props.submiterror}</div>
           )}
         </div>
       )}

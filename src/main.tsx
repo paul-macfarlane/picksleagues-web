@@ -16,6 +16,7 @@ const router = createRouter({
   routeTree,
   context: {
     session: undefined!,
+    queryClient: undefined!,
   },
   defaultPreload: "intent",
   scrollRestoration: true,
@@ -42,7 +43,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <RouterProvider router={router} context={{ session: data?.session }} />
+        <RouterProvider
+          router={router}
+          context={{ session: data?.session, queryClient }}
+        />
       </ThemeProvider>
     </QueryClientProvider>
   );
