@@ -10,6 +10,7 @@ import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
 import { authClient } from "./lib/auth-client.ts";
 import { ThemeProvider } from "./components/theme-provider.tsx";
+import { Toaster } from "@/components/ui/sonner";
 
 // Create a new router instance
 const router = createRouter({
@@ -47,6 +48,7 @@ function App() {
           router={router}
           context={{ session: data?.session, queryClient }}
         />
+        <Toaster />
       </ThemeProvider>
     </QueryClientProvider>
   );

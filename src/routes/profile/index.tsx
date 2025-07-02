@@ -1,4 +1,9 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAppForm } from "@/components/form";
@@ -14,6 +19,7 @@ import {
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { zodValidator } from "@tanstack/zod-adapter";
+import { toast } from "sonner";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
@@ -48,6 +54,7 @@ function RouteComponent() {
   const { data: profileData } = useSuspenseQuery(profileQueryOptions());
   const { mutateAsync: updateProfile } = useUpdateProfile();
   const { setup } = Route.useSearch();
+  const navigate = useNavigate();
 
   const form = useAppForm({
     defaultValues: {
@@ -64,6 +71,12 @@ function RouteComponent() {
         setSubmitError(undefined);
         await updateProfile(values.value);
         queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+        toast.success(
+          setup ? "Profile setup successfully" : "Profile updated successfully",
+        );
+        if (setup) {
+          navigate({ to: "/" });
+        }
       } catch (error: unknown) {
         if (error instanceof Error) {
           setSubmitError(error.message);
