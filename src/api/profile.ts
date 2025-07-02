@@ -18,10 +18,15 @@ async function fetchProfile(): Promise<ProfileResponse> {
 
 export const PROFILE_QUERY_KEY = ["profile"];
 
-export const profileQueryOptions = () =>
+export const profileQueryOptions = (
+  options: {
+    enabled?: boolean;
+  } = {},
+) =>
   queryOptions({
     queryKey: PROFILE_QUERY_KEY,
     queryFn: () => fetchProfile(),
+    enabled: options.enabled ?? true,
   });
 
 const MIN_USERNAME_LENGTH = 3;

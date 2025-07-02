@@ -1,8 +1,8 @@
 import {
   createFileRoute,
-  Link,
   redirect,
   useNavigate,
+  useRouter,
 } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -16,52 +16,72 @@ import {
   useUpdateProfile,
   type UpdateProfileRequest,
 } from "@/api/profile";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
 });
 
+function ProfileLoadingSkeleton() {
+  return <Skeleton className="h-120 w-full max-w-md mx-auto mt-8" />;
+}
+
+function ProfileErrorState() {
+  const { navigate } = useRouter();
+  return (
+    <div className="flex justify-center items-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Unexpected Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center gap-6 py-8">
+            <span className="text-destructive text-center">
+              An unexpected error occurred. Please try again later.
+            </span>
+            <Button variant="outline" onClick={() => navigate({ to: "/" })}>
+              Back to Home
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/profile/")({
   validateSearch: zodValidator(searchSchema),
   component: RouteComponent,
-  errorComponent: () => {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4 p-4">
-        <p>An unexpected error occurred. Please try again later.</p>
 
-        <Button asChild variant="outline">
-          <Link to="/">Back to Home</Link>
-        </Button>
-      </div>
-    );
-  },
   beforeLoad: async ({ context }) => {
     if (!context.session) {
       throw redirect({ to: "/login" });
     }
   },
-  loader: ({ context: { queryClient } }) =>
-    queryClient.ensureQueryData(profileQueryOptions()),
 });
 
 function RouteComponent() {
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
   const queryClient = useQueryClient();
-  const { data: profileData } = useSuspenseQuery(profileQueryOptions());
+  const {
+    data: profileData,
+    isLoading: isLoadingProfile,
+    error: profileError,
+  } = useQuery(profileQueryOptions());
   const { mutateAsync: updateProfile } = useUpdateProfile();
   const { setup } = Route.useSearch();
   const navigate = useNavigate();
 
   const form = useAppForm({
     defaultValues: {
-      username: profileData.username ?? "",
-      firstName: profileData.firstName ?? "",
-      lastName: profileData.lastName ?? "",
-      avatarUrl: profileData.avatarUrl ?? "",
+      username: profileData?.username ?? "",
+      firstName: profileData?.firstName ?? "",
+      lastName: profileData?.lastName ?? "",
+      avatarUrl: profileData?.avatarUrl ?? "",
     } as UpdateProfileRequest,
     validators: {
       onSubmit: updateProfileSchema,
@@ -87,8 +107,16 @@ function RouteComponent() {
     },
   });
 
+  if (isLoadingProfile) {
+    return <ProfileLoadingSkeleton />;
+  }
+
+  if (profileError) {
+    return <ProfileErrorState />;
+  }
+
   return (
-    <div className="flex justify-center items-center min-h-[60vh] p-4">
+    <div className="flex justify-center items-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{setup ? "Setup Profile" : "Edit Profile"}</CardTitle>
@@ -108,13 +136,11 @@ function RouteComponent() {
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="h-20 w-20">
                     <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                    {/* couldn't find a way to add reactivity based on the avatarUrl AND username without re-rendering the entire page compoment using useStore, so setting fallback to A */}
                     <AvatarFallback>A</AvatarFallback>
                   </Avatar>
                 </div>
               )}
             />
-
             <form.AppField
               name="avatarUrl"
               children={(field) => (
@@ -179,7 +205,6 @@ function RouteComponent() {
                 />
               )}
             />
-
             <form.AppForm>
               <form.SubmitButton
                 children={setup ? "Setup Profile" : "Save Changes"}
