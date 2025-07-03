@@ -88,7 +88,6 @@ function RouteComponent() {
     },
     onSubmit: async (values) => {
       try {
-        setSubmitError(undefined);
         await updateProfile(values.value);
         queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
         toast.success(
@@ -128,6 +127,7 @@ function RouteComponent() {
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();
+              setSubmitError(undefined);
             }}
           >
             <form.Subscribe
