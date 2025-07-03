@@ -1,11 +1,62 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  redirect,
+  useNavigate,
+  useRouter,
+} from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useAppForm } from "@/components/form";
+import z from "zod";
+import { useState } from "react";
+import {
+  PROFILE_QUERY_KEY,
+  profileQueryOptions,
+  updateProfileSchema,
+  useUpdateProfile,
+  type UpdateProfileRequest,
+} from "@/api/profile";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { zodValidator } from "@tanstack/zod-adapter";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const searchSchema = z.object({
+  setup: z.boolean().optional(),
+});
+
+function ProfileLoadingSkeleton() {
+  return <Skeleton className="h-120 w-full max-w-md mx-auto mt-8" />;
+}
+
+function ProfileErrorState() {
+  const { navigate } = useRouter();
+  return (
+    <div className="flex justify-center items-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Unexpected Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center gap-6 py-8">
+            <span className="text-destructive text-center">
+              An unexpected error occurred. Please try again later.
+            </span>
+            <Button variant="outline" onClick={() => navigate({ to: "/" })}>
+              Back to Home
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/profile/")({
+  validateSearch: zodValidator(searchSchema),
   component: RouteComponent,
+
   beforeLoad: async ({ context }) => {
     if (!context.session) {
       throw redirect({ to: "/login" });
@@ -13,64 +64,153 @@ export const Route = createFileRoute("/profile/")({
   },
 });
 
-// todo integrate data fetching
-// todo integrate form and validation
-// todo use query params to see if user is editing or setting up for the first time
-
 function RouteComponent() {
+  const [submitError, setSubmitError] = useState<string | undefined>(undefined);
+  const queryClient = useQueryClient();
+  const {
+    data: profileData,
+    isLoading: isLoadingProfile,
+    error: profileError,
+  } = useQuery(profileQueryOptions());
+  const { mutateAsync: updateProfile } = useUpdateProfile();
+  const { setup } = Route.useSearch();
+  const navigate = useNavigate();
+
+  const form = useAppForm({
+    defaultValues: {
+      username: profileData?.username ?? "",
+      firstName: profileData?.firstName ?? "",
+      lastName: profileData?.lastName ?? "",
+      avatarUrl: profileData?.avatarUrl ?? "",
+    } as UpdateProfileRequest,
+    validators: {
+      onSubmit: updateProfileSchema,
+    },
+    onSubmit: async (values) => {
+      try {
+        await updateProfile(values.value);
+        queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+        toast.success(
+          setup ? "Profile setup successfully" : "Profile updated successfully",
+        );
+        if (setup) {
+          navigate({ to: "/" });
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setSubmitError(error.message);
+        } else {
+          setSubmitError("Failed to update profile");
+        }
+      }
+    },
+  });
+
+  if (isLoadingProfile) {
+    return <ProfileLoadingSkeleton />;
+  }
+
+  if (profileError) {
+    return <ProfileErrorState />;
+  }
+
   return (
-    <div className="flex justify-center items-center min-h-[60vh] p-4">
+    <div className="flex justify-center items-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Edit Profile</CardTitle>
+          <CardTitle>{setup ? "Setup Profile" : "Edit Profile"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="flex flex-col gap-6" autoComplete="off">
-            <div className="flex flex-col items-center gap-2">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src="https://placehold.co/80x80" alt="Profile" />
-                <AvatarFallback>AB</AvatarFallback>
-              </Avatar>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="profilePicUrl">Profile Picture URL</label>
-              <Input
-                id="profilePicUrl"
-                placeholder="https://..."
-                value="https://placehold.co/80x80"
-                disabled
+          <form
+            className="flex flex-col gap-6"
+            autoComplete="off"
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit();
+              setSubmitError(undefined);
+            }}
+          >
+            <form.Subscribe
+              selector={(state) => state.values.avatarUrl}
+              children={(avatarUrl) => (
+                <div className="flex flex-col items-center gap-2">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
+                    <AvatarFallback>A</AvatarFallback>
+                  </Avatar>
+                </div>
+              )}
+            />
+            <form.AppField
+              name="avatarUrl"
+              children={(field) => (
+                <field.TextField
+                  labelProps={{
+                    htmlFor: "avatarUrl",
+                    children: "Avatar URL",
+                  }}
+                  inputProps={{
+                    id: "avatarUrl",
+                    placeholder: "https://...",
+                    type: "url",
+                  }}
+                />
+              )}
+            />
+            <form.AppField
+              name="username"
+              children={(field) => (
+                <field.TextField
+                  labelProps={{
+                    htmlFor: "username",
+                    children: "Username",
+                  }}
+                  inputProps={{
+                    id: "username",
+                    placeholder: "username",
+                    type: "text",
+                  }}
+                />
+              )}
+            />
+            <form.AppField
+              name="firstName"
+              children={(field) => (
+                <field.TextField
+                  labelProps={{
+                    htmlFor: "firstName",
+                    children: "First Name",
+                  }}
+                  inputProps={{
+                    id: "firstName",
+                    placeholder: "First Name",
+                    type: "text",
+                  }}
+                />
+              )}
+            />
+            <form.AppField
+              name="lastName"
+              children={(field) => (
+                <field.TextField
+                  labelProps={{
+                    htmlFor: "lastName",
+                    children: "Last Name",
+                  }}
+                  inputProps={{
+                    id: "lastName",
+                    placeholder: "Last Name",
+                    type: "text",
+                  }}
+                />
+              )}
+            />
+            <form.AppForm>
+              <form.SubmitButton
+                children={setup ? "Setup Profile" : "Save Changes"}
+                submiterror={submitError}
               />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="username">Username</label>
-              <Input
-                id="username"
-                placeholder="username"
-                value="johndoe"
-                disabled
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="firstname">First Name</label>
-              <Input
-                id="firstname"
-                placeholder="First Name"
-                value="John"
-                disabled
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="lastname">Last Name</label>
-              <Input
-                id="lastname"
-                placeholder="Last Name"
-                value="Doe"
-                disabled
-              />
-            </div>
-            <Button type="submit" className="mt-2" disabled>
-              Save Changes
-            </Button>
+            </form.AppForm>
           </form>
         </CardContent>
       </Card>
