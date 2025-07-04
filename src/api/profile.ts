@@ -30,7 +30,7 @@ export const profileQueryOptions = (
   });
 
 const MIN_USERNAME_LENGTH = 3;
-const MAX_USERNAME_LENGTH = 20;
+const MAX_USERNAME_LENGTH = 50;
 const MIN_NAME_LENGTH = 1;
 const MAX_NAME_LENGTH = 50;
 
