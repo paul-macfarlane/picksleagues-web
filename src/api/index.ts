@@ -8,7 +8,7 @@ export async function unauthenticatedFetch<T>(
     ...options,
   });
 
-  detectAndThrowError(response);
+  await detectAndThrowError(response);
 
   return (await response.json()) as T;
 }
@@ -22,24 +22,30 @@ export async function authenticatedFetch<T>(
     ...options,
   });
 
-  detectAndThrowError(response);
+  await detectAndThrowError(response);
 
   return (await response.json()) as T;
 }
 
-function detectAndThrowError(response: Response) {
+type ErrorResponse = {
+  error: string;
+};
+
+async function detectAndThrowError(response: Response) {
   if (!response.ok) {
+    const errorResponse = (await response.json()) as ErrorResponse;
+
     switch (response.status) {
       case 400:
-        throw new BadRequestError(response.statusText);
+        throw new BadRequestError(errorResponse.error);
       case 401:
-        throw new UnauthorizedError(response.statusText);
+        throw new UnauthorizedError(errorResponse.error);
       case 403:
-        throw new ForbiddenError(response.statusText);
+        throw new ForbiddenError(errorResponse.error);
       case 404:
-        throw new NotFoundError(response.statusText);
+        throw new NotFoundError(errorResponse.error);
       default:
-        throw new InternalServerError(response.statusText);
+        throw new InternalServerError(errorResponse.error);
     }
   }
 }
