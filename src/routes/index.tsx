@@ -10,9 +10,5 @@ export const Route = createFileRoute("/")({
 });
 
 function RouteComponent() {
-  return (
-    <div className="flex h-full items-center justify-center p-4 gap-4">
-      <p>TODO: Home page</p>
-    </div>
-  );
+  return <div>Hello "/"!</div>;
 }
