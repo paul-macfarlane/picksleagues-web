@@ -12,7 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
-import { Route as FootballPickemRouteImport } from './routes/football/pickem'
+import { Route as FootballPickemIndexRouteImport } from './routes/football/pickem/index'
+import { Route as FootballPickemCreateRouteImport } from './routes/football/pickem/create'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,44 +30,69 @@ const LoginIndexRoute = LoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FootballPickemRoute = FootballPickemRouteImport.update({
-  id: '/football/pickem',
-  path: '/football/pickem',
+const FootballPickemIndexRoute = FootballPickemIndexRouteImport.update({
+  id: '/football/pickem/',
+  path: '/football/pickem/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FootballPickemCreateRoute = FootballPickemCreateRouteImport.update({
+  id: '/football/pickem/create',
+  path: '/football/pickem/create',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/football/pickem': typeof FootballPickemRoute
   '/login': typeof LoginIndexRoute
   '/profile': typeof ProfileIndexRoute
+  '/football/pickem/create': typeof FootballPickemCreateRoute
+  '/football/pickem': typeof FootballPickemIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/football/pickem': typeof FootballPickemRoute
   '/login': typeof LoginIndexRoute
   '/profile': typeof ProfileIndexRoute
+  '/football/pickem/create': typeof FootballPickemCreateRoute
+  '/football/pickem': typeof FootballPickemIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/football/pickem': typeof FootballPickemRoute
   '/login/': typeof LoginIndexRoute
   '/profile/': typeof ProfileIndexRoute
+  '/football/pickem/create': typeof FootballPickemCreateRoute
+  '/football/pickem/': typeof FootballPickemIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/football/pickem' | '/login' | '/profile'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/profile'
+    | '/football/pickem/create'
+    | '/football/pickem'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/football/pickem' | '/login' | '/profile'
-  id: '__root__' | '/' | '/football/pickem' | '/login/' | '/profile/'
+  to:
+    | '/'
+    | '/login'
+    | '/profile'
+    | '/football/pickem/create'
+    | '/football/pickem'
+  id:
+    | '__root__'
+    | '/'
+    | '/login/'
+    | '/profile/'
+    | '/football/pickem/create'
+    | '/football/pickem/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  FootballPickemRoute: typeof FootballPickemRoute
   LoginIndexRoute: typeof LoginIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
+  FootballPickemCreateRoute: typeof FootballPickemCreateRoute
+  FootballPickemIndexRoute: typeof FootballPickemIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,11 +118,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/football/pickem': {
-      id: '/football/pickem'
+    '/football/pickem/': {
+      id: '/football/pickem/'
       path: '/football/pickem'
       fullPath: '/football/pickem'
-      preLoaderRoute: typeof FootballPickemRouteImport
+      preLoaderRoute: typeof FootballPickemIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/football/pickem/create': {
+      id: '/football/pickem/create'
+      path: '/football/pickem/create'
+      fullPath: '/football/pickem/create'
+      preLoaderRoute: typeof FootballPickemCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -104,9 +137,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  FootballPickemRoute: FootballPickemRoute,
   LoginIndexRoute: LoginIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
+  FootballPickemCreateRoute: FootballPickemCreateRoute,
+  FootballPickemIndexRoute: FootballPickemIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

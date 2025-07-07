@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/football/pickem")({
+// todo, a bit pedantic, but this should probably be /pick-em
+export const Route = createFileRoute("/football/pickem/")({
   component: RouteComponent,
 });
 
