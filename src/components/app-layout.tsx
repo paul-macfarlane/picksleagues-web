@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -23,11 +23,29 @@ import { useTheme } from "@/components/theme-provider";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Trophy } from "lucide-react";
+import {
+  Trophy,
+  Home,
+  ClipboardList,
+  Menu as MenuIcon,
+  Icon,
+  UserX,
+  CheckSquare,
+  UserRound,
+} from "lucide-react";
+import { football } from "@lucide/lab";
 import { useQuery } from "@tanstack/react-query";
 import { profileQueryOptions } from "@/api/profile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@tanstack/react-router";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 
 function ProfileMenuSkeleton() {
   return (
@@ -48,37 +66,118 @@ function ProfileMenuError() {
 }
 
 function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   return (
     <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
-      <div className="container mx-auto px-4 flex h-16 items-center justify-between gap-2">
-        <div className="flex items-center">
+      <div className="flex justify-between items-center h-16 w-full px-4">
+        <div className="md:hidden flex items-center">
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="mr-2"
+                onClick={() => setIsSheetOpen(!isSheetOpen)}
+              >
+                <MenuIcon className="w-6 h-6" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+                <SheetDescription>Choose your game.</SheetDescription>
+              </SheetHeader>
+              <nav className="flex flex-col gap-2 p-4">
+                <Link
+                  to="/"
+                  className="flex items-center gap-2 rounded hover:bg-accent"
+                  onClick={() => setIsSheetOpen(false)}
+                >
+                  <Home className="w-5 h-5 text-primary" /> Home
+                </Link>
+                <div className="mt-2">
+                  <div className="flex items-center gap-2 font-semibold mb-1">
+                    <Icon
+                      iconNode={football}
+                      className="w-5 h-5 text-primary"
+                    />{" "}
+                    Football
+                  </div>
+                  <div className="flex flex-col gap-1 pl-6">
+                    <Link
+                      to="/football/pick-em"
+                      className="flex items-center gap-2 py-2 px-2 rounded"
+                      onClick={() => setIsSheetOpen(false)}
+                    >
+                      <CheckSquare className="w-4 h-4 text-primary" /> Pick'em
+                    </Link>
+                    <div className="flex items-center gap-2 py-2 px-2 rounded text-muted-foreground">
+                      <UserX className="w-4 h-4 text-primary" /> Elimination
+                      Pools (coming soon)
+                    </div>
+                    <div className="flex items-center gap-2 py-2 px-2 rounded text-muted-foreground">
+                      <ClipboardList className="w-4 h-4 text-primary" /> Team
+                      Drafts (coming soon)
+                    </div>
+                  </div>
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="hidden md:flex items-center">
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="md:hidden">
-                  Menu
-                </NavigationMenuTrigger>
-                <NavigationMenuTrigger className="hidden md:inline-flex">
-                  Menu
+                <NavigationMenuLink className="flex" asChild>
+                  <Link
+                    to="/"
+                    className="flex flex-row items-center gap-1 px-2 py-1"
+                  >
+                    <Home className="w-5 h-5 text-primary" />
+                    <span>Home</span>
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="flex items-center gap-1">
+                  <Icon iconNode={football} className="w-5 h-5 text-primary" />
+                  <span>Football</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="flex flex-col min-w-[180px]">
+                  <div className="flex flex-col min-w-[200px]">
                     <NavigationMenuLink asChild>
-                      <Link to="/">Home</Link>
+                      <Link
+                        to="/football/pick-em"
+                        className="flex flex-row items-center gap-2 px-3 py-2"
+                      >
+                        <CheckSquare className="w-4 h-4 text-primary" /> Pick'em
+                      </Link>
                     </NavigationMenuLink>
+                    <div className="flex items-center gap-2 px-3 py-2 text-muted-foreground">
+                      <UserX className="w-4 h-4 text-primary" /> Elimination
+                      Pools (coming soon)
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 text-muted-foreground">
+                      <ClipboardList className="w-4 h-4 text-primary" /> Team
+                      Drafts (coming soon)
+                    </div>
                   </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
         </div>
-        <div className="flex-1 flex justify-center items-center text-primary">
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
           <span className="font-bold text-lg select-none flex items-center gap-2">
             Picks Leagues
-            <Trophy className="w-8 h-8" />
+            <Trophy className="w-8 h-8 text-primary" />
           </span>
         </div>
-        {rightContent}
+        <div className="flex items-center">{rightContent}</div>
       </div>
     </nav>
   );
@@ -133,7 +232,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
                   alt={profileData?.username ?? "Profile"}
                 />
                 <AvatarFallback>
-                  {profileData?.username?.[0] || "A"}
+                  <UserRound className="w-4 h-4 text-primary" />
                 </AvatarFallback>
               </Avatar>
             </Button>

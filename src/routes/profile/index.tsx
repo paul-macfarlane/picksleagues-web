@@ -21,6 +21,7 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UserRound } from "lucide-react";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
@@ -123,7 +124,6 @@ function RouteComponent() {
         <CardContent>
           <form
             className="flex flex-col gap-6"
-            autoComplete="off"
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();
@@ -136,7 +136,9 @@ function RouteComponent() {
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="h-20 w-20">
                     <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                    <AvatarFallback>A</AvatarFallback>
+                    <AvatarFallback>
+                      <UserRound className="w-4 h-4 text-primary" />
+                    </AvatarFallback>
                   </Avatar>
                 </div>
               )}

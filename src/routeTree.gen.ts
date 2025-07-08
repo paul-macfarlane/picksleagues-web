@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as FootballPickEmIndexRouteImport } from './routes/football/pick-em/index'
+import { Route as FootballPickEmCreateRouteImport } from './routes/football/pick-em/create'
+import { Route as FootballPickEmLeagueIdRouteImport } from './routes/football/pick-em/$leagueId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +31,81 @@ const LoginIndexRoute = LoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FootballPickEmIndexRoute = FootballPickEmIndexRouteImport.update({
+  id: '/football/pick-em/',
+  path: '/football/pick-em/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FootballPickEmCreateRoute = FootballPickEmCreateRouteImport.update({
+  id: '/football/pick-em/create',
+  path: '/football/pick-em/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FootballPickEmLeagueIdRoute = FootballPickEmLeagueIdRouteImport.update({
+  id: '/football/pick-em/$leagueId',
+  path: '/football/pick-em/$leagueId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginIndexRoute
   '/profile': typeof ProfileIndexRoute
+  '/football/pick-em/$leagueId': typeof FootballPickEmLeagueIdRoute
+  '/football/pick-em/create': typeof FootballPickEmCreateRoute
+  '/football/pick-em': typeof FootballPickEmIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginIndexRoute
   '/profile': typeof ProfileIndexRoute
+  '/football/pick-em/$leagueId': typeof FootballPickEmLeagueIdRoute
+  '/football/pick-em/create': typeof FootballPickEmCreateRoute
+  '/football/pick-em': typeof FootballPickEmIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login/': typeof LoginIndexRoute
   '/profile/': typeof ProfileIndexRoute
+  '/football/pick-em/$leagueId': typeof FootballPickEmLeagueIdRoute
+  '/football/pick-em/create': typeof FootballPickEmCreateRoute
+  '/football/pick-em/': typeof FootballPickEmIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/profile'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/profile'
+    | '/football/pick-em/$leagueId'
+    | '/football/pick-em/create'
+    | '/football/pick-em'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/profile'
-  id: '__root__' | '/' | '/login/' | '/profile/'
+  to:
+    | '/'
+    | '/login'
+    | '/profile'
+    | '/football/pick-em/$leagueId'
+    | '/football/pick-em/create'
+    | '/football/pick-em'
+  id:
+    | '__root__'
+    | '/'
+    | '/login/'
+    | '/profile/'
+    | '/football/pick-em/$leagueId'
+    | '/football/pick-em/create'
+    | '/football/pick-em/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
+  FootballPickEmLeagueIdRoute: typeof FootballPickEmLeagueIdRoute
+  FootballPickEmCreateRoute: typeof FootballPickEmCreateRoute
+  FootballPickEmIndexRoute: typeof FootballPickEmIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +131,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/football/pick-em/': {
+      id: '/football/pick-em/'
+      path: '/football/pick-em'
+      fullPath: '/football/pick-em'
+      preLoaderRoute: typeof FootballPickEmIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/football/pick-em/create': {
+      id: '/football/pick-em/create'
+      path: '/football/pick-em/create'
+      fullPath: '/football/pick-em/create'
+      preLoaderRoute: typeof FootballPickEmCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/football/pick-em/$leagueId': {
+      id: '/football/pick-em/$leagueId'
+      path: '/football/pick-em/$leagueId'
+      fullPath: '/football/pick-em/$leagueId'
+      preLoaderRoute: typeof FootballPickEmLeagueIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +159,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginIndexRoute: LoginIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
+  FootballPickEmLeagueIdRoute: FootballPickEmLeagueIdRoute,
+  FootballPickEmCreateRoute: FootballPickEmCreateRoute,
+  FootballPickEmIndexRoute: FootballPickEmIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
