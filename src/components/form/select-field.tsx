@@ -6,6 +6,9 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
+  type SelectProps,
+  type SelectContentProps,
+  type SelectTriggerProps,
 } from "@/components/ui/select";
 
 // todo update props here to get props from the select component
@@ -17,9 +20,12 @@ export type SelectFieldOption = {
 
 export type SelectFieldProps = {
   labelProps?: LabelProps;
-  selectProps?: React.ComponentProps<typeof Select>;
+  selectProps?: SelectProps;
+  selectContentProps?: SelectContentProps;
+  selectTriggerProps?: SelectTriggerProps;
   options: SelectFieldOption[];
   placeholder?: string;
+  externalError?: string;
 };
 
 export function SelectField({
@@ -27,6 +33,9 @@ export function SelectField({
   selectProps,
   options,
   placeholder = "Select an option",
+  externalError,
+  selectContentProps,
+  selectTriggerProps,
 }: SelectFieldProps) {
   const field = useFieldContext<string>();
   return (
@@ -38,12 +47,13 @@ export function SelectField({
         onValueChange={field.handleChange}
       >
         <SelectTrigger
+          {...selectTriggerProps}
           aria-invalid={field.state.meta.errors.length > 0}
           className="w-full"
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent {...selectContentProps}>
           {options.map((opt) => (
             <SelectItem
               key={opt.value}
@@ -55,9 +65,10 @@ export function SelectField({
           ))}
         </SelectContent>
       </Select>
-      {field.state.meta.errors.length > 0 && (
+      {(externalError || field.state.meta.errors.length > 0) && (
         <div className="text-destructive text-sm">
-          {field.state.meta.errors.map((error) => error.message).join(", ")}
+          {externalError ||
+            field.state.meta.errors.map((error) => error.message).join(", ")}
         </div>
       )}
     </div>

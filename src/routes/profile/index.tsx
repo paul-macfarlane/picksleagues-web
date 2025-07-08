@@ -123,7 +123,6 @@ function RouteComponent() {
         <CardContent>
           <form
             className="flex flex-col gap-6"
-            autoComplete="off"
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();

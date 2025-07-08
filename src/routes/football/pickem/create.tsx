@@ -3,8 +3,9 @@ import {
   phaseTemplatesByLeagueTypeQueryOptions,
 } from "@/api/leagueTypes";
 import {
-  createLeague,
+  useCreateLeague,
   createPickEmLeagueSchema,
+  MIN_PICKS_PER_PHASE,
   type CreatePickEmLeague,
 } from "@/api/leagues";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +16,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-// Enum values for selects
 import {
   LEAGUE_VISIBILITIES,
   MIN_LEAGUE_SIZE,
@@ -39,29 +39,47 @@ function RouteComponent() {
     phaseTemplatesByLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
   );
 
+  const { mutateAsync: createLeague } = useCreateLeague<CreatePickEmLeague>();
+
   const form = useAppForm({
     defaultValues: {
       name: "",
       image: "",
       leagueTypeSlug: LEAGUE_TYPE_SLUGS.PICK_EM,
-      startPhaseTemplateId: "",
-      endPhaseTemplateId: "",
+      startPhaseTemplateId: phaseTemplates?.[0]?.id ?? "",
+      endPhaseTemplateId: phaseTemplates?.at(-1)?.id ?? "",
       visibility: LEAGUE_VISIBILITIES.PRIVATE,
       size: MIN_LEAGUE_SIZE,
-      settings: { picksPerPhase: 1 },
+      settings: { picksPerPhase: Number(MIN_PICKS_PER_PHASE) },
     } as CreatePickEmLeague,
     validators: {
       onSubmit: createPickEmLeagueSchema,
     },
     onSubmit: async (values) => {
+      const startPhaseTemplate = phaseTemplates?.find(
+        (pt) => pt.id === values.value.startPhaseTemplateId,
+      );
+      const endPhaseTemplate = phaseTemplates?.find(
+        (pt) => pt.id === values.value.endPhaseTemplateId,
+      );
+      if (
+        startPhaseTemplate?.sequence &&
+        endPhaseTemplate?.sequence &&
+        startPhaseTemplate.sequence > endPhaseTemplate.sequence
+      ) {
+        setSubmitError("Start week must be before end week");
+        return;
+      }
+
       setSubmitError(undefined);
       setIsSubmitting(true);
       try {
-        // todo this should probably use a mutation hook
-        await createLeague(values.value);
+        const league = await createLeague(values.value);
         toast.success("League created successfully!");
-        // todo this would navigate to the league page itself
-        navigate({ to: "/" });
+        navigate({
+          to: "/football/pickem/$leagueId",
+          params: { leagueId: league.id },
+        });
       } catch (error: unknown) {
         if (error instanceof Error) {
           setSubmitError(error.message);
@@ -74,23 +92,6 @@ function RouteComponent() {
     },
   });
 
-  if (isLoadingPhaseTemplates) {
-    return (
-      <div className="flex justify-center items-center p-4">
-        Loading phase templates...
-      </div>
-    );
-  }
-  if (isErrorPhaseTemplates) {
-    return (
-      <div className="flex justify-center items-center p-4 text-destructive">
-        Error loading phase templates:{" "}
-        {phaseTemplatesError?.message || "Unknown error"}
-      </div>
-    );
-  }
-
-  // Responsive grid: 1 col on mobile, 2 cols on md+
   return (
     <div className="flex justify-center items-center p-4">
       <Card className="w-full max-w-2xl">
@@ -100,16 +101,13 @@ function RouteComponent() {
         <CardContent>
           <form
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            autoComplete="off"
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();
             }}
           >
-            {/* League Name + Avatar + Image URL (row) */}
             <div className="col-span-1 md:col-span-2">
               <div className="flex flex-col md:flex-row gap-6 items-start w-full">
-                {/* League Name */}
                 <div className="w-full md:w-1/2">
                   <form.AppField
                     name="name"
@@ -128,7 +126,6 @@ function RouteComponent() {
                     )}
                   />
                 </div>
-                {/* Avatar + Image URL */}
                 <div className="w-full md:w-1/2">
                   <div className="flex w-full items-start gap-2">
                     <div className="flex-1">
@@ -165,15 +162,25 @@ function RouteComponent() {
                 </div>
               </div>
             </div>
-            {/* Start Phase Template */}
             <div className="col-span-1">
               <form.AppField
                 name="startPhaseTemplateId"
                 children={(field) => (
                   <field.SelectField
+                    externalError={
+                      isErrorPhaseTemplates
+                        ? phaseTemplatesError?.message
+                        : undefined
+                    }
+                    selectProps={{
+                      disabled: isLoadingPhaseTemplates,
+                    }}
+                    selectTriggerProps={{
+                      id: "startPhaseTemplateId",
+                    }}
                     labelProps={{
                       htmlFor: "startPhaseTemplateId",
-                      children: "Start Phase",
+                      children: "Start Week",
                     }}
                     options={
                       phaseTemplates?.map((pt) => ({
@@ -181,20 +188,30 @@ function RouteComponent() {
                         label: pt.label,
                       })) ?? []
                     }
-                    placeholder="Select start phase"
+                    placeholder="Select start week"
                   />
                 )}
               />
             </div>
-            {/* End Phase Template */}
             <div className="col-span-1">
               <form.AppField
                 name="endPhaseTemplateId"
                 children={(field) => (
                   <field.SelectField
+                    externalError={
+                      isErrorPhaseTemplates
+                        ? phaseTemplatesError?.message
+                        : undefined
+                    }
+                    selectProps={{
+                      disabled: isLoadingPhaseTemplates,
+                    }}
+                    selectTriggerProps={{
+                      id: "endPhaseTemplateId",
+                    }}
                     labelProps={{
                       htmlFor: "endPhaseTemplateId",
-                      children: "End Phase",
+                      children: "End Week",
                     }}
                     options={
                       phaseTemplates?.map((pt) => ({
@@ -202,12 +219,11 @@ function RouteComponent() {
                         label: pt.label,
                       })) ?? []
                     }
-                    placeholder="Select end phase"
+                    placeholder="Select end week"
                   />
                 )}
               />
             </div>
-            {/* Visibility */}
             <div className="col-span-1">
               <form.AppField
                 name="visibility"
@@ -216,6 +232,9 @@ function RouteComponent() {
                     labelProps={{
                       htmlFor: "visibility",
                       children: "Visibility",
+                    }}
+                    selectTriggerProps={{
+                      id: "visibility",
                     }}
                     options={[
                       ...Object.values(LEAGUE_VISIBILITIES).map((v) => ({
@@ -233,25 +252,29 @@ function RouteComponent() {
                 )}
               />
             </div>
-            {/* League Size */}
             <div className="col-span-1">
               <form.AppField
                 name="size"
                 children={(field) => (
                   <field.TextField
-                    labelProps={{ htmlFor: "size", children: "League Size" }}
+                    labelProps={{
+                      htmlFor: "size",
+                      children: "League Size",
+                    }}
                     inputProps={{
                       id: "size",
                       type: "number",
+                      placeholder: MIN_LEAGUE_SIZE.toString(),
                       min: MIN_LEAGUE_SIZE,
                       max: MAX_LEAGUE_SIZE,
                       className: "w-full",
+                      onChange: (e) =>
+                        field.handleChange(Number(e.target.value)),
                     }}
                   />
                 )}
               />
             </div>
-            {/* Picks Per Phase (settings) */}
             <div className="col-span-1">
               <form.AppField
                 name="settings.picksPerPhase"
@@ -264,15 +287,16 @@ function RouteComponent() {
                     inputProps={{
                       id: "picksPerPhase",
                       type: "number",
-                      min: 1,
-                      max: 16,
+                      placeholder: MIN_PICKS_PER_PHASE.toString(),
+                      min: MIN_PICKS_PER_PHASE,
                       className: "w-full",
+                      onChange: (e) =>
+                        field.handleChange(Number(e.target.value)),
                     }}
                   />
                 )}
               />
             </div>
-            {/* Submit button (full width) */}
             <div className="col-span-1 md:col-span-2 flex flex-col items-center gap-2">
               <form.AppForm>
                 <form.SubmitButton

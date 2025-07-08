@@ -67,9 +67,11 @@ function ProfileMenuError() {
 function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
+  // todo navbar is a bit messed up, will need to fix this
+
   return (
     <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
-      <div className="container mx-auto px-4 flex h-16 items-center justify-between gap-2">
+      <div className="flex justify-between items-center h-16 w-full px-4">
         <div className="md:hidden flex items-center">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
@@ -166,13 +168,13 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
             </NavigationMenuList>
           </NavigationMenu>
         </div>
-        <div className="flex-1 flex justify-center items-center text-primary">
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center text-primary">
           <span className="font-bold text-lg select-none flex items-center gap-2">
             Picks Leagues
             <Trophy className="w-8 h-8" />
           </span>
         </div>
-        {rightContent}
+        <div className="flex items-center">{rightContent}</div>
       </div>
     </nav>
   );
