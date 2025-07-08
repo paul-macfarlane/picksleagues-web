@@ -50,9 +50,9 @@ function RouteComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader className="space-y-3 text-primary">
+        <CardHeader className="space-y-3">
           <div className="flex justify-center">
-            <Trophy className="h-12 w-12" />
+            <Trophy className="h-12 w-12 text-primary" />
           </div>
           <CardTitle className="text-center text-2xl font-bold">
             Sign in to Picks Leagues

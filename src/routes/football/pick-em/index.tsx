@@ -128,7 +128,7 @@ function RouteComponent() {
                         alt={league.name}
                       />
                       <AvatarFallback>
-                        <Trophy className="h-5 w-5" />
+                        <Trophy className="h-5 w-5 text-primary" />
                       </AvatarFallback>
                     </Avatar>
                   </div>

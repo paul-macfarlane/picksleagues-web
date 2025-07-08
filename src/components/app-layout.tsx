@@ -31,6 +31,7 @@ import {
   Icon,
   UserX,
   CheckSquare,
+  UserRound,
 } from "lucide-react";
 import { football } from "@lucide/lab";
 import { useQuery } from "@tanstack/react-query";
@@ -94,11 +95,15 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
                   className="flex items-center gap-2 rounded hover:bg-accent"
                   onClick={() => setIsSheetOpen(false)}
                 >
-                  <Home className="w-5 h-5" /> Home
+                  <Home className="w-5 h-5 text-primary" /> Home
                 </Link>
                 <div className="mt-2">
                   <div className="flex items-center gap-2 font-semibold mb-1">
-                    <Icon iconNode={football} className="w-5 h-5" /> Football
+                    <Icon
+                      iconNode={football}
+                      className="w-5 h-5 text-primary"
+                    />{" "}
+                    Football
                   </div>
                   <div className="flex flex-col gap-1 pl-6">
                     <Link
@@ -106,15 +111,15 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
                       className="flex items-center gap-2 py-2 px-2 rounded"
                       onClick={() => setIsSheetOpen(false)}
                     >
-                      <CheckSquare className="w-4 h-4" /> Pick'em
+                      <CheckSquare className="w-4 h-4 text-primary" /> Pick'em
                     </Link>
                     <div className="flex items-center gap-2 py-2 px-2 rounded text-muted-foreground">
-                      <UserX className="w-4 h-4" /> Elimination Pools (coming
-                      soon)
+                      <UserX className="w-4 h-4 text-primary" /> Elimination
+                      Pools (coming soon)
                     </div>
                     <div className="flex items-center gap-2 py-2 px-2 rounded text-muted-foreground">
-                      <ClipboardList className="w-4 h-4" /> Team Drafts (coming
-                      soon)
+                      <ClipboardList className="w-4 h-4 text-primary" /> Team
+                      Drafts (coming soon)
                     </div>
                   </div>
                 </div>
@@ -132,14 +137,14 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
                     to="/"
                     className="flex flex-row items-center gap-1 px-2 py-1"
                   >
-                    <Home className="w-5 h-5" />
+                    <Home className="w-5 h-5 text-primary" />
                     <span>Home</span>
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuTrigger className="flex items-center gap-1">
-                  <Icon iconNode={football} className="w-5 h-5" />
+                  <Icon iconNode={football} className="w-5 h-5 text-primary" />
                   <span>Football</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -149,16 +154,16 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
                         to="/football/pick-em"
                         className="flex flex-row items-center gap-2 px-3 py-2"
                       >
-                        <CheckSquare className="w-4 h-4" /> Pick'em
+                        <CheckSquare className="w-4 h-4 text-primary" /> Pick'em
                       </Link>
                     </NavigationMenuLink>
                     <div className="flex items-center gap-2 px-3 py-2 text-muted-foreground">
-                      <UserX className="w-4 h-4" /> Elimination Pools (coming
-                      soon)
+                      <UserX className="w-4 h-4 text-primary" /> Elimination
+                      Pools (coming soon)
                     </div>
                     <div className="flex items-center gap-2 px-3 py-2 text-muted-foreground">
-                      <ClipboardList className="w-4 h-4" /> Team Drafts (coming
-                      soon)
+                      <ClipboardList className="w-4 h-4 text-primary" /> Team
+                      Drafts (coming soon)
                     </div>
                   </div>
                 </NavigationMenuContent>
@@ -166,10 +171,10 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
             </NavigationMenuList>
           </NavigationMenu>
         </div>
-        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center text-primary">
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
           <span className="font-bold text-lg select-none flex items-center gap-2">
             Picks Leagues
-            <Trophy className="w-8 h-8" />
+            <Trophy className="w-8 h-8 text-primary" />
           </span>
         </div>
         <div className="flex items-center">{rightContent}</div>
@@ -227,7 +232,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
                   alt={profileData?.username ?? "Profile"}
                 />
                 <AvatarFallback>
-                  {profileData?.username?.[0] || "A"}
+                  <UserRound className="w-4 h-4 text-primary" />
                 </AvatarFallback>
               </Avatar>
             </Button>

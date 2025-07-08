@@ -24,6 +24,7 @@ import {
   MIN_LEAGUE_SIZE,
   MAX_LEAGUE_SIZE,
 } from "@/api/leagues";
+import { Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/football/pick-em/create")({
   component: RouteComponent,
@@ -165,7 +166,9 @@ function RouteComponent() {
                             src={imageUrl || undefined}
                             alt="League preview"
                           />
-                          <AvatarFallback>L</AvatarFallback>
+                          <AvatarFallback>
+                            <Trophy className="w-4 h-4 text-primary" />
+                          </AvatarFallback>
                         </Avatar>
                       )}
                     />
