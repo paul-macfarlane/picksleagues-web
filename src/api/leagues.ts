@@ -6,15 +6,26 @@ import { useMutation } from "@tanstack/react-query";
 export const MIN_PICKS_PER_PHASE = 1;
 export const MAX_PICKS_PER_PHASE = 16;
 
+export enum PICK_EM_PICK_TYPES {
+  SPREAD = "spread",
+  STRAIGHT_UP = "straight-up",
+}
+
+export const PICK_EM_PICK_TYPE_LABELS = {
+  [PICK_EM_PICK_TYPES.STRAIGHT_UP]: "Straight Up",
+  [PICK_EM_PICK_TYPES.SPREAD]: "Against the Spread",
+};
+
 export const pickEmLeagueSettingsSchema = z.object({
   picksPerPhase: z
     .number()
     .min(MIN_PICKS_PER_PHASE, {
-      message: `Picks per phase must be at least ${MIN_PICKS_PER_PHASE}`,
+      message: `Picks per week must be at least ${MIN_PICKS_PER_PHASE}`,
     })
     .max(MAX_PICKS_PER_PHASE, {
-      message: `Picks per phase must be at most ${MAX_PICKS_PER_PHASE}`,
+      message: `Picks per week must be at most ${MAX_PICKS_PER_PHASE}`,
     }),
+  pickType: z.enum([PICK_EM_PICK_TYPES.STRAIGHT_UP, PICK_EM_PICK_TYPES.SPREAD]),
 });
 
 export type PickEmLeagueSettings = z.infer<typeof pickEmLeagueSettingsSchema>;

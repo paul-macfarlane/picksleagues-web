@@ -6,6 +6,7 @@ import appleBlack from "@/assets/apple-black.svg";
 import appleWhite from "@/assets/apple-white.svg";
 import { authClient } from "@/lib/auth-client";
 import { useTheme } from "@/components/theme-provider";
+import { Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/login/")({
   component: RouteComponent,
@@ -49,7 +50,10 @@ function RouteComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader>
+        <CardHeader className="space-y-3 text-primary">
+          <div className="flex justify-center">
+            <Trophy className="h-12 w-12" />
+          </div>
           <CardTitle className="text-center text-2xl font-bold">
             Sign in to Picks Leagues
           </CardTitle>

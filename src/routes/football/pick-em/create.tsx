@@ -1,5 +1,6 @@
 import {
   LEAGUE_TYPE_SLUGS,
+  MY_LEAGUES_FOR_LEAGUE_TYPE_QUERY_KEY,
   phaseTemplatesByLeagueTypeQueryOptions,
 } from "@/api/leagueTypes";
 import {
@@ -7,8 +8,10 @@ import {
   createPickEmLeagueSchema,
   MIN_PICKS_PER_PHASE,
   type CreatePickEmLeague,
+  PICK_EM_PICK_TYPES,
+  PICK_EM_PICK_TYPE_LABELS,
 } from "@/api/leagues";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useAppForm } from "@/components/form";
@@ -38,8 +41,8 @@ function RouteComponent() {
   } = useQuery(
     phaseTemplatesByLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
   );
-
   const { mutateAsync: createLeague } = useCreateLeague<CreatePickEmLeague>();
+  const queryClient = useQueryClient();
 
   const form = useAppForm({
     defaultValues: {
@@ -50,7 +53,10 @@ function RouteComponent() {
       endPhaseTemplateId: phaseTemplates?.at(-1)?.id ?? "",
       visibility: LEAGUE_VISIBILITIES.PRIVATE,
       size: MIN_LEAGUE_SIZE,
-      settings: { picksPerPhase: Number(MIN_PICKS_PER_PHASE) },
+      settings: {
+        picksPerPhase: Number(MIN_PICKS_PER_PHASE),
+        pickType: PICK_EM_PICK_TYPES.SPREAD,
+      },
     } as CreatePickEmLeague,
     validators: {
       onSubmit: createPickEmLeagueSchema,
@@ -76,8 +82,13 @@ function RouteComponent() {
       try {
         const league = await createLeague(values.value);
         toast.success("League created successfully!");
+        queryClient.invalidateQueries({
+          queryKey: MY_LEAGUES_FOR_LEAGUE_TYPE_QUERY_KEY(
+            LEAGUE_TYPE_SLUGS.PICK_EM,
+          ),
+        });
         navigate({
-          to: "/football/pickem/$leagueId",
+          to: "/football/pick-em/$leagueId",
           params: { leagueId: league.id },
         });
       } catch (error: unknown) {
@@ -256,7 +267,7 @@ function RouteComponent() {
               <form.AppField
                 name="size"
                 children={(field) => (
-                  <field.TextField
+                  <field.NumberField
                     labelProps={{
                       htmlFor: "size",
                       children: "League Size",
@@ -279,10 +290,10 @@ function RouteComponent() {
               <form.AppField
                 name="settings.picksPerPhase"
                 children={(field) => (
-                  <field.TextField
+                  <field.NumberField
                     labelProps={{
                       htmlFor: "picksPerPhase",
-                      children: "Picks Per Phase",
+                      children: "Picks Per Week",
                     }}
                     inputProps={{
                       id: "picksPerPhase",
@@ -293,6 +304,37 @@ function RouteComponent() {
                       onChange: (e) =>
                         field.handleChange(Number(e.target.value)),
                     }}
+                  />
+                )}
+              />
+            </div>
+            <div className="col-span-1">
+              <form.AppField
+                name="settings.pickType"
+                children={(field) => (
+                  <field.SelectField
+                    labelProps={{
+                      htmlFor: "pickType",
+                      children: "Pick Type",
+                    }}
+                    selectTriggerProps={{
+                      id: "pickType",
+                    }}
+                    options={[
+                      {
+                        value: PICK_EM_PICK_TYPES.STRAIGHT_UP,
+                        label:
+                          PICK_EM_PICK_TYPE_LABELS[
+                            PICK_EM_PICK_TYPES.STRAIGHT_UP
+                          ],
+                      },
+                      {
+                        value: PICK_EM_PICK_TYPES.SPREAD,
+                        label:
+                          PICK_EM_PICK_TYPE_LABELS[PICK_EM_PICK_TYPES.SPREAD],
+                      },
+                    ]}
+                    placeholder="Select pick type"
                   />
                 )}
               />
