@@ -67,8 +67,6 @@ function ProfileMenuError() {
 function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // todo navbar is a bit messed up, will need to fix this
-
   return (
     <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
       <div className="flex justify-between items-center h-16 w-full px-4">
