@@ -11,7 +11,6 @@ import {
   type SelectTriggerProps,
 } from "@/components/ui/select";
 
-// todo update props here to get props from the select component
 export type SelectFieldOption = {
   value: string;
   label: string;

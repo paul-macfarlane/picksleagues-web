@@ -102,7 +102,7 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
                   </div>
                   <div className="flex flex-col gap-1 pl-6">
                     <Link
-                      to="/football/pickem"
+                      to="/football/pick-em"
                       className="flex items-center gap-2 py-2 px-2 rounded"
                       onClick={() => setIsSheetOpen(false)}
                     >
@@ -146,7 +146,7 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
                   <div className="flex flex-col min-w-[200px]">
                     <NavigationMenuLink asChild>
                       <Link
-                        to="/football/pickem"
+                        to="/football/pick-em"
                         className="flex flex-row items-center gap-2 px-3 py-2"
                       >
                         <CheckSquare className="w-4 h-4" /> Pick'em
