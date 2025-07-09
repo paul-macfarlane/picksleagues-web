@@ -2,6 +2,7 @@ import { z } from "zod";
 import { API_BASE, authenticatedFetch } from ".";
 import { LEAGUE_TYPE_SLUGS } from "./leagueTypes";
 import { useMutation, queryOptions } from "@tanstack/react-query";
+import type { ProfileResponse } from "./profile";
 
 export const MIN_PICKS_PER_PHASE = 1;
 export const MAX_PICKS_PER_PHASE = 16;
@@ -104,14 +105,17 @@ export type PickEmLeagueResponse = LeagueResponse & {
   settings: PickEmLeagueSettings;
 };
 
-export type LeagueMember = {
-  id: string;
-  name: string;
-  avatar: string | null;
+export type LeagueMemberResponse = {
+  createdAt: Date;
+  updatedAt: Date;
+  leagueId: string;
+  userId: string;
   role: LEAGUE_MEMBER_ROLES;
 };
 
-export type LeagueMembersResponse = LeagueMember[];
+export type LeagueMemberWithProfileResponse = LeagueMemberResponse & {
+  profile: ProfileResponse;
+};
 
 export async function createLeague<T extends CreateLeague>(
   league: T,
@@ -129,58 +133,20 @@ export async function createLeague<T extends CreateLeague>(
   });
 }
 
-const mockPickEmLeague: PickEmLeagueResponse = {
-  id: "123",
-  name: "The Mock League",
-  image: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-  leagueTypeId: "pick_em",
-  startPhaseTemplateId: "uuid-start",
-  endPhaseTemplateId: "uuid-end",
-  visibility: LEAGUE_VISIBILITIES.PRIVATE,
-  size: 10,
-  settings: {
-    picksPerPhase: 5,
-    pickType: PICK_EM_PICK_TYPES.STRAIGHT_UP,
-  },
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
-
 export async function getLeague(
   leagueId: string,
 ): Promise<PickEmLeagueResponse> {
-  console.log(`Mocking getLeague for leagueId: ${leagueId}`);
-  await new Promise((res) => setTimeout(res, 1000));
-  return Promise.resolve(mockPickEmLeague);
+  return await authenticatedFetch<PickEmLeagueResponse>(
+    `${API_BASE}/v1/leagues/${leagueId}`,
+  );
 }
-
-const mockLeagueMembers: LeagueMembersResponse = [
-  {
-    id: "usr1",
-    name: "Commissioner",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-    role: LEAGUE_MEMBER_ROLES.COMMISSIONER,
-  },
-  {
-    id: "usr2",
-    name: "Peter",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704e",
-    role: LEAGUE_MEMBER_ROLES.MEMBER,
-  },
-  {
-    id: "usr3",
-    name: "Lois",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704f",
-    role: LEAGUE_MEMBER_ROLES.MEMBER,
-  },
-];
 
 export async function getLeagueMembers(
   leagueId: string,
-): Promise<LeagueMembersResponse> {
-  console.log(`Mocking getLeagueMembers for leagueId: ${leagueId}`);
-  await new Promise((res) => setTimeout(res, 1500));
-  return Promise.resolve(mockLeagueMembers);
+): Promise<LeagueMemberWithProfileResponse[]> {
+  return await authenticatedFetch<LeagueMemberWithProfileResponse[]>(
+    `${API_BASE}/v1/leagues/${leagueId}/members`,
+  );
 }
 
 export const leagueQueryOptions = (leagueId: string) =>

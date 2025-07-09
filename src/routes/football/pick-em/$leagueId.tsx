@@ -13,12 +13,7 @@ import { Trophy } from "lucide-react";
 import { leagueQueryOptions } from "@/api/leagues";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  // CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId")({
   component: LeagueLayoutComponent,

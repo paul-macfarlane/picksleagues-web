@@ -11,7 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, UserRound } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   leagueMembersQueryOptions,
@@ -42,7 +42,7 @@ function MembersComponent() {
   );
 
   const currentUserMemberInfo = members.find(
-    (member) => member.id === session?.userId,
+    (member) => member.userId === session?.userId,
   );
   const isCommissioner =
     currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
@@ -68,17 +68,21 @@ function MembersComponent() {
           </TableHeader>
           <TableBody>
             {members.map((member) => (
-              <TableRow key={member.id}>
+              <TableRow key={member.userId}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
                       <AvatarImage
-                        src={member.avatar ?? undefined}
-                        alt={member.name}
+                        src={member.profile.avatarUrl ?? undefined}
+                        alt={`${member.profile.firstName} ${member.profile.lastName}`}
                       />
-                      <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>
+                        <UserRound className="h-4 w-4 text-primary" />
+                      </AvatarFallback>
                     </Avatar>
-                    <span>{member.name}</span>
+                    <span>
+                      {member.profile.firstName} {member.profile.lastName}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -89,7 +93,7 @@ function MembersComponent() {
                 <TableCell className="text-right">
                   {isOffSeason &&
                     isCommissioner &&
-                    member.id !== session?.userId &&
+                    member.userId !== session?.userId &&
                     member.role !== LEAGUE_MEMBER_ROLES.COMMISSIONER && (
                       <Button
                         variant="ghost"
