@@ -12,7 +12,7 @@ import {
   PICK_EM_PICK_TYPE_LABELS,
 } from "@/api/leagues";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useAppForm } from "@/components/form";
 import { useState } from "react";
@@ -28,6 +28,11 @@ import { Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/football/pick-em/create")({
   component: RouteComponent,
+  beforeLoad: async ({ context }) => {
+    if (!context.session) {
+      throw redirect({ to: "/login" });
+    }
+  },
 });
 
 function RouteComponent() {
