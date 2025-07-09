@@ -34,7 +34,6 @@ export const Route = createFileRoute("/football/pick-em/create")({
 function RouteComponent() {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     data: phaseTemplates,
     isLoading: isLoadingPhaseTemplates,
@@ -79,8 +78,6 @@ function RouteComponent() {
         return;
       }
 
-      setSubmitError(undefined);
-      setIsSubmitting(true);
       try {
         const league = await createLeague(values.value);
         toast.success("League created successfully!");
@@ -99,8 +96,6 @@ function RouteComponent() {
         } else {
           setSubmitError("Failed to create league");
         }
-      } finally {
-        setIsSubmitting(false);
       }
     },
   });
@@ -117,6 +112,7 @@ function RouteComponent() {
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();
+              setSubmitError(undefined);
             }}
           >
             <div className="col-span-1 md:col-span-2">
@@ -355,10 +351,8 @@ function RouteComponent() {
               <form.AppForm>
                 <form.SubmitButton
                   submiterror={submitError}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Creating..." : "Create League"}
-                </form.SubmitButton>
+                  children="Create League"
+                />
               </form.AppForm>
             </div>
           </form>

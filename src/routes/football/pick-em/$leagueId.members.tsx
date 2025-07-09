@@ -11,15 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  X,
-  UserRound,
-  Copy,
-  PlusCircle,
-  Calendar as CalendarIcon,
-  ChevronsUpDown,
-  Check,
-} from "lucide-react";
+import { X, UserRound, Copy, ChevronsUpDown, Check } from "lucide-react";
 import {
   useSuspenseQuery,
   useQueryClient,
@@ -35,19 +27,18 @@ import {
   type LeagueInviteResponse,
   createLeagueInviteSchema,
   LEAGUE_INVITE_TYPES,
+  MIN_LEAGUE_INVITE_USES,
+  MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS,
 } from "@/api/leagues";
 import { Separator } from "@/components/ui/separator";
-import { useForm } from "@tanstack/react-form";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Label } from "@/components/ui/label";
 import { userSearchQueryOptions } from "@/api/profile";
 import {
   Command,
@@ -57,7 +48,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import React from "react";
+import React, { useState } from "react";
 import { useAppForm } from "@/components/form";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
@@ -200,30 +191,31 @@ function CreateInviteLinkFormComponent() {
     from: "/football/pick-em/$leagueId/members",
   });
   const queryClient = useQueryClient();
-  const { mutate: createInvite, isPending } = useCreateLeagueInvite(leagueId);
+  const { mutateAsync: createInvite, isPending } =
+    useCreateLeagueInvite(leagueId);
+  const [submitError, setSubmitError] = useState<string | undefined>(undefined);
 
   const form = useAppForm({
     defaultValues: {
       role: LEAGUE_MEMBER_ROLES.MEMBER,
-      maxUses: undefined,
-      expiresAt: undefined,
+      maxUses: MIN_LEAGUE_INVITE_USES,
+      expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS,
     } as CreateLeagueInvite,
     onSubmit: async ({ value }) => {
-      createInvite(
-        { ...value, type: LEAGUE_INVITE_TYPES.LINK },
-        {
-          onSuccess: () => {
-            toast.success("Invite link created");
-            form.reset();
-            queryClient.invalidateQueries({
-              queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
-            });
-          },
-          onError: () => {
-            toast.error("Failed to create invite link");
-          },
-        },
-      );
+      try {
+        await createInvite({ ...value, type: LEAGUE_INVITE_TYPES.LINK });
+        toast.success("Invite link created");
+        form.reset();
+        queryClient.invalidateQueries({
+          queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
+        });
+      } catch (error) {
+        if (error instanceof Error) {
+          setSubmitError(error.message);
+        } else {
+          setSubmitError("An unknown error occurred");
+        }
+      }
     },
     validators: {
       onSubmit: createLeagueInviteSchema,
@@ -239,14 +231,15 @@ function CreateInviteLinkFormComponent() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          e.stopPropagation();
           form.handleSubmit();
+          setSubmitError(undefined);
         }}
         className="mt-4 space-y-4"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-          <form.AppField name="role">
-            {(field) => (
+          <form.AppField
+            name="role"
+            children={(field) => (
               <field.SelectField
                 labelProps={{
                   htmlFor: "role",
@@ -266,70 +259,53 @@ function CreateInviteLinkFormComponent() {
                 placeholder="Select a role"
               />
             )}
-          </form.AppField>
+          />
 
-          <form.AppField name="maxUses">
-            {(field) => (
+          <form.AppField
+            name="maxUses"
+            children={(field) => (
               <field.NumberField
                 labelProps={{
-                  htmlFor: field.name,
-                  children: "Max Uses (optional)",
+                  htmlFor: "maxUses",
+                  children: "Max Uses",
                 }}
                 inputProps={{
-                  id: field.name,
-                  name: field.name,
-                  placeholder: "5",
+                  id: "maxUses",
+                  name: "maxUses",
+                  placeholder: MIN_LEAGUE_INVITE_USES.toString(),
+                  onChange: (e) => field.handleChange(Number(e.target.value)),
                 }}
-              ></field.NumberField>
+              />
             )}
-          </form.AppField>
+          />
 
-          <form.Field name="expiresAt">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Expires At (optional)</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id={field.name}
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !field.state.value && "text-muted-foreground",
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {field.state.value ? (
-                        format(field.state.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={
-                        field.state.value
-                          ? new Date(field.state.value)
-                          : undefined
-                      }
-                      onSelect={(value) =>
-                        field.handleChange(value ? value.getTime() : undefined)
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+          <form.AppField
+            name="expiresInDays"
+            children={(field) => (
+              <field.NumberField
+                labelProps={{
+                  htmlFor: "expiresInDays",
+                  children: "Expires In Days",
+                }}
+                inputProps={{
+                  id: "expiresInDays",
+                  name: "expiresInDays",
+                  placeholder:
+                    MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS.toString(),
+                  onChange: (e) => field.handleChange(Number(e.target.value)),
+                }}
+              />
             )}
-          </form.Field>
+          />
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "Creating..." : "Create Invite"}
-            <PlusCircle className="ml-2 h-4 w-4" />
-          </Button>
+          <form.AppForm>
+            <form.SubmitButton
+              submiterror={submitError}
+              children="Create Link"
+            />
+          </form.AppForm>
         </div>
       </form>
     </div>
@@ -341,33 +317,36 @@ function DirectInviteFormComponent() {
     from: "/football/pick-em/$leagueId/members",
   });
   const queryClient = useQueryClient();
-  const { mutate: createInvite, isPending } = useCreateLeagueInvite(leagueId);
+  const { mutateAsync: createInvite } = useCreateLeagueInvite(leagueId);
 
-  const form = useForm({
+  const [submitError, setSubmitError] = useState<string | undefined>(undefined);
+  const form = useAppForm({
     defaultValues: {
       inviteeId: "",
       role: LEAGUE_MEMBER_ROLES.MEMBER,
-    },
+    } as CreateLeagueInvite,
     onSubmit: async ({ value }) => {
-      createInvite(
-        {
+      try {
+        await createInvite({
           ...value,
           type: LEAGUE_INVITE_TYPES.DIRECT,
           leagueId,
-        },
-        {
-          onSuccess: () => {
-            toast.success("Invite sent");
-            queryClient.invalidateQueries({
-              queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
-            });
-            form.reset();
-          },
-          onError: () => {
-            toast.error("Failed to send invite");
-          },
-        },
-      );
+        });
+        toast.success("Invite sent");
+        queryClient.invalidateQueries({
+          queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
+        });
+        form.reset();
+      } catch (error) {
+        if (error instanceof Error) {
+          setSubmitError(error.message);
+        } else {
+          setSubmitError("An unknown error occurred");
+        }
+      }
+    },
+    validators: {
+      onSubmit: createLeagueInviteSchema,
     },
   });
 
@@ -380,24 +359,29 @@ function DirectInviteFormComponent() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          e.stopPropagation();
           form.handleSubmit();
+          setSubmitError(undefined);
         }}
         className="mt-4 space-y-4"
       >
-        <form.Field
+        <form.AppField
           name="inviteeId"
           children={(field) => (
             <UserSearchCombobox
-              selectedUser={field.state.value}
+              selectedUser={field.state.value ?? ""}
               onSelect={(userId) => field.handleChange(userId)}
             />
           )}
         />
 
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "Sending..." : "Send Invite"}
-        </Button>
+        <div className="flex justify-end">
+          <form.AppForm>
+            <form.SubmitButton
+              submiterror={submitError}
+              children="Send Invite"
+            />
+          </form.AppForm>
+        </div>
       </form>
     </div>
   );
