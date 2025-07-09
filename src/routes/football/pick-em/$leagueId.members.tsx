@@ -39,14 +39,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useForm } from "@tanstack/react-form";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -66,6 +58,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import React from "react";
+import { useAppForm } from "@/components/form";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   component: MembersComponent,
@@ -209,7 +202,7 @@ function CreateInviteLinkFormComponent() {
   const queryClient = useQueryClient();
   const { mutate: createInvite, isPending } = useCreateLeagueInvite(leagueId);
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       role: LEAGUE_MEMBER_ROLES.MEMBER,
       maxUses: undefined,
@@ -252,55 +245,45 @@ function CreateInviteLinkFormComponent() {
         className="mt-4 space-y-4"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-          <form.Field name="role">
+          <form.AppField name="role">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Role</Label>
-                <Select
-                  name={field.name}
-                  value={field.state.value}
-                  onValueChange={(value) =>
-                    field.handleChange(value as LEAGUE_MEMBER_ROLES)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={LEAGUE_MEMBER_ROLES.MEMBER}>
-                      Member
-                    </SelectItem>
-                    <SelectItem value={LEAGUE_MEMBER_ROLES.COMMISSIONER}>
-                      Commissioner
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <field.SelectField
+                labelProps={{
+                  htmlFor: "role",
+                  children: "Role",
+                }}
+                selectProps={{
+                  disabled: isPending,
+                  name: "role",
+                }}
+                selectTriggerProps={{
+                  id: "role",
+                }}
+                options={Object.values(LEAGUE_MEMBER_ROLES).map((role) => ({
+                  value: role,
+                  label: role,
+                }))}
+                placeholder="Select a role"
+              />
             )}
-          </form.Field>
+          </form.AppField>
 
-          <form.Field name="maxUses">
+          <form.AppField name="maxUses">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Max Uses (optional)</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value ?? ""}
-                  onBlur={field.handleBlur}
-                  onChange={(e) =>
-                    field.handleChange(
-                      e.target.value === ""
-                        ? undefined
-                        : e.target.valueAsNumber,
-                    )
-                  }
-                  type="number"
-                  placeholder="5"
-                />
-              </div>
+              <field.NumberField
+                labelProps={{
+                  htmlFor: field.name,
+                  children: "Max Uses (optional)",
+                }}
+                inputProps={{
+                  id: field.name,
+                  name: field.name,
+                  placeholder: "5",
+                }}
+              ></field.NumberField>
             )}
-          </form.Field>
+          </form.AppField>
+
           <form.Field name="expiresAt">
             {(field) => (
               <div className="space-y-2">

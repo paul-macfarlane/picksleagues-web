@@ -19,11 +19,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-import {
-  LEAGUE_VISIBILITIES,
-  MIN_LEAGUE_SIZE,
-  MAX_LEAGUE_SIZE,
-} from "@/api/leagues";
+import { LEAGUE_VISIBILITIES, MIN_LEAGUE_SIZE } from "@/api/leagues";
 import { Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/football/pick-em/create")({
@@ -136,8 +132,10 @@ function RouteComponent() {
                         }}
                         inputProps={{
                           id: "name",
+                          name: "name",
                           placeholder: "League name",
                           className: "w-full",
+                          autoComplete: "off",
                         }}
                       />
                     )}
@@ -156,6 +154,7 @@ function RouteComponent() {
                             }}
                             inputProps={{
                               id: "image",
+                              name: "image",
                               placeholder: "https://...",
                               className: "w-full",
                             }}
@@ -193,6 +192,7 @@ function RouteComponent() {
                     }
                     selectProps={{
                       disabled: isLoadingPhaseTemplates,
+                      name: "endPhaseTemplateId",
                     }}
                     selectTriggerProps={{
                       id: "startPhaseTemplateId",
@@ -224,6 +224,7 @@ function RouteComponent() {
                     }
                     selectProps={{
                       disabled: isLoadingPhaseTemplates,
+                      name: "startPhaseTemplateId",
                     }}
                     selectTriggerProps={{
                       id: "endPhaseTemplateId",
@@ -251,6 +252,9 @@ function RouteComponent() {
                     labelProps={{
                       htmlFor: "visibility",
                       children: "Visibility",
+                    }}
+                    selectProps={{
+                      name: "visibility",
                     }}
                     selectTriggerProps={{
                       id: "visibility",
@@ -284,8 +288,6 @@ function RouteComponent() {
                       id: "size",
                       type: "number",
                       placeholder: MIN_LEAGUE_SIZE.toString(),
-                      min: MIN_LEAGUE_SIZE,
-                      max: MAX_LEAGUE_SIZE,
                       className: "w-full",
                       onChange: (e) =>
                         field.handleChange(Number(e.target.value)),
@@ -300,14 +302,13 @@ function RouteComponent() {
                 children={(field) => (
                   <field.NumberField
                     labelProps={{
-                      htmlFor: "picksPerPhase",
+                      htmlFor: "settings.picksPerPhase",
                       children: "Picks Per Week",
                     }}
                     inputProps={{
-                      id: "picksPerPhase",
+                      id: "settings.picksPerPhase",
                       type: "number",
                       placeholder: MIN_PICKS_PER_PHASE.toString(),
-                      min: MIN_PICKS_PER_PHASE,
                       className: "w-full",
                       onChange: (e) =>
                         field.handleChange(Number(e.target.value)),
@@ -322,11 +323,14 @@ function RouteComponent() {
                 children={(field) => (
                   <field.SelectField
                     labelProps={{
-                      htmlFor: "pickType",
+                      htmlFor: "settings.pickType",
                       children: "Pick Type",
                     }}
+                    selectProps={{
+                      name: "settings.pickType",
+                    }}
                     selectTriggerProps={{
-                      id: "pickType",
+                      id: "settings.pickType",
                     }}
                     options={[
                       {
