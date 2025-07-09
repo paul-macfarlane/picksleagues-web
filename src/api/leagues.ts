@@ -150,7 +150,7 @@ export const MAX_LEAGUE_INVITE_EXPIRATION_TIME_DAYS = 30;
 
 export const createLeagueInviteSchema = z
   .object({
-    leagueId: z.string(),
+    leagueId: z.string().uuid(),
     role: z.enum([
       LEAGUE_MEMBER_ROLES.COMMISSIONER,
       LEAGUE_MEMBER_ROLES.MEMBER,
@@ -224,11 +224,10 @@ export async function getLeagueInvites(
 }
 
 export async function createLeagueInvite(
-  leagueId: string,
   invite: CreateLeagueInvite,
 ): Promise<LeagueInviteResponse> {
   return await authenticatedFetch<LeagueInviteResponse>(
-    `${API_BASE}/v1/leagues/${leagueId}/invites`,
+    `${API_BASE}/v1/league-invites`,
     {
       method: "POST",
       headers: {
@@ -241,7 +240,7 @@ export async function createLeagueInvite(
 
 export async function deactivateLeagueInvite(inviteId: string): Promise<void> {
   return await authenticatedFetch<void>(
-    `${API_BASE}/v1/leagues/invites/${inviteId}`,
+    `${API_BASE}/v1/league-invites/${inviteId}`,
     {
       method: "DELETE",
     },
@@ -317,10 +316,9 @@ export const useCreateLeague = <T extends CreateLeague>() => {
   });
 };
 
-export const useCreateLeagueInvite = (leagueId: string) => {
+export const useCreateLeagueInvite = () => {
   return useMutation({
-    mutationFn: (invite: CreateLeagueInvite) =>
-      createLeagueInvite(leagueId, invite),
+    mutationFn: (invite: CreateLeagueInvite) => createLeagueInvite(invite),
   });
 };
 

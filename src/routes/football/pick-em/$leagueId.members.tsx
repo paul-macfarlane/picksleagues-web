@@ -186,17 +186,20 @@ function InviteManagement() {
   );
 }
 
+// todo should validate that the leagueId is valid
+
 function CreateInviteLinkFormComponent() {
   const { leagueId } = useParams({
     from: "/football/pick-em/$leagueId/members",
   });
   const queryClient = useQueryClient();
-  const { mutateAsync: createInvite, isPending } =
-    useCreateLeagueInvite(leagueId);
+  const { mutateAsync: createInvite, isPending } = useCreateLeagueInvite();
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
 
   const form = useAppForm({
     defaultValues: {
+      leagueId,
+      type: LEAGUE_INVITE_TYPES.LINK,
       role: LEAGUE_MEMBER_ROLES.MEMBER,
       maxUses: MIN_LEAGUE_INVITE_USES,
       expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS,
@@ -317,13 +320,15 @@ function DirectInviteFormComponent() {
     from: "/football/pick-em/$leagueId/members",
   });
   const queryClient = useQueryClient();
-  const { mutateAsync: createInvite } = useCreateLeagueInvite(leagueId);
+  const { mutateAsync: createInvite } = useCreateLeagueInvite();
 
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
   const form = useAppForm({
     defaultValues: {
       inviteeId: "",
       role: LEAGUE_MEMBER_ROLES.MEMBER,
+      type: LEAGUE_INVITE_TYPES.DIRECT,
+      leagueId,
     } as CreateLeagueInvite,
     onSubmit: async ({ value }) => {
       try {
