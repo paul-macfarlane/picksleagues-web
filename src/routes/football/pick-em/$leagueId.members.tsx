@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { userSearchQueryOptions } from "@/api/profiles";
+import { profileSearchQueryOptions } from "@/api/profiles";
 import {
   Command,
   CommandEmpty,
@@ -44,11 +44,12 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAppForm } from "@/components/form";
 import {
   leagueMembersQueryOptions,
   LEAGUE_MEMBER_ROLES,
+  type LeagueMemberResponse,
 } from "@/api/leagueMembers";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
@@ -140,12 +141,16 @@ function MembersComponent() {
         </CardContent>
       </Card>
 
-      {isCommissioner && <InviteManagement />}
+      {isCommissioner && <InviteManagement currentMembers={members} />}
     </div>
   );
 }
 
-function InviteManagement() {
+function InviteManagement({
+  currentMembers,
+}: {
+  currentMembers: LeagueMemberResponse[];
+}) {
   const { leagueId } = useParams({
     from: "/football/pick-em/$leagueId/members",
   });
@@ -178,7 +183,7 @@ function InviteManagement() {
       <CardContent className="space-y-6">
         <CreateInviteLinkFormComponent />
         <Separator />
-        <DirectInviteFormComponent />
+        <DirectInviteFormComponent currentMembers={currentMembers} />
         <Separator />
         <InviteList invites={invites} onDeactivate={handleDeactivate} />
       </CardContent>
@@ -296,7 +301,11 @@ function CreateInviteLinkFormComponent() {
   );
 }
 
-function DirectInviteFormComponent() {
+function DirectInviteFormComponent({
+  currentMembers,
+}: {
+  currentMembers: LeagueMemberResponse[];
+}) {
   const { leagueId } = useParams({
     from: "/football/pick-em/$leagueId/members",
   });
@@ -363,6 +372,7 @@ function DirectInviteFormComponent() {
                   id="inviteeId"
                   selectedUser={field.state.value ?? ""}
                   onSelect={(userId) => field.handleChange(userId)}
+                  currentMembers={currentMembers}
                 />
               </div>
             )}
@@ -404,14 +414,23 @@ function UserSearchCombobox({
   selectedUser,
   onSelect,
   id,
+  currentMembers,
 }: {
   selectedUser: string;
   onSelect: (userId: string) => void;
   id?: string;
+  currentMembers: LeagueMemberResponse[];
 }) {
-  const [open, setOpen] = React.useState(false);
-  const [search, setSearch] = React.useState("");
-  const { data: users = [] } = useQuery(userSearchQueryOptions(search));
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const { data: profiles = [] } = useQuery(profileSearchQueryOptions(search));
+
+  const filteredProfiles = profiles.filter(
+    (profile) =>
+      !currentMembers.some((member) => member.userId === profile.userId),
+  );
+
+  console.log(filteredProfiles);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -424,7 +443,9 @@ function UserSearchCombobox({
           id={id}
         >
           {selectedUser
-            ? users.find((user) => user.userId === selectedUser)?.username
+            ? filteredProfiles.find(
+                (profile) => profile.userId === selectedUser,
+              )?.username
             : "Select a user..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -439,24 +460,24 @@ function UserSearchCombobox({
           <CommandList>
             <CommandEmpty>No users found.</CommandEmpty>
             <CommandGroup>
-              {users.map((user) => (
+              {filteredProfiles.map((profile) => (
                 <CommandItem
-                  key={user.userId}
-                  value={user.username}
+                  key={profile.userId}
+                  value={profile.username}
                   onSelect={() => {
-                    onSelect(user.userId);
+                    onSelect(profile.userId);
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedUser === user.userId
+                      selectedUser === profile.userId
                         ? "opacity-100"
                         : "opacity-0",
                     )}
                   />
-                  {user.username}
+                  {profile.username}
                 </CommandItem>
               ))}
             </CommandGroup>

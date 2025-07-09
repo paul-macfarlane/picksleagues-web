@@ -13,10 +13,10 @@ export type ProfileResponse = {
 };
 
 async function fetchProfile(): Promise<ProfileResponse> {
-  return await authenticatedFetch<ProfileResponse>(`${API_BASE}/v1/profile`);
+  return await authenticatedFetch<ProfileResponse>(`${API_BASE}/v1/profiles`);
 }
 
-export const PROFILE_QUERY_KEY = ["profile"];
+export const PROFILE_QUERY_KEY = ["profiles"];
 
 export const profileQueryOptions = (
   options: {
@@ -63,7 +63,7 @@ export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
 export async function updateProfile(
   profile: UpdateProfileRequest,
 ): Promise<ProfileResponse> {
-  return await authenticatedFetch<ProfileResponse>(`${API_BASE}/v1/profile`, {
+  return await authenticatedFetch<ProfileResponse>(`${API_BASE}/v1/profiles`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -78,18 +78,20 @@ export const useUpdateProfile = () => {
   });
 };
 
-export async function searchUsers(query: string): Promise<ProfileResponse[]> {
+export async function searchProfiles(
+  query: string,
+): Promise<ProfileResponse[]> {
   if (!query) {
     return [];
   }
   return await authenticatedFetch<ProfileResponse[]>(
-    `${API_BASE}/v1/users/search?q=${query}`,
+    `${API_BASE}/v1/profiles/search?q=${query}`,
   );
 }
 
-export const userSearchQueryOptions = (query: string) =>
+export const profileSearchQueryOptions = (query: string) =>
   queryOptions({
-    queryKey: ["users", "search", query],
-    queryFn: () => searchUsers(query),
+    queryKey: ["profiles", "search", query],
+    queryFn: () => searchProfiles(query),
     enabled: !!query,
   });
