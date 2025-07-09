@@ -15,7 +15,7 @@ import {
   updateProfileSchema,
   useUpdateProfile,
   type UpdateProfileRequest,
-} from "@/api/profile";
+} from "@/api/profiles";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";

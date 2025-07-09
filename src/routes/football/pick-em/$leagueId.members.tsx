@@ -18,18 +18,15 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import {
-  leagueMembersQueryOptions,
   leagueInvitesQueryOptions,
   useCreateLeagueInvite,
   useDeactivateLeagueInvite,
-  type CreateLeagueInvite,
-  LEAGUE_MEMBER_ROLES,
-  type LeagueInviteResponse,
-  createLeagueInviteSchema,
   LEAGUE_INVITE_TYPES,
-  MIN_LEAGUE_INVITE_USES,
-  MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS,
-} from "@/api/leagues";
+  type CreateLeagueInvite,
+  CreateLeagueInviteSchema,
+  MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
+  type LeagueInviteResponse,
+} from "@/api/leagueInvites";
 import { Separator } from "@/components/ui/separator";
 import {
   Popover,
@@ -39,7 +36,7 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { userSearchQueryOptions } from "@/api/profile";
+import { userSearchQueryOptions } from "@/api/profiles";
 import {
   Command,
   CommandEmpty,
@@ -50,6 +47,10 @@ import {
 } from "@/components/ui/command";
 import React, { useState } from "react";
 import { useAppForm } from "@/components/form";
+import {
+  leagueMembersQueryOptions,
+  LEAGUE_MEMBER_ROLES,
+} from "@/api/leagueMembers";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   component: MembersComponent,
@@ -201,8 +202,7 @@ function CreateInviteLinkFormComponent() {
       leagueId,
       type: LEAGUE_INVITE_TYPES.LINK,
       role: LEAGUE_MEMBER_ROLES.MEMBER,
-      maxUses: MIN_LEAGUE_INVITE_USES,
-      expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS,
+      expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
     } as CreateLeagueInvite,
     onSubmit: async ({ value }) => {
       try {
@@ -221,7 +221,7 @@ function CreateInviteLinkFormComponent() {
       }
     },
     validators: {
-      onSubmit: createLeagueInviteSchema,
+      onSubmit: CreateLeagueInviteSchema,
     },
   });
 
@@ -265,24 +265,6 @@ function CreateInviteLinkFormComponent() {
           />
 
           <form.AppField
-            name="maxUses"
-            children={(field) => (
-              <field.NumberField
-                labelProps={{
-                  htmlFor: "maxUses",
-                  children: "Max Uses",
-                }}
-                inputProps={{
-                  id: "maxUses",
-                  name: "maxUses",
-                  placeholder: MIN_LEAGUE_INVITE_USES.toString(),
-                  onChange: (e) => field.handleChange(Number(e.target.value)),
-                }}
-              />
-            )}
-          />
-
-          <form.AppField
             name="expiresInDays"
             children={(field) => (
               <field.NumberField
@@ -293,8 +275,7 @@ function CreateInviteLinkFormComponent() {
                 inputProps={{
                   id: "expiresInDays",
                   name: "expiresInDays",
-                  placeholder:
-                    MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS.toString(),
+                  placeholder: MIN_LEAGUE_INVITE_EXPIRATION_DAYS.toString(),
                   onChange: (e) => field.handleChange(Number(e.target.value)),
                 }}
               />
@@ -329,7 +310,7 @@ function DirectInviteFormComponent() {
       role: LEAGUE_MEMBER_ROLES.MEMBER,
       type: LEAGUE_INVITE_TYPES.DIRECT,
       leagueId,
-      expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS,
+      expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
     } as CreateLeagueInvite,
     onSubmit: async ({ value }) => {
       try {
@@ -352,7 +333,7 @@ function DirectInviteFormComponent() {
       }
     },
     validators: {
-      onSubmit: createLeagueInviteSchema,
+      onSubmit: CreateLeagueInviteSchema,
     },
   });
 
@@ -398,8 +379,7 @@ function DirectInviteFormComponent() {
                 inputProps={{
                   id: "expiresInDays",
                   name: "expiresInDays",
-                  placeholder:
-                    MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS.toString(),
+                  placeholder: MIN_LEAGUE_INVITE_EXPIRATION_DAYS.toString(),
                   onChange: (e) => field.handleChange(Number(e.target.value)),
                 }}
               />

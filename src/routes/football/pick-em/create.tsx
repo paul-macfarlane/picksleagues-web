@@ -5,7 +5,7 @@ import {
 } from "@/api/leagueTypes";
 import {
   useCreateLeague,
-  createPickEmLeagueSchema,
+  CreatePickEmLeagueSchema,
   MIN_PICKS_PER_PHASE,
   type CreatePickEmLeague,
   PICK_EM_PICK_TYPES,
@@ -60,7 +60,7 @@ function RouteComponent() {
       },
     } as CreatePickEmLeague,
     validators: {
-      onSubmit: createPickEmLeagueSchema,
+      onSubmit: CreatePickEmLeagueSchema,
     },
     onSubmit: async (values) => {
       const startPhaseTemplate = phaseTemplates?.find(
