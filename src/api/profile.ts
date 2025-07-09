@@ -77,3 +77,19 @@ export const useUpdateProfile = () => {
     mutationFn: updateProfile,
   });
 };
+
+export async function searchUsers(query: string): Promise<ProfileResponse[]> {
+  if (!query) {
+    return [];
+  }
+  return await authenticatedFetch<ProfileResponse[]>(
+    `${API_BASE}/v1/users/search?q=${query}`,
+  );
+}
+
+export const userSearchQueryOptions = (query: string) =>
+  queryOptions({
+    queryKey: ["users", "search", query],
+    queryFn: () => searchUsers(query),
+    enabled: !!query,
+  });

@@ -17,8 +17,14 @@ import {
   Copy,
   PlusCircle,
   Calendar as CalendarIcon,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
-import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useSuspenseQuery,
+  useQueryClient,
+  useQuery,
+} from "@tanstack/react-query";
 import {
   leagueMembersQueryOptions,
   leagueInvitesQueryOptions,
@@ -28,6 +34,7 @@ import {
   LEAGUE_MEMBER_ROLES,
   type LeagueInviteResponse,
   createLeagueInviteSchema,
+  LEAGUE_INVITE_TYPES,
 } from "@/api/leagues";
 import { Separator } from "@/components/ui/separator";
 import { useForm } from "@tanstack/react-form";
@@ -49,6 +56,16 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
+import { userSearchQueryOptions } from "@/api/profile";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import React from "react";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   component: MembersComponent,
@@ -172,10 +189,12 @@ function InviteManagement() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Invite Link Management</CardTitle>
+        <CardTitle>Invite Management</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <CreateInviteForm />
+        <CreateInviteLinkFormComponent />
+        <Separator />
+        <DirectInviteFormComponent />
         <Separator />
         <InviteList invites={invites} onDeactivate={handleDeactivate} />
       </CardContent>
@@ -183,7 +202,7 @@ function InviteManagement() {
   );
 }
 
-function CreateInviteForm() {
+function CreateInviteLinkFormComponent() {
   const { leagueId } = useParams({
     from: "/football/pick-em/$leagueId/members",
   });
@@ -197,18 +216,21 @@ function CreateInviteForm() {
       expiresAt: undefined,
     } as CreateLeagueInvite,
     onSubmit: async ({ value }) => {
-      createInvite(value, {
-        onSuccess: () => {
-          toast.success("Invite link created");
-          form.reset();
-          queryClient.invalidateQueries({
-            queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
-          });
+      createInvite(
+        { ...value, type: LEAGUE_INVITE_TYPES.LINK },
+        {
+          onSuccess: () => {
+            toast.success("Invite link created");
+            form.reset();
+            queryClient.invalidateQueries({
+              queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
+            });
+          },
+          onError: () => {
+            toast.error("Failed to create invite link");
+          },
         },
-        onError: () => {
-          toast.error("Failed to create invite link");
-        },
-      });
+      );
     },
     validators: {
       onSubmit: createLeagueInviteSchema,
@@ -216,110 +238,249 @@ function CreateInviteForm() {
   });
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.handleSubmit();
-      }}
-      className="space-y-4"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <form.Field name="role">
-          {(field) => (
-            <div className="space-y-2">
-              <Label htmlFor={field.name}>Role</Label>
-              <Select
-                name={field.name}
-                value={field.state.value}
-                onValueChange={(value) =>
-                  field.handleChange(value as LEAGUE_MEMBER_ROLES)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={LEAGUE_MEMBER_ROLES.MEMBER}>
-                    Member
-                  </SelectItem>
-                  <SelectItem value={LEAGUE_MEMBER_ROLES.COMMISSIONER}>
-                    Commissioner
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </form.Field>
+    <div>
+      <h3 className="text-lg font-medium">Create Invite Link</h3>
+      <p className="text-sm text-muted-foreground">
+        Create a new invite link for others to join your league.
+      </p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        className="mt-4 space-y-4"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <form.Field name="role">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor={field.name}>Role</Label>
+                <Select
+                  name={field.name}
+                  value={field.state.value}
+                  onValueChange={(value) =>
+                    field.handleChange(value as LEAGUE_MEMBER_ROLES)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={LEAGUE_MEMBER_ROLES.MEMBER}>
+                      Member
+                    </SelectItem>
+                    <SelectItem value={LEAGUE_MEMBER_ROLES.COMMISSIONER}>
+                      Commissioner
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </form.Field>
 
-        <form.Field name="maxUses">
-          {(field) => (
-            <div className="space-y-2">
-              <Label htmlFor={field.name}>Max Uses (optional)</Label>
-              <Input
-                id={field.name}
-                name={field.name}
-                value={field.state.value ?? ""}
-                onBlur={field.handleBlur}
-                onChange={(e) =>
-                  field.handleChange(
-                    e.target.value === "" ? undefined : e.target.valueAsNumber,
-                  )
-                }
-                type="number"
-                placeholder="5"
-              />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="expiresAt">
-          {(field) => (
-            <div className="space-y-2">
-              <Label htmlFor={field.name}>Expires At (optional)</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id={field.name}
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !field.state.value && "text-muted-foreground",
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {field.state.value ? (
-                      format(field.state.value, "PPP")
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      field.state.value
-                        ? new Date(field.state.value)
-                        : undefined
-                    }
-                    onSelect={(value) =>
-                      field.handleChange(value ? value.getTime() : undefined)
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
-        </form.Field>
-      </div>
+          <form.Field name="maxUses">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor={field.name}>Max Uses (optional)</Label>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value ?? ""}
+                  onBlur={field.handleBlur}
+                  onChange={(e) =>
+                    field.handleChange(
+                      e.target.value === ""
+                        ? undefined
+                        : e.target.valueAsNumber,
+                    )
+                  }
+                  type="number"
+                  placeholder="5"
+                />
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="expiresAt">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor={field.name}>Expires At (optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id={field.name}
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !field.state.value && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.state.value ? (
+                        format(field.state.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={
+                        field.state.value
+                          ? new Date(field.state.value)
+                          : undefined
+                      }
+                      onSelect={(value) =>
+                        field.handleChange(value ? value.getTime() : undefined)
+                      }
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+          </form.Field>
+        </div>
 
-      <div className="flex justify-end">
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Creating..." : "Create Invite"}
+            <PlusCircle className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function DirectInviteFormComponent() {
+  const { leagueId } = useParams({
+    from: "/football/pick-em/$leagueId/members",
+  });
+  const queryClient = useQueryClient();
+  const { mutate: createInvite, isPending } = useCreateLeagueInvite(leagueId);
+
+  const form = useForm({
+    defaultValues: {
+      inviteeId: "",
+      role: LEAGUE_MEMBER_ROLES.MEMBER,
+    },
+    onSubmit: async ({ value }) => {
+      createInvite(
+        {
+          ...value,
+          type: LEAGUE_INVITE_TYPES.DIRECT,
+          leagueId,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Invite sent");
+            queryClient.invalidateQueries({
+              queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
+            });
+            form.reset();
+          },
+          onError: () => {
+            toast.error("Failed to send invite");
+          },
+        },
+      );
+    },
+  });
+
+  return (
+    <div>
+      <h3 className="text-lg font-medium">Direct Invite</h3>
+      <p className="text-sm text-muted-foreground">
+        Invite a user directly by their username.
+      </p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        className="mt-4 space-y-4"
+      >
+        <form.Field
+          name="inviteeId"
+          children={(field) => (
+            <UserSearchCombobox
+              selectedUser={field.state.value}
+              onSelect={(userId) => field.handleChange(userId)}
+            />
+          )}
+        />
+
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Creating..." : "Create Invite"}
-          <PlusCircle className="ml-2 h-4 w-4" />
+          {isPending ? "Sending..." : "Send Invite"}
         </Button>
-      </div>
-    </form>
+      </form>
+    </div>
+  );
+}
+
+function UserSearchCombobox({
+  selectedUser,
+  onSelect,
+}: {
+  selectedUser: string;
+  onSelect: (userId: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const { data: users = [] } = useQuery(userSearchQueryOptions(search));
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {selectedUser
+            ? users.find((user) => user.userId === selectedUser)?.username
+            : "Select a user..."}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <Command>
+          <CommandInput
+            placeholder="Search for a user..."
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList>
+            <CommandEmpty>No users found.</CommandEmpty>
+            <CommandGroup>
+              {users.map((user) => (
+                <CommandItem
+                  key={user.userId}
+                  value={user.username}
+                  onSelect={() => {
+                    onSelect(user.userId);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedUser === user.userId
+                        ? "opacity-100"
+                        : "opacity-0",
+                    )}
+                  />
+                  {user.username}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
