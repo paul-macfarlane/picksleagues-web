@@ -329,6 +329,7 @@ function DirectInviteFormComponent() {
       role: LEAGUE_MEMBER_ROLES.MEMBER,
       type: LEAGUE_INVITE_TYPES.DIRECT,
       leagueId,
+      expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS,
     } as CreateLeagueInvite,
     onSubmit: async ({ value }) => {
       try {
@@ -369,15 +370,42 @@ function DirectInviteFormComponent() {
         }}
         className="mt-4 space-y-4"
       >
-        <form.AppField
-          name="inviteeId"
-          children={(field) => (
-            <UserSearchCombobox
-              selectedUser={field.state.value ?? ""}
-              onSelect={(userId) => field.handleChange(userId)}
-            />
-          )}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+          <form.AppField
+            name="inviteeId"
+            children={(field) => (
+              <div className="space-y-2">
+                <label htmlFor="inviteeId" className="text-sm font-medium">
+                  User
+                </label>
+                <UserSearchCombobox
+                  id="inviteeId"
+                  selectedUser={field.state.value ?? ""}
+                  onSelect={(userId) => field.handleChange(userId)}
+                />
+              </div>
+            )}
+          />
+
+          <form.AppField
+            name="expiresInDays"
+            children={(field) => (
+              <field.NumberField
+                labelProps={{
+                  htmlFor: "expiresInDays",
+                  children: "Expires In Days",
+                }}
+                inputProps={{
+                  id: "expiresInDays",
+                  name: "expiresInDays",
+                  placeholder:
+                    MIN_LEAGUE_INVITE_EXPIRATION_TIME_DAYS.toString(),
+                  onChange: (e) => field.handleChange(Number(e.target.value)),
+                }}
+              />
+            )}
+          />
+        </div>
 
         <div className="flex justify-end">
           <form.AppForm>
@@ -395,9 +423,11 @@ function DirectInviteFormComponent() {
 function UserSearchCombobox({
   selectedUser,
   onSelect,
+  id,
 }: {
   selectedUser: string;
   onSelect: (userId: string) => void;
+  id?: string;
 }) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -411,6 +441,7 @@ function UserSearchCombobox({
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
+          id={id}
         >
           {selectedUser
             ? users.find((user) => user.userId === selectedUser)?.username

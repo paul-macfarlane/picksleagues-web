@@ -125,7 +125,7 @@ export type LeagueInviteResponse = {
   type: "link";
   uses: number;
   maxUses: number | null;
-  expiresAt: string | null;
+  expiresAt: string;
   deactivatedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -155,7 +155,7 @@ export const createLeagueInviteSchema = z
       LEAGUE_MEMBER_ROLES.COMMISSIONER,
       LEAGUE_MEMBER_ROLES.MEMBER,
     ]),
-    inviteeId: z.string().optional(),
+    inviteeId: z.union([z.string().uuid(), z.null()]),
     maxUses: z
       .number()
       .int()
@@ -175,8 +175,7 @@ export const createLeagueInviteSchema = z
       })
       .max(MAX_LEAGUE_INVITE_EXPIRATION_TIME_DAYS, {
         message: `Expires in days must be at most ${MAX_LEAGUE_INVITE_EXPIRATION_TIME_DAYS}`,
-      })
-      .optional(),
+      }),
   })
   .superRefine((data, ctx) => {
     // if the invite type is link, then maxUses is required
