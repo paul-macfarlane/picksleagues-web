@@ -6,15 +6,24 @@ import {
   ErrorComponent,
   redirect,
 } from "@tanstack/react-router";
+import { Suspense } from "react";
 // import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy } from "lucide-react";
 import { leagueQueryOptions } from "@/api/leagues";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  // CardTitle,
+} from "@/components/ui/card";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId")({
   component: LeagueLayoutComponent,
   errorComponent: ErrorComponent,
+  pendingComponent: LeagueLayoutPendingComponent,
   beforeLoad: async ({ context }) => {
     if (!context.session) {
       throw redirect({ to: "/login" });
@@ -23,6 +32,41 @@ export const Route = createFileRoute("/football/pick-em/$leagueId")({
   loader: ({ context: { queryClient }, params: { leagueId } }) =>
     queryClient.ensureQueryData(leagueQueryOptions(leagueId)),
 });
+
+function LeagueLayoutPendingComponent() {
+  return (
+    <div className="container py-4 md:py-8 space-y-6">
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-16 w-16 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-[250px]" />
+        </div>
+      </div>
+      <div className="flex border-b">
+        <Skeleton className="h-10 w-full" />
+      </div>
+      <Skeleton className="h-96 w-full" />
+    </div>
+  );
+}
+
+function PendingCard() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-7 w-1/4" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 function LeagueLayoutComponent() {
   const { leagueId } = useParams({ from: "/football/pick-em/$leagueId" });
@@ -69,7 +113,9 @@ function LeagueLayoutComponent() {
           </Link>
         ))}
       </nav>
-      <Outlet />
+      <Suspense fallback={<PendingCard />}>
+        <Outlet />
+      </Suspense>
     </div>
   );
 }

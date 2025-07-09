@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useParams } from "@tanstack/react-router";
 import {
   Table,
   TableBody,
@@ -12,28 +12,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-
-// Mock members data
-const mockMembers = [
-  {
-    id: "usr1",
-    name: "Alice",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-    role: "Commissioner",
-  },
-  {
-    id: "usr2",
-    name: "Bob",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026705d",
-    role: "Member",
-  },
-  {
-    id: "usr3",
-    name: "Charlie",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026706d",
-    role: "Member",
-  },
-];
+import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  leagueMembersQueryOptions,
+  leagueQueryOptions,
+  LEAGUE_MEMBER_ROLES,
+} from "@/api/leagues";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   component: MembersComponent,
@@ -42,18 +26,33 @@ export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
       throw redirect({ to: "/login" });
     }
   },
+  loader: ({ context: { queryClient }, params: { leagueId } }) => {
+    queryClient.ensureQueryData(leagueMembersQueryOptions(leagueId));
+  },
 });
 
 function MembersComponent() {
-  // TODO: Refactor to get isCommissioner and seasonState from API
-  const isCommissioner = false;
-  const isOffSeason = true;
-  const leagueIsFull = mockMembers.length >= 10; // Mocked logic
+  const { leagueId } = useParams({
+    from: "/football/pick-em/$leagueId/members",
+  });
+  const { session } = Route.useRouteContext();
+  const { data: league } = useSuspenseQuery(leagueQueryOptions(leagueId));
+  const { data: members } = useSuspenseQuery(
+    leagueMembersQueryOptions(leagueId),
+  );
+
+  const currentUserMemberInfo = members.find(
+    (member) => member.id === session?.userId,
+  );
+  const isCommissioner =
+    currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
+  const isOffSeason = true; // TODO: get from league season state
+  const leagueIsFull = members.length >= league.size;
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Members ({mockMembers.length})</CardTitle>
+        <CardTitle>Members ({members.length})</CardTitle>
         {isCommissioner && isOffSeason && !leagueIsFull && (
           <Button>Invite Member</Button>
         )}
@@ -68,26 +67,30 @@ function MembersComponent() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockMembers.map((member) => (
+            {members.map((member) => (
               <TableRow key={member.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={member.avatar} alt={member.name} />
+                      <AvatarImage
+                        src={member.avatar ?? undefined}
+                        alt={member.name}
+                      />
                       <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span>{member.name}</span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  {member.role === "Commissioner" && (
+                  {member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER && (
                     <Badge>{member.role}</Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-right">
                   {isOffSeason &&
-                    isCommissioner /*|| member.id === "usr2"*/ && // TODO: check if current user is member
-                    member.role !== "Commissioner" && (
+                    isCommissioner &&
+                    member.id !== session?.userId &&
+                    member.role !== LEAGUE_MEMBER_ROLES.COMMISSIONER && (
                       <Button
                         variant="ghost"
                         size="icon"
