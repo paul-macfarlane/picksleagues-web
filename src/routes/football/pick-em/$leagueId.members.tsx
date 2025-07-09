@@ -33,7 +33,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { userSearchQueryOptions } from "@/api/profiles";
@@ -229,7 +228,8 @@ function CreateInviteLinkFormComponent() {
     <div>
       <h3 className="text-lg font-medium">Create Invite Link</h3>
       <p className="text-sm text-muted-foreground">
-        Create a new invite link for others to join your league.
+        Create a new invite link for others to join your league. Anyone with the
+        link can join and will have the role you select.
       </p>
       <form
         onSubmit={(e) => {
@@ -239,7 +239,7 @@ function CreateInviteLinkFormComponent() {
         }}
         className="mt-4 space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <form.AppField
             name="role"
             children={(field) => (
@@ -494,7 +494,6 @@ function InviteList({ invites, onDeactivate }: InviteListProps) {
         <TableRow>
           <TableHead>Token</TableHead>
           <TableHead>Role</TableHead>
-          <TableHead>Uses</TableHead>
           <TableHead>Expires</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -507,11 +506,8 @@ function InviteList({ invites, onDeactivate }: InviteListProps) {
               <Badge variant="outline">{invite.role}</Badge>
             </TableCell>
             <TableCell>
-              {invite.uses} / {invite.maxUses ?? "∞"}
-            </TableCell>
-            <TableCell>
               {invite.expiresAt
-                ? format(new Date(invite.expiresAt), "MMM d, yyyy")
+                ? new Date(invite.expiresAt).toLocaleString()
                 : "Never"}
             </TableCell>
             <TableCell className="text-right space-x-2">
