@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { API_BASE, authenticatedFetch } from ".";
 import { LEAGUE_TYPE_SLUGS } from "./leagueTypes";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, queryOptions } from "@tanstack/react-query";
 
 export const MIN_PICKS_PER_PHASE = 1;
 export const MAX_PICKS_PER_PHASE = 16;
@@ -19,6 +19,7 @@ export const PICK_EM_PICK_TYPE_LABELS = {
 export const pickEmLeagueSettingsSchema = z.object({
   picksPerPhase: z
     .number()
+    .int()
     .min(MIN_PICKS_PER_PHASE, {
       message: `Picks per week must be at least ${MIN_PICKS_PER_PHASE}`,
     })
@@ -63,6 +64,7 @@ export const createLeagueSchema = z.object({
   visibility: z.enum([LEAGUE_VISIBILITIES.PRIVATE]),
   size: z
     .number()
+    .int()
     .min(MIN_LEAGUE_SIZE, {
       message: `Size must be at least ${MIN_LEAGUE_SIZE}`,
     })
@@ -117,6 +119,37 @@ export async function createLeague<T extends CreateLeague>(
     body: JSON.stringify(league),
   });
 }
+
+const mockPickEmLeague: PickEmLeagueResponse = {
+  id: "123",
+  name: "The Mock League",
+  image: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
+  leagueTypeId: "pick_em",
+  startPhaseTemplateId: "uuid-start",
+  endPhaseTemplateId: "uuid-end",
+  visibility: LEAGUE_VISIBILITIES.PRIVATE,
+  size: 10,
+  settings: {
+    picksPerPhase: 5,
+    pickType: PICK_EM_PICK_TYPES.STRAIGHT_UP,
+  },
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+
+export async function getLeague(
+  leagueId: string,
+): Promise<PickEmLeagueResponse> {
+  console.log(`Mocking getLeague for leagueId: ${leagueId}`);
+  await new Promise((res) => setTimeout(res, 300));
+  return Promise.resolve(mockPickEmLeague);
+}
+
+export const leagueQueryOptions = (leagueId: string) =>
+  queryOptions({
+    queryKey: ["leagues", leagueId],
+    queryFn: () => getLeague(leagueId),
+  });
 
 export const useCreateLeague = <T extends CreateLeague>() => {
   return useMutation({

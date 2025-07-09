@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,6 +23,11 @@ import {
 
 export const Route = createFileRoute("/football/pick-em/")({
   component: RouteComponent,
+  beforeLoad: async ({ context }) => {
+    if (!context.session) {
+      throw redirect({ to: "/login" });
+    }
+  },
 });
 
 function RouteComponent() {
@@ -81,7 +86,7 @@ function RouteComponent() {
         ) : leagues?.length === 0 ? (
           <Card className="col-span-full">
             <CardHeader className="flex-row gap-2 items-center">
-              <Trophy className="h-8 w-8" />
+              <Trophy className="h-8 w-8 text-primary" />
               <div>
                 <CardTitle>Welcome to Pick'em Leagues!</CardTitle>
                 <CardDescription>
