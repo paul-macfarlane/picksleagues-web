@@ -7,11 +7,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, UserRound, Copy, ChevronsUpDown, Check } from "lucide-react";
+import {
+  X,
+  UserRound,
+  Copy,
+  ChevronsUpDown,
+  Check,
+  AlertCircle,
+} from "lucide-react";
 import {
   useSuspenseQuery,
   useQueryClient,
@@ -52,6 +65,7 @@ import {
   type LeagueMemberResponse,
 } from "@/api/leagueMembers";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   component: MembersComponent,
@@ -62,7 +76,6 @@ export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   },
   loader: ({ context: { queryClient }, params: { leagueId } }) => {
     queryClient.ensureQueryData(leagueMembersQueryOptions(leagueId));
-    queryClient.ensureQueryData(leagueInvitesQueryOptions(leagueId));
   },
 });
 
@@ -155,9 +168,11 @@ function InviteManagement({
   const { leagueId } = useParams({
     from: "/football/pick-em/$leagueId/members",
   });
-  const { data: invites } = useSuspenseQuery(
-    leagueInvitesQueryOptions(leagueId),
-  );
+  const {
+    data: invites,
+    isLoading: isInvitesLoading,
+    error: invitesError,
+  } = useQuery(leagueInvitesQueryOptions({ leagueId, enabled: true }));
   const queryClient = useQueryClient();
 
   const { mutateAsync: deactivateInvite } = useDeactivateLeagueInvite();
@@ -167,7 +182,7 @@ function InviteManagement({
       await deactivateInvite(inviteId);
       toast.success("Invite link deactivated");
       queryClient.invalidateQueries({
-        queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
+        queryKey: leagueInvitesQueryOptions({ leagueId }).queryKey,
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -178,10 +193,45 @@ function InviteManagement({
     }
   }
 
-  const linkInvites = invites.filter(
+  if (isInvitesLoading) {
+    return <InviteManagementSkeleton />;
+  }
+
+  if (invitesError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Invite Management</CardTitle>
+          <CardDescription>
+            There was an error loading the invites.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="py-8 text-center">
+          <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
+          <h3 className="mt-2 text-lg font-semibold">Something went wrong</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {invitesError.message}
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() =>
+              queryClient.refetchQueries({
+                queryKey: leagueInvitesQueryOptions({ leagueId }).queryKey,
+              })
+            }
+          >
+            Try Again
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const linkInvites = invites!.filter(
     (invite) => invite.type === LEAGUE_INVITE_TYPES.LINK,
   );
-  const directInvites = invites.filter(
+  const directInvites = invites!.filter(
     (invite) => invite.type === LEAGUE_INVITE_TYPES.DIRECT,
   );
 
@@ -202,6 +252,61 @@ function InviteManagement({
           invites={directInvites}
           onDeactivate={handleDeactivate}
         />
+      </CardContent>
+    </Card>
+  );
+}
+
+function InviteManagementSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Invite Management</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Form skeleton */}
+        <Skeleton className="h-8 w-1/2 mb-2" />
+        <Skeleton className="h-6 w-full mb-4" />
+        {/* Table skeleton */}
+        <Skeleton className="h-6 w-1/3 mb-2" />
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <Skeleton className="h-5 w-20" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-5 w-20" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-5 w-20" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-5 w-20" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[...Array(2)].map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <Skeleton className="h-6 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-16" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-16" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
@@ -230,7 +335,7 @@ function CreateInviteLinkFormComponent() {
         toast.success("Invite link created");
         form.reset();
         queryClient.invalidateQueries({
-          queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
+          queryKey: leagueInvitesQueryOptions({ leagueId }).queryKey,
         });
       } catch (error) {
         if (error instanceof Error) {
@@ -512,7 +617,7 @@ function DirectInviteFormComponent({
         });
         toast.success("Invite sent");
         queryClient.invalidateQueries({
-          queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
+          queryKey: leagueInvitesQueryOptions({ leagueId }).queryKey,
         });
         form.reset();
       } catch (error) {
@@ -542,7 +647,7 @@ function DirectInviteFormComponent({
         }}
         className="mt-4 space-y-4"
       >
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-end">
           <form.AppField
             name="role"
             children={(field) => (

@@ -79,10 +79,17 @@ export async function getLeagueInvites(
   );
 }
 
-export const leagueInvitesQueryOptions = (leagueId: string) =>
+export const leagueInvitesQueryOptions = ({
+  leagueId,
+  enabled = true,
+}: {
+  leagueId: string;
+  enabled?: boolean;
+}) =>
   queryOptions({
     queryKey: ["leagues", leagueId, "invites"],
     queryFn: () => getLeagueInvites(leagueId),
+    enabled,
   });
 
 export async function createLeagueInvite(
@@ -179,4 +186,59 @@ export const leagueInvitesForUserQueryOptions = () =>
 
 export const useLeagueInvitesForUser = () => {
   return useQuery(leagueInvitesForUserQueryOptions());
+};
+
+export async function getLeagueInviteByToken(
+  token: string,
+): Promise<LeagueInviteWithLeagueAndTypeResponse> {
+  return await authenticatedFetch<LeagueInviteWithLeagueAndTypeResponse>(
+    `${API_BASE}/v1/league-invites/token/${token}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+}
+
+export const leagueInviteByTokenQueryOptions = ({
+  token,
+  enabled,
+}: {
+  token: string;
+  enabled: boolean;
+}) =>
+  queryOptions({
+    queryKey: ["league-invites", "token", token],
+    queryFn: () => getLeagueInviteByToken(token),
+    enabled,
+  });
+
+export const useLeagueInviteByToken = ({
+  token,
+  enabled,
+}: {
+  token: string;
+  enabled: boolean;
+}) => {
+  return useQuery(leagueInviteByTokenQueryOptions({ token, enabled }));
+};
+
+export async function joinLeagueByInviteToken(token: string): Promise<void> {
+  return await authenticatedFetch<void>(
+    `${API_BASE}/v1/league-invites/token/${token}/join`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+}
+
+export const useJoinLeagueByInviteToken = () => {
+  return useMutation({
+    mutationFn: (token: string) => joinLeagueByInviteToken(token),
+  });
 };
