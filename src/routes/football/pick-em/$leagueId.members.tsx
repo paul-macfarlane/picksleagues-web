@@ -51,6 +51,7 @@ import {
   LEAGUE_MEMBER_ROLES,
   type LeagueMemberResponse,
 } from "@/api/leagueMembers";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   component: MembersComponent,
@@ -159,21 +160,30 @@ function InviteManagement({
   );
   const queryClient = useQueryClient();
 
-  const { mutate: deactivateInvite } = useDeactivateLeagueInvite();
+  const { mutateAsync: deactivateInvite } = useDeactivateLeagueInvite();
 
-  const handleDeactivate = (inviteId: string) => {
-    deactivateInvite(inviteId, {
-      onSuccess: () => {
-        toast.success("Invite link deactivated");
-        queryClient.invalidateQueries({
-          queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
-        });
-      },
-      onError: () => {
+  async function handleDeactivate(inviteId: string) {
+    try {
+      await deactivateInvite(inviteId);
+      toast.success("Invite link deactivated");
+      queryClient.invalidateQueries({
+        queryKey: leagueInvitesQueryOptions(leagueId).queryKey,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
         toast.error("Failed to deactivate invite link");
-      },
-    });
-  };
+      }
+    }
+  }
+
+  const linkInvites = invites.filter(
+    (invite) => invite.type === LEAGUE_INVITE_TYPES.LINK,
+  );
+  const directInvites = invites.filter(
+    (invite) => invite.type === LEAGUE_INVITE_TYPES.DIRECT,
+  );
 
   return (
     <Card>
@@ -182,10 +192,13 @@ function InviteManagement({
       </CardHeader>
       <CardContent className="space-y-6">
         <CreateInviteLinkFormComponent />
+        <LinkInviteList invites={linkInvites} onDeactivate={handleDeactivate} />
         <Separator />
         <DirectInviteFormComponent currentMembers={currentMembers} />
-        <Separator />
-        <InviteList invites={invites} onDeactivate={handleDeactivate} />
+        <DirectInviteList
+          invites={directInvites}
+          onDeactivate={handleDeactivate}
+        />
       </CardContent>
     </Card>
   );
@@ -301,6 +314,172 @@ function CreateInviteLinkFormComponent() {
   );
 }
 
+function LinkInviteList({
+  invites,
+  onDeactivate,
+}: {
+  invites: LeagueInviteResponse[];
+  onDeactivate: (inviteId: string) => void;
+}) {
+  const handleCopy = (token: string) => {
+    const url = `${window.location.origin}/join/${token}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Invite link copied to clipboard");
+  };
+
+  return (
+    <div>
+      <h3 className="text-lg font-medium mb-2">Link Invites</h3>
+      {invites.length === 0 ? (
+        <div className="text-center text-muted-foreground py-8">
+          No active invite links yet. Create one above to invite members to your
+          league.
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Link</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Expires</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {invites.map((invite) => (
+              <TableRow key={invite.id}>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopy(invite.token)}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Link
+                  </Button>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{invite.role}</Badge>
+                </TableCell>
+                <TableCell>
+                  {invite.expiresAt
+                    ? new Date(invite.expiresAt).toLocaleString()
+                    : "Never"}
+                </TableCell>
+                <TableCell className="text-right space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => onDeactivate(invite.id)}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Deactivate
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+}
+
+function DirectInviteList({
+  invites,
+  onDeactivate,
+}: {
+  invites: LeagueInviteResponse[];
+  onDeactivate: (inviteId: string) => void;
+}) {
+  return (
+    <div>
+      <h3 className="text-lg font-medium mb-2">Direct Invites</h3>
+      {invites.length === 0 ? (
+        <div className="text-center text-muted-foreground py-8">
+          No active direct invites.
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Expires</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {invites.map((invite) => (
+              <DirectInviteRow
+                key={invite.id}
+                invite={invite}
+                onDeactivate={onDeactivate}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+}
+
+function DirectInviteRow({
+  invite,
+  onDeactivate,
+}: {
+  invite: LeagueInviteResponse;
+  onDeactivate: (inviteId: string) => void;
+}) {
+  const { data: profile } = useSuspenseQuery(
+    profileSearchQueryOptions(invite.inviteeId!),
+  );
+
+  const userProfile = profile[0];
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9">
+            <AvatarImage
+              src={userProfile.avatarUrl ?? undefined}
+              alt={`${userProfile.firstName} ${userProfile.lastName}`}
+            />
+            <AvatarFallback>
+              <UserRound className="h-4 w-4 text-primary" />
+            </AvatarFallback>
+          </Avatar>
+          <span>
+            {userProfile.firstName} {userProfile.lastName} (@
+            {userProfile.username})
+          </span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <Badge variant="outline">{invite.role}</Badge>
+      </TableCell>
+      <TableCell>
+        {invite.expiresAt
+          ? new Date(invite.expiresAt).toLocaleString()
+          : "Never"}
+      </TableCell>
+      <TableCell className="text-right">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:text-destructive"
+          onClick={() => onDeactivate(invite.id)}
+        >
+          <X className="h-4 w-4 mr-2" />
+          Deactivate
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 function DirectInviteFormComponent({
   currentMembers,
 }: {
@@ -363,19 +542,26 @@ function DirectInviteFormComponent({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <form.AppField
             name="inviteeId"
-            children={(field) => (
-              <div className="space-y-2">
-                <label htmlFor="inviteeId" className="text-sm font-medium">
-                  User
-                </label>
-                <UserSearchCombobox
-                  id="inviteeId"
-                  selectedUser={field.state.value ?? ""}
-                  onSelect={(userId) => field.handleChange(userId)}
-                  currentMembers={currentMembers}
-                />
-              </div>
-            )}
+            children={(field) => {
+              return (
+                <div className="space-y-2">
+                  <Label htmlFor="inviteeId" className="text-sm font-medium">
+                    User
+                  </Label>
+                  <UserSearchCombobox
+                    id="inviteeId"
+                    selectedUser={field.state.value ?? ""}
+                    onSelect={(userId) => field.handleChange(userId)}
+                    currentMembers={currentMembers}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <div className="text-destructive text-sm">
+                      {field.state.meta.errors[0]?.message}
+                    </div>
+                  )}
+                </div>
+              );
+            }}
           />
 
           <form.AppField
@@ -430,8 +616,6 @@ function UserSearchCombobox({
       !currentMembers.some((member) => member.userId === profile.userId),
   );
 
-  console.log(filteredProfiles);
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -485,74 +669,5 @@ function UserSearchCombobox({
         </Command>
       </PopoverContent>
     </Popover>
-  );
-}
-
-interface InviteListProps {
-  invites: LeagueInviteResponse[];
-  onDeactivate: (inviteId: string) => void;
-}
-
-function InviteList({ invites, onDeactivate }: InviteListProps) {
-  const handleCopy = (token: string) => {
-    const url = `${window.location.origin}/join/${token}`;
-    navigator.clipboard.writeText(url);
-    toast.success("Invite link copied to clipboard");
-  };
-
-  if (invites.length === 0) {
-    return (
-      <div className="text-center text-muted-foreground py-8">
-        No active invite links yet. Create one above to invite members to your
-        league.
-      </div>
-    );
-  }
-
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Token</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Expires</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {invites.map((invite) => (
-          <TableRow key={invite.id}>
-            <TableCell className="font-mono">{invite.token}</TableCell>
-            <TableCell>
-              <Badge variant="outline">{invite.role}</Badge>
-            </TableCell>
-            <TableCell>
-              {invite.expiresAt
-                ? new Date(invite.expiresAt).toLocaleString()
-                : "Never"}
-            </TableCell>
-            <TableCell className="text-right space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleCopy(invite.token)}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copy
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => onDeactivate(invite.id)}
-              >
-                <X className="h-4 w-4 mr-2" />
-                Deactivate
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
   );
 }

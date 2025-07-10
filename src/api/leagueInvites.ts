@@ -22,7 +22,7 @@ export const MAX_LEAGUE_INVITE_EXPIRATION_DAYS = 30;
 
 export const CreateLeagueInviteSchema = z
   .object({
-    leagueId: z.string().uuid(),
+    leagueId: z.string().trim().uuid(),
     role: z.enum([
       LEAGUE_MEMBER_ROLES.COMMISSIONER,
       LEAGUE_MEMBER_ROLES.MEMBER,
@@ -39,15 +39,15 @@ export const CreateLeagueInviteSchema = z
       }),
 
     // Direct invite only
-    inviteeId: z.string().optional(),
+    inviteeId: z.string().trim().optional(),
   })
   .superRefine((data, ctx) => {
     // if the invite type is direct, then inviteeId is required
     if (data.type === LEAGUE_INVITE_TYPES.DIRECT) {
-      if (data.inviteeId === undefined) {
+      if (!data.inviteeId) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Invitee ID is required for direct invites`,
+          message: `User is required`,
           path: ["inviteeId"],
         });
       }
@@ -61,8 +61,9 @@ export type LeagueInviteResponse = {
   id: string;
   token: string;
   leagueId: string;
+  inviteeId: string | null;
   role: LEAGUE_MEMBER_ROLES;
-  type: "link";
+  type: LEAGUE_INVITE_TYPES;
   uses: number;
   maxUses: number | null;
   expiresAt: string;

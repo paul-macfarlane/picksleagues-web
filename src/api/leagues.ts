@@ -56,11 +56,11 @@ export const CreateLeagueSchema = z.object({
       message: `Name must be at most ${MAX_LEAGUE_NAME_LENGTH} characters`,
     })
     .trim(),
-  image: z.union([z.string().url().optional(), z.literal(""), z.null()]),
+  image: z.union([z.string().trim().url().optional(), z.literal(""), z.null()]),
   // .transform((val) => val?.trim() ?? null), // transform breaks form types, so turning off (backend handles it)
   leagueTypeSlug: z.enum([LEAGUE_TYPE_SLUGS.PICK_EM]),
-  startPhaseTemplateId: z.string().min(1).uuid(),
-  endPhaseTemplateId: z.string().min(1).uuid(),
+  startPhaseTemplateId: z.string().trim().uuid(),
+  endPhaseTemplateId: z.string().trim().uuid(),
   visibility: z.enum([LEAGUE_VISIBILITIES.PRIVATE]),
   size: z
     .number()

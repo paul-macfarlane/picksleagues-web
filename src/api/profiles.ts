@@ -55,7 +55,11 @@ export const updateProfileSchema = z.object({
     .max(MAX_NAME_LENGTH, {
       message: `Last name must be at most ${MAX_NAME_LENGTH} characters`,
     }),
-  avatarUrl: z.union([z.string().url().optional(), z.literal(""), z.null()]),
+  avatarUrl: z.union([
+    z.string().trim().url().optional(),
+    z.literal(""),
+    z.null(),
+  ]),
 });
 
 export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
