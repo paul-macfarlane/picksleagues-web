@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { LEAGUE_MEMBER_ROLES } from "./leagueMembers";
 import { API_BASE, authenticatedFetch } from ".";
-import { queryOptions, useMutation } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
+import type { LeagueResponse } from "./leagues";
+import type { LeagueTypeResponse } from "./leagueTypes";
 
 export enum LEAGUE_INVITE_TYPES {
   DIRECT = "direct",
@@ -146,4 +148,27 @@ export const useDeactivateLeagueInvite = () => {
   return useMutation({
     mutationFn: (inviteId: string) => deleteLeagueInvite(inviteId),
   });
+};
+
+export type LeagueInviteWithLeagueAndTypeResponse = LeagueInviteResponse & {
+  league: LeagueResponse;
+  leagueType: LeagueTypeResponse;
+};
+
+export async function getLeagueInvitesForUser(): Promise<
+  LeagueInviteWithLeagueAndTypeResponse[]
+> {
+  return await authenticatedFetch<LeagueInviteWithLeagueAndTypeResponse[]>(
+    `${API_BASE}/v1/league-invites/my-invites`,
+  );
+}
+
+export const leagueInvitesForUserQueryOptions = () =>
+  queryOptions({
+    queryKey: ["league-invites", "my-invites"],
+    queryFn: () => getLeagueInvitesForUser(),
+  });
+
+export const useLeagueInvitesForUser = () => {
+  return useQuery(leagueInvitesForUserQueryOptions());
 };

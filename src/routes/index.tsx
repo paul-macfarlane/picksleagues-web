@@ -21,23 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-// Mock data for invites
-const mockInvites = [
-  {
-    id: "inv1",
-    leagueName: "The Champions Pick'em",
-    leagueType: "Pick'em",
-    invitedBy: "John Doe",
-    leagueImage: "https://github.com/shadcn.png",
-  },
-  {
-    id: "inv2",
-    leagueName: "Survivor Pool 2024",
-    leagueType: "Elimination Pool",
-    invitedBy: "Jane Smith",
-  },
-];
+import { useLeagueInvitesForUser } from "@/api/leagueInvites";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -59,6 +43,12 @@ function RouteComponent() {
     ),
   );
 
+  const {
+    data: leagueInvites,
+    isLoading: leagueInvitesIsLoading,
+    error: leagueInvitesError,
+  } = useLeagueInvitesForUser();
+
   return (
     <div className="container py-4 md:py-8 space-y-8">
       <div>
@@ -72,18 +62,37 @@ function RouteComponent() {
         <h2 className="text-xl md:text-2xl font-semibold tracking-tight">
           Open Invites
         </h2>
-        {mockInvites.length > 0 ? (
+        {leagueInvitesIsLoading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {mockInvites.map((invite) => (
+            <LeagueCardSkeleton />
+            <LeagueCardSkeleton />
+            <LeagueCardSkeleton />
+          </div>
+        ) : leagueInvitesError ? (
+          <Card>
+            <CardHeader className="flex-row items-center gap-2">
+              <AlertCircle className="h-6 w-6 text-destructive" />
+              <div>
+                <CardTitle className="text-base">
+                  Error loading invites
+                </CardTitle>
+                <CardDescription>
+                  {leagueInvitesError instanceof Error
+                    ? leagueInvitesError.message
+                    : "Please try again later."}
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        ) : leagueInvites && leagueInvites.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {leagueInvites.map((invite) => (
               <LeagueCard
                 key={invite.id}
-                name={invite.leagueName}
-                imageUrl={invite.leagueImage}
+                name={invite.league.name}
+                imageUrl={invite.league.image}
                 description={
-                  <>
-                    Invited by {invite.invitedBy} to a {invite.leagueType}{" "}
-                    league.
-                  </>
+                  <>Invited to join a {invite.leagueType.name} league.</>
                 }
                 footer={
                   <div className="flex w-full justify-end gap-2">
