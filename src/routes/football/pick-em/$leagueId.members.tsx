@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { profileSearchQueryOptions } from "@/api/profiles";
+import { profileQueryOptions, profileSearchQueryOptions } from "@/api/profiles";
 import {
   Command,
   CommandEmpty,
@@ -44,7 +44,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppForm } from "@/components/form";
 import {
   leagueMembersQueryOptions,
@@ -432,11 +432,9 @@ function DirectInviteRow({
   invite: LeagueInviteResponse;
   onDeactivate: (inviteId: string) => void;
 }) {
-  const { data: profile } = useSuspenseQuery(
-    profileSearchQueryOptions(invite.inviteeId!),
+  const { data: userProfile } = useSuspenseQuery(
+    profileQueryOptions(invite.inviteeId!),
   );
-
-  const userProfile = profile[0];
 
   return (
     <TableRow>
@@ -529,7 +527,7 @@ function DirectInviteFormComponent({
     <div>
       <h3 className="text-lg font-medium">Direct Invite</h3>
       <p className="text-sm text-muted-foreground">
-        Invite a user directly by their username.
+        Invite a user directly by their name or username.
       </p>
       <form
         onSubmit={(e) => {
@@ -609,11 +607,39 @@ function UserSearchCombobox({
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const { data: profiles = [] } = useQuery(profileSearchQueryOptions(search));
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Update debounced value after delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search.length >= 3) {
+        setDebouncedSearch(search);
+      }
+    }, 300); // 300ms delay
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [search]);
+
+  const { data: profiles = [] } = useQuery(
+    profileSearchQueryOptions({
+      search: {
+        username: debouncedSearch,
+        firstName: debouncedSearch,
+        lastName: debouncedSearch,
+      },
+      enabled: debouncedSearch.length >= 3,
+    }),
+  );
 
   const filteredProfiles = profiles.filter(
     (profile) =>
       !currentMembers.some((member) => member.userId === profile.userId),
+  );
+
+  const selectedProfile = filteredProfiles.find(
+    (profile) => profile.userId === selectedUser,
   );
 
   return (
@@ -626,11 +652,24 @@ function UserSearchCombobox({
           className="w-full justify-between"
           id={id}
         >
-          {selectedUser
-            ? filteredProfiles.find(
-                (profile) => profile.userId === selectedUser,
-              )?.username
-            : "Select a user..."}
+          {selectedUser ? (
+            selectedProfile ? (
+              <div className="flex items-center gap-2">
+                <Avatar className="h-4 w-4">
+                  <AvatarImage src={selectedProfile.avatarUrl ?? undefined} />
+                  <AvatarFallback>
+                    <UserRound className="h-4 w-4 text-primary" />
+                  </AvatarFallback>
+                </Avatar>
+                <span>
+                  {selectedProfile.firstName} {selectedProfile.lastName} (
+                  {selectedProfile.username})
+                </span>
+              </div>
+            ) : null
+          ) : (
+            "Select a user..."
+          )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -642,29 +681,47 @@ function UserSearchCombobox({
             onValueChange={setSearch}
           />
           <CommandList>
-            <CommandEmpty>No users found.</CommandEmpty>
-            <CommandGroup>
-              {filteredProfiles.map((profile) => (
-                <CommandItem
-                  key={profile.userId}
-                  value={profile.username}
-                  onSelect={() => {
-                    onSelect(profile.userId);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedUser === profile.userId
-                        ? "opacity-100"
-                        : "opacity-0",
-                    )}
-                  />
-                  {profile.username}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {search.length < 3 ? (
+              <CommandEmpty className="p-2 text-sm text-muted-foreground">
+                Type at least 3 characters to search...
+              </CommandEmpty>
+            ) : (
+              <>
+                <CommandEmpty>No users found.</CommandEmpty>
+                <CommandGroup>
+                  {filteredProfiles.map((profile) => (
+                    <CommandItem
+                      key={profile.userId}
+                      value={profile.username}
+                      onSelect={() => {
+                        if (selectedUser === profile.userId) {
+                          onSelect("");
+                        } else {
+                          onSelect(profile.userId);
+                          setOpen(false);
+                        }
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "h-4 w-4",
+                          selectedUser === profile.userId
+                            ? "opacity-100"
+                            : "opacity-0",
+                        )}
+                      />
+                      <Avatar className="h-4 w-4">
+                        <AvatarImage src={profile.avatarUrl ?? undefined} />
+                        <AvatarFallback>
+                          <UserRound className="h-4 w-4 text-primary" />
+                        </AvatarFallback>
+                      </Avatar>
+                      {profile.username}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

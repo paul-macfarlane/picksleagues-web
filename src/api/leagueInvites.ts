@@ -64,10 +64,7 @@ export type LeagueInviteResponse = {
   inviteeId: string | null;
   role: LEAGUE_MEMBER_ROLES;
   type: LEAGUE_INVITE_TYPES;
-  uses: number;
-  maxUses: number | null;
   expiresAt: string;
-  deactivatedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };

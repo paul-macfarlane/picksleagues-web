@@ -194,11 +194,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
     data: profileData,
     isLoading: isLoadingProfile,
     error: profileError,
-  } = useQuery(
-    profileQueryOptions({
-      enabled: !!session,
-    }),
-  );
+  } = useQuery(profileQueryOptions(session?.user.id ?? ""));
 
   async function signOut() {
     try {

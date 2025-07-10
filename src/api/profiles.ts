@@ -12,21 +12,18 @@ export type ProfileResponse = {
   updatedAt: string;
 };
 
-async function fetchProfile(): Promise<ProfileResponse> {
-  return await authenticatedFetch<ProfileResponse>(`${API_BASE}/v1/profiles`);
+async function fetchProfile(userId: string): Promise<ProfileResponse> {
+  return await authenticatedFetch<ProfileResponse>(
+    `${API_BASE}/v1/profiles/${userId}`,
+  );
 }
 
 export const PROFILE_QUERY_KEY = ["profiles"];
 
-export const profileQueryOptions = (
-  options: {
-    enabled?: boolean;
-  } = {},
-) =>
+export const profileQueryOptions = (userId: string) =>
   queryOptions({
-    queryKey: PROFILE_QUERY_KEY,
-    queryFn: () => fetchProfile(),
-    enabled: options.enabled ?? true,
+    queryKey: ["profiles", userId],
+    queryFn: () => fetchProfile(userId),
   });
 
 const MIN_USERNAME_LENGTH = 3;
@@ -82,20 +79,28 @@ export const useUpdateProfile = () => {
   });
 };
 
+export const SearchProfilesSchema = z.object({
+  username: z.string().trim().min(1).optional(),
+  firstName: z.string().trim().min(1).optional(),
+  lastName: z.string().trim().min(1).optional(),
+});
+
+export type SearchProfilesRequest = z.infer<typeof SearchProfilesSchema>;
+
 export async function searchProfiles(
-  query: string,
+  search: SearchProfilesRequest,
 ): Promise<ProfileResponse[]> {
-  if (!query) {
-    return [];
-  }
   return await authenticatedFetch<ProfileResponse[]>(
-    `${API_BASE}/v1/profiles/search?q=${query}`,
+    `${API_BASE}/v1/profiles/search?${new URLSearchParams(search).toString()}`,
   );
 }
 
-export const profileSearchQueryOptions = (query: string) =>
+export const profileSearchQueryOptions = (options: {
+  search: SearchProfilesRequest;
+  enabled: boolean;
+}) =>
   queryOptions({
-    queryKey: ["profiles", "search", query],
-    queryFn: () => searchProfiles(query),
-    enabled: !!query,
+    queryKey: ["profiles", "search", options.search],
+    queryFn: () => searchProfiles(options.search),
+    enabled: options.enabled,
   });
