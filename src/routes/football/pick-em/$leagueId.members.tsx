@@ -194,7 +194,10 @@ function InviteManagement({
         <CreateInviteLinkFormComponent />
         <LinkInviteList invites={linkInvites} onDeactivate={handleDeactivate} />
         <Separator />
-        <DirectInviteFormComponent currentMembers={currentMembers} />
+        <DirectInviteFormComponent
+          currentMembers={currentMembers}
+          invites={directInvites}
+        />
         <DirectInviteList
           invites={directInvites}
           onDeactivate={handleDeactivate}
@@ -480,8 +483,10 @@ function DirectInviteRow({
 
 function DirectInviteFormComponent({
   currentMembers,
+  invites,
 }: {
   currentMembers: LeagueMemberResponse[];
+  invites: LeagueInviteResponse[];
 }) {
   const { leagueId } = useParams({
     from: "/football/pick-em/$leagueId/members",
@@ -551,6 +556,7 @@ function DirectInviteFormComponent({
                     selectedUser={field.state.value ?? ""}
                     onSelect={(userId) => field.handleChange(userId)}
                     currentMembers={currentMembers}
+                    invites={invites}
                   />
                   {field.state.meta.errors.length > 0 && (
                     <div className="text-destructive text-sm">
@@ -599,11 +605,13 @@ function UserSearchCombobox({
   onSelect,
   id,
   currentMembers,
+  invites,
 }: {
   selectedUser: string;
   onSelect: (userId: string) => void;
   id?: string;
   currentMembers: LeagueMemberResponse[];
+  invites: LeagueInviteResponse[];
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -633,9 +641,11 @@ function UserSearchCombobox({
     }),
   );
 
+  // filter out profiles that are already in the league and that don't already have an invite
   const filteredProfiles = profiles.filter(
     (profile) =>
-      !currentMembers.some((member) => member.userId === profile.userId),
+      !currentMembers.some((member) => member.userId === profile.userId) &&
+      !invites.some((invite) => invite.inviteeId === profile.userId),
   );
 
   const selectedProfile = filteredProfiles.find(
