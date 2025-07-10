@@ -1,4 +1,9 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useRouter,
+} from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Check, X, Icon, AlertCircle } from "lucide-react";
 import {
@@ -21,7 +26,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useLeagueInvitesForUser } from "@/api/leagueInvites";
+import {
+  LEAGUE_INVITE_STATUSES,
+  useLeagueInvitesForUser,
+  useRespondToLeagueInvite,
+  type RespondToLeagueInvite,
+} from "@/api/leagueInvites";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -33,6 +44,8 @@ export const Route = createFileRoute("/")({
 });
 
 function RouteComponent() {
+  const router = useRouter();
+
   const {
     data: pickEmLeagues,
     isLoading: pickEmLeaguesIsLoading,
@@ -48,6 +61,28 @@ function RouteComponent() {
     isLoading: leagueInvitesIsLoading,
     error: leagueInvitesError,
   } = useLeagueInvitesForUser();
+
+  const { mutateAsync: respondToLeagueInvite } = useRespondToLeagueInvite();
+
+  const handleRespondToLeagueInvite = async (
+    inviteId: string,
+    leagueId: string,
+    response: RespondToLeagueInvite,
+  ) => {
+    try {
+      await respondToLeagueInvite({ inviteId, response });
+      if (response.response === LEAGUE_INVITE_STATUSES.ACCEPTED) {
+        router.navigate({
+          to: "/football/pick-em/$leagueId",
+          params: { leagueId },
+        });
+      } else {
+        toast.success("Invite declined");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="container py-4 md:py-8 space-y-8">
@@ -96,10 +131,33 @@ function RouteComponent() {
                 }
                 footer={
                   <div className="flex w-full justify-end gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() =>
+                        handleRespondToLeagueInvite(
+                          invite.id,
+                          invite.leagueId,
+                          {
+                            response: LEAGUE_INVITE_STATUSES.DECLINED,
+                          },
+                        )
+                      }
+                    >
                       <X className="mr-2 h-4 w-4" /> Decline
                     </Button>
-                    <Button size="sm">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        handleRespondToLeagueInvite(
+                          invite.id,
+                          invite.leagueId,
+                          {
+                            response: LEAGUE_INVITE_STATUSES.ACCEPTED,
+                          },
+                        )
+                      }
+                    >
                       <Check className="mr-2 h-4 w-4" /> Accept
                     </Button>
                   </div>

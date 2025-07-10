@@ -542,7 +542,30 @@ function DirectInviteFormComponent({
         }}
         className="mt-4 space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-end">
+          <form.AppField
+            name="role"
+            children={(field) => (
+              <field.SelectField
+                labelProps={{
+                  htmlFor: "role",
+                  children: "Role",
+                }}
+                selectProps={{
+                  name: "role",
+                }}
+                selectTriggerProps={{
+                  id: "role",
+                }}
+                options={Object.values(LEAGUE_MEMBER_ROLES).map((role) => ({
+                  value: role,
+                  label: role,
+                }))}
+                placeholder="Select a role"
+              />
+            )}
+          />
+
           <form.AppField
             name="inviteeId"
             children={(field) => {

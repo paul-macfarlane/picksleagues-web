@@ -120,18 +120,26 @@ export async function respondToLeagueInvite(
   response: RespondToLeagueInvite,
 ): Promise<void> {
   return await authenticatedFetch<void>(
-    `${API_BASE}/v1/leagues/invites/${inviteId}/respond`,
+    `${API_BASE}/v1/league-invites/${inviteId}/respond`,
     {
       method: "POST",
       body: JSON.stringify(response),
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
   );
 }
 
-export const useRespondToLeagueInvite = (inviteId: string) => {
+export const useRespondToLeagueInvite = () => {
   return useMutation({
-    mutationFn: (response: RespondToLeagueInvite) =>
-      respondToLeagueInvite(inviteId, response),
+    mutationFn: ({
+      inviteId,
+      response,
+    }: {
+      inviteId: string;
+      response: RespondToLeagueInvite;
+    }) => respondToLeagueInvite(inviteId, response),
   });
 };
 
