@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { API_BASE, authenticatedFetch } from ".";
 import { LEAGUE_TYPE_SLUGS } from "./leagueTypes";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, queryOptions } from "@tanstack/react-query";
 
 export const MIN_PICKS_PER_PHASE = 1;
 export const MAX_PICKS_PER_PHASE = 16;
@@ -16,9 +16,10 @@ export const PICK_EM_PICK_TYPE_LABELS = {
   [PICK_EM_PICK_TYPES.SPREAD]: "Against the Spread",
 };
 
-export const pickEmLeagueSettingsSchema = z.object({
+export const PickEmLeagueSettingsSchema = z.object({
   picksPerPhase: z
     .number()
+    .int()
     .min(MIN_PICKS_PER_PHASE, {
       message: `Picks per week must be at least ${MIN_PICKS_PER_PHASE}`,
     })
@@ -28,7 +29,7 @@ export const pickEmLeagueSettingsSchema = z.object({
   pickType: z.enum([PICK_EM_PICK_TYPES.STRAIGHT_UP, PICK_EM_PICK_TYPES.SPREAD]),
 });
 
-export type PickEmLeagueSettings = z.infer<typeof pickEmLeagueSettingsSchema>;
+export type PickEmLeagueSettings = z.infer<typeof PickEmLeagueSettingsSchema>;
 
 export const MIN_LEAGUE_NAME_LENGTH = 3;
 export const MAX_LEAGUE_NAME_LENGTH = 50;
@@ -45,7 +46,7 @@ export enum LEAGUE_TYPES {
   PICK_EM = "pick_em",
 }
 
-export const createLeagueSchema = z.object({
+export const CreateLeagueSchema = z.object({
   name: z
     .string()
     .min(MIN_LEAGUE_NAME_LENGTH, {
@@ -55,14 +56,15 @@ export const createLeagueSchema = z.object({
       message: `Name must be at most ${MAX_LEAGUE_NAME_LENGTH} characters`,
     })
     .trim(),
-  image: z.union([z.string().url().optional(), z.literal(""), z.null()]),
+  image: z.union([z.string().trim().url().optional(), z.literal(""), z.null()]),
   // .transform((val) => val?.trim() ?? null), // transform breaks form types, so turning off (backend handles it)
   leagueTypeSlug: z.enum([LEAGUE_TYPE_SLUGS.PICK_EM]),
-  startPhaseTemplateId: z.string().min(1).uuid(),
-  endPhaseTemplateId: z.string().min(1).uuid(),
+  startPhaseTemplateId: z.string().trim().uuid(),
+  endPhaseTemplateId: z.string().trim().uuid(),
   visibility: z.enum([LEAGUE_VISIBILITIES.PRIVATE]),
   size: z
     .number()
+    .int()
     .min(MIN_LEAGUE_SIZE, {
       message: `Size must be at least ${MIN_LEAGUE_SIZE}`,
     })
@@ -71,18 +73,13 @@ export const createLeagueSchema = z.object({
     }),
 });
 
-export type CreateLeague = z.infer<typeof createLeagueSchema>;
+export type CreateLeague = z.infer<typeof CreateLeagueSchema>;
 
-export const createPickEmLeagueSchema = createLeagueSchema.extend({
-  settings: pickEmLeagueSettingsSchema,
+export const CreatePickEmLeagueSchema = CreateLeagueSchema.extend({
+  settings: PickEmLeagueSettingsSchema,
 });
 
-export type CreatePickEmLeague = z.infer<typeof createPickEmLeagueSchema>;
-
-export enum LEAGUE_MEMBER_ROLES {
-  COMMISSIONER = "commissioner",
-  MEMBER = "member",
-}
+export type CreatePickEmLeague = z.infer<typeof CreatePickEmLeagueSchema>;
 
 export type LeagueResponse = {
   id: string;
@@ -123,3 +120,17 @@ export const useCreateLeague = <T extends CreateLeague>() => {
     mutationFn: createLeague<T>,
   });
 };
+
+export async function getLeague(
+  leagueId: string,
+): Promise<PickEmLeagueResponse> {
+  return await authenticatedFetch<PickEmLeagueResponse>(
+    `${API_BASE}/v1/leagues/${leagueId}`,
+  );
+}
+
+export const leagueQueryOptions = (leagueId: string) =>
+  queryOptions({
+    queryKey: ["leagues", leagueId],
+    queryFn: () => getLeague(leagueId),
+  });

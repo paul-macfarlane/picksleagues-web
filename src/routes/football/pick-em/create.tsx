@@ -5,35 +5,35 @@ import {
 } from "@/api/leagueTypes";
 import {
   useCreateLeague,
-  createPickEmLeagueSchema,
+  CreatePickEmLeagueSchema,
   MIN_PICKS_PER_PHASE,
   type CreatePickEmLeague,
   PICK_EM_PICK_TYPES,
   PICK_EM_PICK_TYPE_LABELS,
 } from "@/api/leagues";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useAppForm } from "@/components/form";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-import {
-  LEAGUE_VISIBILITIES,
-  MIN_LEAGUE_SIZE,
-  MAX_LEAGUE_SIZE,
-} from "@/api/leagues";
+import { LEAGUE_VISIBILITIES, MIN_LEAGUE_SIZE } from "@/api/leagues";
 import { Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/football/pick-em/create")({
   component: RouteComponent,
+  beforeLoad: async ({ context }) => {
+    if (!context.session) {
+      throw redirect({ to: "/login" });
+    }
+  },
 });
 
 function RouteComponent() {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     data: phaseTemplates,
     isLoading: isLoadingPhaseTemplates,
@@ -60,7 +60,7 @@ function RouteComponent() {
       },
     } as CreatePickEmLeague,
     validators: {
-      onSubmit: createPickEmLeagueSchema,
+      onSubmit: CreatePickEmLeagueSchema,
     },
     onSubmit: async (values) => {
       const startPhaseTemplate = phaseTemplates?.find(
@@ -78,8 +78,6 @@ function RouteComponent() {
         return;
       }
 
-      setSubmitError(undefined);
-      setIsSubmitting(true);
       try {
         const league = await createLeague(values.value);
         toast.success("League created successfully!");
@@ -98,8 +96,6 @@ function RouteComponent() {
         } else {
           setSubmitError("Failed to create league");
         }
-      } finally {
-        setIsSubmitting(false);
       }
     },
   });
@@ -116,6 +112,7 @@ function RouteComponent() {
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();
+              setSubmitError(undefined);
             }}
           >
             <div className="col-span-1 md:col-span-2">
@@ -131,8 +128,10 @@ function RouteComponent() {
                         }}
                         inputProps={{
                           id: "name",
+                          name: "name",
                           placeholder: "League name",
                           className: "w-full",
+                          autoComplete: "off",
                         }}
                       />
                     )}
@@ -151,6 +150,7 @@ function RouteComponent() {
                             }}
                             inputProps={{
                               id: "image",
+                              name: "image",
                               placeholder: "https://...",
                               className: "w-full",
                             }}
@@ -188,6 +188,7 @@ function RouteComponent() {
                     }
                     selectProps={{
                       disabled: isLoadingPhaseTemplates,
+                      name: "endPhaseTemplateId",
                     }}
                     selectTriggerProps={{
                       id: "startPhaseTemplateId",
@@ -219,6 +220,7 @@ function RouteComponent() {
                     }
                     selectProps={{
                       disabled: isLoadingPhaseTemplates,
+                      name: "startPhaseTemplateId",
                     }}
                     selectTriggerProps={{
                       id: "endPhaseTemplateId",
@@ -246,6 +248,9 @@ function RouteComponent() {
                     labelProps={{
                       htmlFor: "visibility",
                       children: "Visibility",
+                    }}
+                    selectProps={{
+                      name: "visibility",
                     }}
                     selectTriggerProps={{
                       id: "visibility",
@@ -279,8 +284,6 @@ function RouteComponent() {
                       id: "size",
                       type: "number",
                       placeholder: MIN_LEAGUE_SIZE.toString(),
-                      min: MIN_LEAGUE_SIZE,
-                      max: MAX_LEAGUE_SIZE,
                       className: "w-full",
                       onChange: (e) =>
                         field.handleChange(Number(e.target.value)),
@@ -295,14 +298,13 @@ function RouteComponent() {
                 children={(field) => (
                   <field.NumberField
                     labelProps={{
-                      htmlFor: "picksPerPhase",
+                      htmlFor: "settings.picksPerPhase",
                       children: "Picks Per Week",
                     }}
                     inputProps={{
-                      id: "picksPerPhase",
+                      id: "settings.picksPerPhase",
                       type: "number",
                       placeholder: MIN_PICKS_PER_PHASE.toString(),
-                      min: MIN_PICKS_PER_PHASE,
                       className: "w-full",
                       onChange: (e) =>
                         field.handleChange(Number(e.target.value)),
@@ -317,11 +319,14 @@ function RouteComponent() {
                 children={(field) => (
                   <field.SelectField
                     labelProps={{
-                      htmlFor: "pickType",
+                      htmlFor: "settings.pickType",
                       children: "Pick Type",
                     }}
+                    selectProps={{
+                      name: "settings.pickType",
+                    }}
                     selectTriggerProps={{
-                      id: "pickType",
+                      id: "settings.pickType",
                     }}
                     options={[
                       {
@@ -346,10 +351,8 @@ function RouteComponent() {
               <form.AppForm>
                 <form.SubmitButton
                   submiterror={submitError}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Creating..." : "Create League"}
-                </form.SubmitButton>
+                  children="Create League"
+                />
               </form.AppForm>
             </div>
           </form>

@@ -47,3 +47,13 @@ export const myLeaguesForLeagueTypeQueryOptions = <T extends LeagueResponse>(
     queryKey: MY_LEAGUES_FOR_LEAGUE_TYPE_QUERY_KEY(typeIdOrSlug),
     queryFn: () => getMyLeaguesForLeagueType<T>(typeIdOrSlug),
   });
+
+export type LeagueTypeResponse = {
+  id: string;
+  name: LEAGUE_TYPE_NAMES;
+  slug: LEAGUE_TYPE_SLUGS;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  sportLeagueId: string;
+};

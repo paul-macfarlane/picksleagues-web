@@ -1,4 +1,9 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useRouter,
+} from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Check, X, Icon, AlertCircle } from "lucide-react";
 import {
@@ -21,23 +26,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-// Mock data for invites
-const mockInvites = [
-  {
-    id: "inv1",
-    leagueName: "The Champions Pick'em",
-    leagueType: "Pick'em",
-    invitedBy: "John Doe",
-    leagueImage: "https://github.com/shadcn.png",
-  },
-  {
-    id: "inv2",
-    leagueName: "Survivor Pool 2024",
-    leagueType: "Elimination Pool",
-    invitedBy: "Jane Smith",
-  },
-];
+import {
+  LEAGUE_INVITE_STATUSES,
+  useLeagueInvitesForUser,
+  useRespondToLeagueInvite,
+  type RespondToLeagueInvite,
+} from "@/api/leagueInvites";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -49,6 +44,8 @@ export const Route = createFileRoute("/")({
 });
 
 function RouteComponent() {
+  const router = useRouter();
+
   const {
     data: pickEmLeagues,
     isLoading: pickEmLeaguesIsLoading,
@@ -58,6 +55,34 @@ function RouteComponent() {
       LEAGUE_TYPE_SLUGS.PICK_EM,
     ),
   );
+
+  const {
+    data: leagueInvites,
+    isLoading: leagueInvitesIsLoading,
+    error: leagueInvitesError,
+  } = useLeagueInvitesForUser();
+
+  const { mutateAsync: respondToLeagueInvite } = useRespondToLeagueInvite();
+
+  const handleRespondToLeagueInvite = async (
+    inviteId: string,
+    leagueId: string,
+    response: RespondToLeagueInvite,
+  ) => {
+    try {
+      await respondToLeagueInvite({ inviteId, response });
+      if (response.response === LEAGUE_INVITE_STATUSES.ACCEPTED) {
+        router.navigate({
+          to: "/football/pick-em/$leagueId",
+          params: { leagueId },
+        });
+      } else {
+        toast.success("Invite declined");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="container py-4 md:py-8 space-y-8">
@@ -72,25 +97,67 @@ function RouteComponent() {
         <h2 className="text-xl md:text-2xl font-semibold tracking-tight">
           Open Invites
         </h2>
-        {mockInvites.length > 0 ? (
+        {leagueInvitesIsLoading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {mockInvites.map((invite) => (
+            <LeagueCardSkeleton />
+            <LeagueCardSkeleton />
+            <LeagueCardSkeleton />
+          </div>
+        ) : leagueInvitesError ? (
+          <Card>
+            <CardHeader className="flex-row items-center gap-2">
+              <AlertCircle className="h-6 w-6 text-destructive" />
+              <div>
+                <CardTitle className="text-base">
+                  Error loading invites
+                </CardTitle>
+                <CardDescription>
+                  {leagueInvitesError instanceof Error
+                    ? leagueInvitesError.message
+                    : "Please try again later."}
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        ) : leagueInvites && leagueInvites.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {leagueInvites.map((invite) => (
               <LeagueCard
                 key={invite.id}
-                name={invite.leagueName}
-                imageUrl={invite.leagueImage}
+                name={invite.league.name}
+                imageUrl={invite.league.image}
                 description={
-                  <>
-                    Invited by {invite.invitedBy} to a {invite.leagueType}{" "}
-                    league.
-                  </>
+                  <>Invited to join a {invite.leagueType.name} league.</>
                 }
                 footer={
                   <div className="flex w-full justify-end gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() =>
+                        handleRespondToLeagueInvite(
+                          invite.id,
+                          invite.leagueId,
+                          {
+                            response: LEAGUE_INVITE_STATUSES.DECLINED,
+                          },
+                        )
+                      }
+                    >
                       <X className="mr-2 h-4 w-4" /> Decline
                     </Button>
-                    <Button size="sm">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        handleRespondToLeagueInvite(
+                          invite.id,
+                          invite.leagueId,
+                          {
+                            response: LEAGUE_INVITE_STATUSES.ACCEPTED,
+                          },
+                        )
+                      }
+                    >
                       <Check className="mr-2 h-4 w-4" /> Accept
                     </Button>
                   </div>

@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { football } from "@lucide/lab";
 import { useQuery } from "@tanstack/react-query";
-import { profileQueryOptions } from "@/api/profile";
+import { profileQueryOptions } from "@/api/profiles";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@tanstack/react-router";
 import {
@@ -194,11 +194,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
     data: profileData,
     isLoading: isLoadingProfile,
     error: profileError,
-  } = useQuery(
-    profileQueryOptions({
-      enabled: !!session,
-    }),
-  );
+  } = useQuery(profileQueryOptions(session?.user.id ?? ""));
 
   async function signOut() {
     try {

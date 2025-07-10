@@ -15,13 +15,14 @@ import {
   updateProfileSchema,
   useUpdateProfile,
   type UpdateProfileRequest,
-} from "@/api/profile";
+} from "@/api/profiles";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserRound } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
@@ -57,7 +58,6 @@ function ProfileErrorState() {
 export const Route = createFileRoute("/profile/")({
   validateSearch: zodValidator(searchSchema),
   component: RouteComponent,
-
   beforeLoad: async ({ context }) => {
     if (!context.session) {
       throw redirect({ to: "/login" });
@@ -66,13 +66,14 @@ export const Route = createFileRoute("/profile/")({
 });
 
 function RouteComponent() {
+  const { data: session } = authClient.useSession();
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
   const queryClient = useQueryClient();
   const {
     data: profileData,
     isLoading: isLoadingProfile,
     error: profileError,
-  } = useQuery(profileQueryOptions());
+  } = useQuery(profileQueryOptions(session?.user.id ?? ""));
   const { mutateAsync: updateProfile } = useUpdateProfile();
   const { setup } = Route.useSearch();
   const navigate = useNavigate();
