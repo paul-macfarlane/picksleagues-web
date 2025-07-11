@@ -1,46 +1,50 @@
 # Migration Plan
 
-This plan outlines the incremental steps to refactor the codebase to meet the new standards outlined in [STANDARDS.md](./STANDARDS.md).
+This plan outlines the incremental steps to refactor the codebase to meet the new feature-sliced standards outlined in [STANDARDS.md](./STANDARDS.md).
 
-### Step 1: Establish Centralized Type Definitions
+### Step 1: Create the Feature Slices
 
-**Goal**: Move all type and schema definitions to the `src/types` directory.
+**Goal**: Create the new directory structure for all existing features.
 
-1.  Create the `src/types` directory.
-2.  Iterate through each file in `src/api` (e.g., `leagues.ts`, `profiles.ts`).
-3.  For each file, move all `type`, `interface`, `enum`, and `zod` schema definitions to a new, corresponding file in `src/types` (e.g., types from `src/api/leagues.ts` go into `src/types/leagues.ts`).
-4.  Update all imports across the application to reference the new type locations in `src/types`.
+1.  Create the `src/features` directory.
+2.  Based on the files in `src/api` (`leagues.ts`, `profiles.ts`, `leagueMembers.ts`, etc.), create a corresponding feature directory for each resource. For example:
+    - `src/features/leagues`
+    - `src/features/profiles`
+    - `src/features/leagueMembers`
+    - ...and so on.
+3.  Inside each new feature directory, create the standard sub-structure: an `api.ts` file, a `types.ts` file, and a `components` subdirectory.
 
-### Step 2: Refactor the API Layer
+### Step 2: Relocate and Split Feature Logic
 
-**Goal**: Align the API client with the API Design Guide and new standards.
+**Goal**: Move all existing code from the old structure into the appropriate feature slice.
 
-1.  Update the `detectAndThrowError` function in `src/api/index.ts` to correctly parse the new nested error structure (`error.message`, `error.code`).
-2.  Review and refactor all functions in the `src/api` directory to ensure they align with the API's URL structure (plural nouns, nesting) and naming conventions (camelCase).
-3.  Ensure that the API functions are clean of any type definitions, as they should now reside in `src/types`.
+1.  Go through each file in the old `src/api` directory (e.g., `src/api/leagues.ts`).
+2.  **Split the content**:
+    - Move all `type`, `interface`, `enum`, and `zod` schema definitions from that file into the `types.ts` of the corresponding feature slice (e.g., `src/features/leagues/types.ts`).
+    - Move all API call functions and TanStack Query hooks (`useMutation`, `queryOptions`) into the `api.ts` of the corresponding feature slice (e.g., `src/features/leagues/api.ts`).
+3.  Move any feature-specific components from `src/components/[feature]` to the new `components` subdirectory within the feature slice (e.g., `src/components/league/league-card.tsx` moves to `src/features/leagues/components/league-card.tsx`).
+4.  Relocate the base API client logic from `src/api/index.ts` to `src/lib/api-client.ts`.
 
-### Step 3: Standardize Data Fetching with TanStack Query
+### Step 3: Update Imports Across the Application
 
-**Goal**: Replace all manual data fetching with standardized `TanStack Query` hooks.
+**Goal**: Re-wire the application to use the newly located modules.
 
-1.  Audit all components that currently fetch data.
-2.  Replace any `fetch` calls within `useEffect` hooks with the appropriate `TanStack Query` hooks (`useSuspenseQuery`, `useMutation`) that are exported from the `src/api` files.
-3.  Ensure all API functions in `src/api` have a corresponding `queryOptions` object or `useMutation` hook co-located with them.
+1.  This is the most tedious step. Systematically go through every file in `src/routes` and `src/features`.
+2.  Update all `import` statements to point to the new locations of types, API calls, hooks, and components within the `src/features` directories.
+3.  Your IDE's "find and replace" or "move file and update imports" feature will be very helpful here.
 
-### Step 4: Consolidate Form Implementation
+### Step 4: Clean Up Old Directories
 
-**Goal**: Unify all forms to use `@tanstack/react-form` and `Zod`.
+**Goal**: Remove the now-empty legacy directories.
 
-1.  Identify all forms in the application.
-2.  Refactor each form to use the `useForm` hook from `@tanstack/react-form`.
-3.  Use the `zodValidator` to connect the form to the Zod schemas defined in `src/types`.
-4.  Replace raw `<input>` elements with the reusable components from `src/components/form`, ensuring they are correctly registered with the form instance.
+1.  Once all logic has been moved and all imports have been updated, the application should build and run correctly.
+2.  Safely delete the original `src/api` directory.
+3.  Safely delete any old feature-specific component directories like `src/components/league`.
 
-### Step 5: Simplify and Generalize the UI
+### Step 5: Final Review
 
-**Goal**: Reduce code duplication and increase UI consistency by creating reusable components.
+**Goal**: Ensure the new structure is consistent and correct.
 
-1.  Identify common, repeated UI patterns. A key example is how user information (avatar, name) is displayed.
-2.  Create a `UserDisplay` component (or similar) that takes a user/profile object and renders it consistently.
-3.  Refactor all instances where user information is displayed to use this new component.
-4.  Look for other opportunities to create reusable components and place them in either `src/components/ui` or `src/components/features`.
+1.  Review the `src/features` directory to ensure all slices follow the new standard structure.
+2.  Check that the `src/routes` files are now primarily responsible for layout and composition, importing their logic from the feature slices.
+3.  Ensure no imports reference the old, deleted paths.
