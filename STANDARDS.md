@@ -129,3 +129,29 @@ export const useDelayedLoader = (isLoading: boolean, delay: number = 300) => {
   return showLoader;
 };
 ```
+
+### 9. Explicit Return Types
+
+To improve code clarity, maintainability, and prevent accidental data leaks across boundaries, we favor explicit return types for functions. This is especially critical at architectural boundaries.
+
+#### ALWAYS Use Explicit Return Types For:
+
+1.  **Functions at Architectural Boundaries:**
+
+    - **API Layer Functions**: All functions in `api.ts` files that fetch data must have an explicit `Promise<T>` return type, where `T` is a defined type from `types.ts`.
+    - **TanStack Router `loader` Functions**: The `loader` function for each route must have an explicit return type defining the data it provides to the component.
+    - **React Components**: Component functions should have an explicit return type, typically `JSX.Element` or `React.ReactNode`.
+    - **Custom Hooks**: Any custom hook (e.g., `useDelayedLoader`) must have an explicit return type.
+
+2.  **All Other Exported Functions (`export function ...`)**:
+    - If a function is exported from any file, it is part of that module's public API and its contract must be made explicit with a return type.
+
+#### It's OK to Use Inferred Return Types For:
+
+1.  **Short, Inline Arrow Functions**:
+
+    - Especially inside methods like `Array.prototype.map` or `Array.prototype.filter`, where the local context makes the return type obvious.
+    - _Example_: `const names = leagues.map(league => league.name); // Implicit is fine here`
+
+2.  **Private, Internal Helper Functions**:
+    - If a function is not exported and is only used as a simple helper within the same file, type inference is acceptable.

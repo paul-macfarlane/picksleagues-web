@@ -1,3 +1,5 @@
+import z from "zod";
+
 export const API_BASE = import.meta.env.VITE_API_BASE;
 
 export async function unauthenticatedFetch<T>(
@@ -31,25 +33,46 @@ export async function authenticatedFetch<T>(
   return (await response.json()) as T;
 }
 
-type ErrorResponse = {
-  error: string;
-};
+// need to maintain this until we have migrated all the clients to the new error response format
+const legacyErrorResponseSchema = z.object({
+  error: z.string(),
+});
+
+const errorResponseSchema = z.object({
+  error: z.object({
+    message: z.string(),
+    code: z.string(),
+  }),
+});
 
 async function detectAndThrowError(response: Response) {
   if (!response.ok) {
-    const errorResponse = (await response.json()) as ErrorResponse;
+    const errorResponse = await response.json();
+    let errorMessage = "";
+
+    const legacyErrorResponse =
+      legacyErrorResponseSchema.safeParse(errorResponse);
+
+    if (legacyErrorResponse.success) {
+      errorMessage = legacyErrorResponse.data.error;
+    }
+
+    const newErrorResponse = errorResponseSchema.safeParse(errorResponse);
+    if (newErrorResponse.success) {
+      errorMessage = newErrorResponse.data.error.message;
+    }
 
     switch (response.status) {
       case 400:
-        throw new BadRequestError(errorResponse.error);
+        throw new BadRequestError(errorMessage);
       case 401:
-        throw new UnauthorizedError(errorResponse.error);
+        throw new UnauthorizedError(errorMessage);
       case 403:
-        throw new ForbiddenError(errorResponse.error);
+        throw new ForbiddenError(errorMessage);
       case 404:
-        throw new NotFoundError(errorResponse.error);
+        throw new NotFoundError(errorMessage);
       default:
-        throw new InternalServerError(errorResponse.error);
+        throw new InternalServerError(errorMessage);
     }
   }
 }

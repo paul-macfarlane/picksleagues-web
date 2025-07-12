@@ -90,7 +90,10 @@ function RouteComponent() {
     },
     onSubmit: async (values) => {
       try {
-        await updateProfile(values.value);
+        await updateProfile({
+          userId: session?.user.id ?? "",
+          profile: values.value,
+        });
         queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
         toast.success(
           setup ? "Profile setup successfully" : "Profile updated successfully",

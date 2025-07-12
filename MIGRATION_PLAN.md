@@ -43,7 +43,17 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 2.  Ensure each form's validation uses a `Zod` schema imported from the relevant feature slice's `types.ts` file.
 3.  Convert the form to use the `@tanstack/react-form` library.
 
-### Step 6: Clean Up and Final Review
+### Step 6: Enforce Explicit Return Types
+
+**Goal**: Audit the codebase to ensure all critical functions have explicit return types as defined in `STANDARDS.md`.
+
+1.  **Audit API Functions**: Go through every `api.ts` file and ensure every exported function has an explicit `Promise<T>` return type.
+2.  **Audit Route Loaders**: Check every route file in `src/routes` and add explicit return types to all `loader` functions.
+3.  **Audit Custom Hooks**: Review any custom hooks (e.g., in `src/hooks`) and add explicit return types.
+4.  **Audit Components**: Add `JSX.Element` or `React.Node` as the return type for all React components.
+5.  **Audit All Other Exports**: Briefly review all other exported functions to ensure they comply with the new standard.
+
+### Step 7: Clean Up and Final Review
 
 **Goal**: Remove legacy code and ensure the new structure is consistent.
 
