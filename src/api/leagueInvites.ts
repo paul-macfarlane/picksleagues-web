@@ -4,6 +4,7 @@ import { API_BASE, authenticatedFetch } from ".";
 import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import type { LeagueResponse } from "./leagues";
 import type { LeagueTypeResponse } from "./leagueTypes";
+import type { ProfileResponse } from "./profiles";
 
 export enum LEAGUE_INVITE_TYPES {
   DIRECT = "direct",
@@ -71,11 +72,16 @@ export type LeagueInviteResponse = {
   updatedAt: string;
 };
 
+export type LeagueInviteResponsePopulated = LeagueInviteResponse & {
+  invitee?: ProfileResponse;
+};
+
+// todo in frontend refactor, the include should be parameterized
 export async function getLeagueInvites(
   leagueId: string,
-): Promise<LeagueInviteResponse[]> {
-  return await authenticatedFetch<LeagueInviteResponse[]>(
-    `${API_BASE}/v1/leagues/${leagueId}/invites`,
+): Promise<LeagueInviteResponsePopulated[]> {
+  return await authenticatedFetch<LeagueInviteResponsePopulated[]>(
+    `${API_BASE}/v1/leagues/${leagueId}/invites?include=invitee`,
   );
 }
 
