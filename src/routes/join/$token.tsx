@@ -1,7 +1,3 @@
-import {
-  useJoinLeagueByInviteToken,
-  useLeagueInviteByToken,
-} from "@/api/leagueInvites";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -23,6 +19,10 @@ import { Loader2 } from "lucide-react";
 import { LeagueCardSkeleton } from "@/components/league/league-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  useGetLeagueInviteByToken,
+  useJoinLeagueByInviteToken,
+} from "@/features/leagueInvites/leagueInvites.api";
 
 export const Route = createFileRoute("/join/$token")({
   component: RouteComponent,
@@ -35,16 +35,14 @@ function RouteComponent() {
 
   const {
     data: leagueInvite,
-    isLoading,
-    isError,
-    error,
-  } = useLeagueInviteByToken({
-    token,
-    enabled: !!session,
-  });
+    isLoading: isLoadingLeagueInvite,
+    error: leagueInviteError,
+  } = useGetLeagueInviteByToken(token, !!session);
 
-  const { mutateAsync: joinLeagueByInviteToken, isPending } =
-    useJoinLeagueByInviteToken();
+  const {
+    mutateAsync: joinLeagueByInviteToken,
+    isPending: isPendingJoinLeague,
+  } = useJoinLeagueByInviteToken();
 
   async function handleJoinLeague() {
     try {
@@ -80,7 +78,7 @@ function RouteComponent() {
     );
   }
 
-  if (isLoading) {
+  if (isLoadingLeagueInvite) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -90,15 +88,15 @@ function RouteComponent() {
     );
   }
 
-  if (isError) {
+  if (leagueInviteError) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Error</CardTitle>
             <CardDescription>
-              {error instanceof Error
-                ? error.message
+              {leagueInviteError instanceof Error
+                ? leagueInviteError.message
                 : "Could not load invite."}
             </CardDescription>
           </CardHeader>
@@ -165,10 +163,12 @@ function RouteComponent() {
         <CardFooter>
           <Button
             onClick={handleJoinLeague}
-            disabled={isPending}
+            disabled={isPendingJoinLeague}
             className="w-full"
           >
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isPendingJoinLeague && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
             Join League
           </Button>
         </CardFooter>

@@ -1,26 +1,26 @@
-import {
-  LEAGUE_TYPE_SLUGS,
-  MY_LEAGUES_FOR_LEAGUE_TYPE_QUERY_KEY,
-  phaseTemplatesByLeagueTypeQueryOptions,
-} from "@/api/leagueTypes";
-import {
-  useCreateLeague,
-  CreatePickEmLeagueSchema,
-  MIN_PICKS_PER_PHASE,
-  type CreatePickEmLeague,
-  PICK_EM_PICK_TYPES,
-  PICK_EM_PICK_TYPE_LABELS,
-} from "@/api/leagues";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useAppForm } from "@/components/form";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
-import { LEAGUE_VISIBILITIES, MIN_LEAGUE_SIZE } from "@/api/leagues";
 import { Trophy } from "lucide-react";
+import { useGetPhaseTemplatesForLeagueType } from "@/features/phaseTemplates/phaseTemplates.api";
+import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
+import {
+  GetMyLeaguesForLeagueTypeQueryKey,
+  useCreateLeague,
+} from "@/features/leagues/leagues.api";
+import type z from "zod";
+import {
+  LEAGUE_VISIBILITIES,
+  MIN_LEAGUE_SIZE,
+  MIN_PICKS_PER_PHASE,
+  PICK_EM_PICK_TYPES,
+  CreatePickEmLeagueSchema,
+  PICK_EM_PICK_TYPE_LABELS,
+} from "@/features/leagues/leagues.types";
 
 export const Route = createFileRoute("/football/pick-em/create")({
   component: RouteComponent,
@@ -37,12 +37,10 @@ function RouteComponent() {
   const {
     data: phaseTemplates,
     isLoading: isLoadingPhaseTemplates,
-    isError: isErrorPhaseTemplates,
     error: phaseTemplatesError,
-  } = useQuery(
-    phaseTemplatesByLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
-  );
-  const { mutateAsync: createLeague } = useCreateLeague<CreatePickEmLeague>();
+  } = useGetPhaseTemplatesForLeagueType(LEAGUE_TYPE_SLUGS.PICK_EM);
+  const { mutateAsync: createLeague } =
+    useCreateLeague<z.infer<typeof CreatePickEmLeagueSchema>>();
   const queryClient = useQueryClient();
 
   const form = useAppForm({
@@ -58,7 +56,7 @@ function RouteComponent() {
         picksPerPhase: Number(MIN_PICKS_PER_PHASE),
         pickType: PICK_EM_PICK_TYPES.SPREAD,
       },
-    } as CreatePickEmLeague,
+    } as z.infer<typeof CreatePickEmLeagueSchema>,
     validators: {
       onSubmit: CreatePickEmLeagueSchema,
     },
@@ -82,7 +80,7 @@ function RouteComponent() {
         const league = await createLeague(values.value);
         toast.success("League created successfully!");
         queryClient.invalidateQueries({
-          queryKey: MY_LEAGUES_FOR_LEAGUE_TYPE_QUERY_KEY(
+          queryKey: GetMyLeaguesForLeagueTypeQueryKey(
             LEAGUE_TYPE_SLUGS.PICK_EM,
           ),
         });
@@ -182,7 +180,7 @@ function RouteComponent() {
                 children={(field) => (
                   <field.SelectField
                     externalError={
-                      isErrorPhaseTemplates
+                      phaseTemplatesError
                         ? phaseTemplatesError?.message
                         : undefined
                     }
@@ -214,7 +212,7 @@ function RouteComponent() {
                 children={(field) => (
                   <field.SelectField
                     externalError={
-                      isErrorPhaseTemplates
+                      phaseTemplatesError
                         ? phaseTemplatesError?.message
                         : undefined
                     }

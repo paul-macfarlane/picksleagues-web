@@ -10,10 +10,10 @@ import { Suspense } from "react";
 // import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy } from "lucide-react";
-import { leagueQueryOptions } from "@/api/leagues";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId")({
   component: LeagueLayoutComponent,
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/football/pick-em/$leagueId")({
     }
   },
   loader: ({ context: { queryClient }, params: { leagueId } }) =>
-    queryClient.ensureQueryData(leagueQueryOptions(leagueId)),
+    queryClient.ensureQueryData(GetLeagueQueryOptions(leagueId)),
 });
 
 function LeagueLayoutPendingComponent() {
@@ -66,7 +66,7 @@ function PendingCard() {
 
 function LeagueLayoutComponent() {
   const { leagueId } = useParams({ from: "/football/pick-em/$leagueId" });
-  const { data: league } = useSuspenseQuery(leagueQueryOptions(leagueId));
+  const { data: league } = useSuspenseQuery(GetLeagueQueryOptions(leagueId));
 
   const tabs = [
     { name: "Standings", to: "/football/pick-em/$leagueId", exact: true },

@@ -25,22 +25,14 @@ import {
   Check,
   AlertCircle,
 } from "lucide-react";
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  useSuspenseQuery,
-  useQueryClient,
-  useQuery,
-} from "@tanstack/react-query";
-import {
-  leagueInvitesQueryOptions,
-  useCreateLeagueInvite,
-  useDeactivateLeagueInvite,
   LEAGUE_INVITE_TYPES,
-  type CreateLeagueInvite,
   CreateLeagueInviteSchema,
   MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
   type LeagueInviteResponse,
-  type LeagueInviteResponsePopulated,
-} from "@/api/leagueInvites";
+  type PopulatedLeagueInviteResponse,
+} from "@/features/leagueInvites/leagueInvites.types";
 import { Separator } from "@/components/ui/separator";
 import {
   Popover,
@@ -49,7 +41,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { profileSearchQueryOptions } from "@/api/profiles";
+import { useSearchProfiles } from "@/features/profiles/profiles.api";
 import {
   Command,
   CommandEmpty,
@@ -61,12 +53,19 @@ import {
 import { useState, useEffect } from "react";
 import { useAppForm } from "@/components/form";
 import {
-  leagueMembersQueryOptions,
   LEAGUE_MEMBER_ROLES,
   type LeagueMemberResponse,
-} from "@/api/leagueMembers";
+} from "@/features/leagueMembers/leagueMembers.types";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GetLeagueMembersQueryOptions } from "@/features/leagueMembers/leagueMembers.api";
+import {
+  GetLeagueInvitesQueryKey,
+  useCreateLeagueInvite,
+  useDeleteLeagueInvite,
+  useGetLeagueInvites,
+} from "@/features/leagueInvites/leagueInvites.api";
+import type z from "zod";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   component: MembersComponent,
@@ -76,7 +75,7 @@ export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
     }
   },
   loader: ({ context: { queryClient }, params: { leagueId } }) => {
-    queryClient.ensureQueryData(leagueMembersQueryOptions(leagueId));
+    queryClient.ensureQueryData(GetLeagueMembersQueryOptions(leagueId));
   },
 });
 
@@ -86,7 +85,7 @@ function MembersComponent() {
   });
   const { session } = Route.useRouteContext();
   const { data: members } = useSuspenseQuery(
-    leagueMembersQueryOptions(leagueId),
+    GetLeagueMembersQueryOptions(leagueId),
   );
 
   const currentUserMemberInfo = members.find(
@@ -118,15 +117,15 @@ function MembersComponent() {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarImage
-                          src={member.profile.avatarUrl ?? undefined}
-                          alt={`${member.profile.firstName} ${member.profile.lastName}`}
+                          src={member.profile?.avatarUrl ?? undefined}
+                          alt={`${member.profile?.firstName} ${member.profile?.lastName}`}
                         />
                         <AvatarFallback>
                           <UserRound className="h-4 w-4 text-primary" />
                         </AvatarFallback>
                       </Avatar>
                       <span>
-                        {member.profile.firstName} {member.profile.lastName}
+                        {member.profile?.firstName} {member.profile?.lastName}
                       </span>
                     </div>
                   </TableCell>
@@ -173,17 +172,17 @@ function InviteManagement({
     data: invites,
     isLoading: isInvitesLoading,
     error: invitesError,
-  } = useQuery(leagueInvitesQueryOptions({ leagueId, enabled: true }));
+  } = useGetLeagueInvites(leagueId, true);
   const queryClient = useQueryClient();
 
-  const { mutateAsync: deactivateInvite } = useDeactivateLeagueInvite();
+  const { mutateAsync: deactivateInvite } = useDeleteLeagueInvite();
 
   async function handleDeactivate(inviteId: string) {
     try {
       await deactivateInvite(inviteId);
       toast.success("Invite link deactivated");
       queryClient.invalidateQueries({
-        queryKey: leagueInvitesQueryOptions({ leagueId }).queryKey,
+        queryKey: GetLeagueInvitesQueryKey(leagueId),
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -218,7 +217,7 @@ function InviteManagement({
             className="mt-4"
             onClick={() =>
               queryClient.refetchQueries({
-                queryKey: leagueInvitesQueryOptions({ leagueId }).queryKey,
+                queryKey: GetLeagueInvitesQueryKey(leagueId),
               })
             }
           >
@@ -320,7 +319,8 @@ function CreateInviteLinkFormComponent() {
     from: "/football/pick-em/$leagueId/members",
   });
   const queryClient = useQueryClient();
-  const { mutateAsync: createInvite, isPending } = useCreateLeagueInvite();
+  const { mutateAsync: createInvite, isPending: isCreatingInvite } =
+    useCreateLeagueInvite();
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
 
   const form = useAppForm({
@@ -329,14 +329,14 @@ function CreateInviteLinkFormComponent() {
       type: LEAGUE_INVITE_TYPES.LINK,
       role: LEAGUE_MEMBER_ROLES.MEMBER,
       expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
-    } as CreateLeagueInvite,
+    } as z.infer<typeof CreateLeagueInviteSchema>,
     onSubmit: async ({ value }) => {
       try {
         await createInvite({ ...value, type: LEAGUE_INVITE_TYPES.LINK });
         toast.success("Invite link created");
         form.reset();
         queryClient.invalidateQueries({
-          queryKey: leagueInvitesQueryOptions({ leagueId }).queryKey,
+          queryKey: GetLeagueInvitesQueryKey(leagueId),
         });
       } catch (error) {
         if (error instanceof Error) {
@@ -376,7 +376,7 @@ function CreateInviteLinkFormComponent() {
                   children: "Role",
                 }}
                 selectProps={{
-                  disabled: isPending,
+                  disabled: isCreatingInvite,
                   name: "role",
                 }}
                 selectTriggerProps={{
@@ -499,7 +499,7 @@ function DirectInviteList({
   invites,
   onDeactivate,
 }: {
-  invites: LeagueInviteResponsePopulated[];
+  invites: PopulatedLeagueInviteResponse[];
   onDeactivate: (inviteId: string) => void;
 }) {
   return (
@@ -538,7 +538,7 @@ function DirectInviteRow({
   invite,
   onDeactivate,
 }: {
-  invite: LeagueInviteResponsePopulated;
+  invite: PopulatedLeagueInviteResponse;
   onDeactivate: (inviteId: string) => void;
 }) {
   return (
@@ -604,7 +604,7 @@ function DirectInviteFormComponent({
       type: LEAGUE_INVITE_TYPES.DIRECT,
       leagueId,
       expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
-    } as CreateLeagueInvite,
+    } as z.infer<typeof CreateLeagueInviteSchema>,
     onSubmit: async ({ value }) => {
       try {
         await createInvite({
@@ -614,7 +614,7 @@ function DirectInviteFormComponent({
         });
         toast.success("Invite sent");
         queryClient.invalidateQueries({
-          queryKey: leagueInvitesQueryOptions({ leagueId }).queryKey,
+          queryKey: GetLeagueInvitesQueryKey(leagueId),
         });
         form.reset();
       } catch (error) {
@@ -755,15 +755,13 @@ function UserSearchCombobox({
     };
   }, [search]);
 
-  const { data: profiles = [] } = useQuery(
-    profileSearchQueryOptions({
-      search: {
-        username: debouncedSearch,
-        firstName: debouncedSearch,
-        lastName: debouncedSearch,
-      },
-      enabled: debouncedSearch.length >= 3,
-    }),
+  const { data: profiles = [] } = useSearchProfiles(
+    {
+      username: debouncedSearch,
+      firstName: debouncedSearch,
+      lastName: debouncedSearch,
+    },
+    debouncedSearch.length >= 3,
   );
 
   // filter out profiles that are already in the league and that don't already have an invite

@@ -10,19 +10,18 @@ import { useAppForm } from "@/components/form";
 import z from "zod";
 import { useState } from "react";
 import {
-  PROFILE_QUERY_KEY,
-  profileQueryOptions,
-  updateProfileSchema,
+  GetProfileByUserIdQueryKey,
+  useGetProfileByUserId,
   useUpdateProfile,
-  type UpdateProfileRequest,
-} from "@/api/profiles";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+} from "@/features/profiles/profiles.api";
+import { useQueryClient } from "@tanstack/react-query";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserRound } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { UpdateProfileSchema } from "@/features/profiles/profiles.types";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
@@ -73,7 +72,7 @@ function RouteComponent() {
     data: profileData,
     isLoading: isLoadingProfile,
     error: profileError,
-  } = useQuery(profileQueryOptions(session?.user.id ?? ""));
+  } = useGetProfileByUserId(session?.user.id ?? "");
   const { mutateAsync: updateProfile } = useUpdateProfile();
   const { setup } = Route.useSearch();
   const navigate = useNavigate();
@@ -84,9 +83,9 @@ function RouteComponent() {
       firstName: profileData?.firstName ?? "",
       lastName: profileData?.lastName ?? "",
       avatarUrl: profileData?.avatarUrl ?? "",
-    } as UpdateProfileRequest,
+    } as z.infer<typeof UpdateProfileSchema>,
     validators: {
-      onSubmit: updateProfileSchema,
+      onSubmit: UpdateProfileSchema,
     },
     onSubmit: async (values) => {
       try {
@@ -94,7 +93,9 @@ function RouteComponent() {
           userId: session?.user.id ?? "",
           profile: values.value,
         });
-        queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+        queryClient.invalidateQueries({
+          queryKey: GetProfileByUserIdQueryKey(session?.user.id ?? ""),
+        });
         toast.success(
           setup ? "Profile setup successfully" : "Profile updated successfully",
         );

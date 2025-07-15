@@ -34,8 +34,6 @@ import {
   UserRound,
 } from "lucide-react";
 import { football } from "@lucide/lab";
-import { useQuery } from "@tanstack/react-query";
-import { profileQueryOptions } from "@/api/profiles";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@tanstack/react-router";
 import {
@@ -46,6 +44,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import { useGetProfileByUserId } from "@/features/profiles/profiles.api";
 
 function ProfileMenuSkeleton() {
   return (
@@ -194,7 +193,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
     data: profileData,
     isLoading: isLoadingProfile,
     error: profileError,
-  } = useQuery(profileQueryOptions(session?.user.id ?? ""));
+  } = useGetProfileByUserId(session?.user.id ?? "");
 
   async function signOut() {
     try {

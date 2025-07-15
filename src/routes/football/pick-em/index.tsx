@@ -6,20 +6,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  LEAGUE_TYPE_SLUGS,
-  myLeaguesForLeagueTypeQueryOptions,
-} from "@/api/leagueTypes";
-import { useQuery } from "@tanstack/react-query";
-import {
-  PICK_EM_PICK_TYPE_LABELS,
-  type PickEmLeagueResponse,
-} from "@/api/leagues";
 import { CheckSquare, AlertCircle, Trophy } from "lucide-react";
 import {
   LeagueCard,
   LeagueCardSkeleton,
 } from "@/components/league/league-card";
+import { useGetMyLeaguesForLeagueType } from "@/features/leagues/leagues.api";
+import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
+import {
+  PICK_EM_PICK_TYPE_LABELS,
+  type PickEmLeagueResponse,
+} from "@/features/leagues/leagues.types";
 
 export const Route = createFileRoute("/football/pick-em/")({
   component: RouteComponent,
@@ -35,10 +32,8 @@ function RouteComponent() {
     data: leagues,
     isLoading: leaguesIsLoading,
     error: leaguesError,
-  } = useQuery(
-    myLeaguesForLeagueTypeQueryOptions<PickEmLeagueResponse>(
-      LEAGUE_TYPE_SLUGS.PICK_EM,
-    ),
+  } = useGetMyLeaguesForLeagueType<PickEmLeagueResponse>(
+    LEAGUE_TYPE_SLUGS.PICK_EM,
   );
 
   return (
