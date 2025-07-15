@@ -124,10 +124,14 @@ function RouteComponent() {
             {leagueInvites.map((invite) => (
               <LeagueCard
                 key={invite.id}
-                name={invite.league.name}
-                imageUrl={invite.league.image}
+                name={invite.league?.name ?? "Unknown League"}
+                imageUrl={invite.league?.image ?? undefined}
                 description={
-                  <>Invited to join a {invite.leagueType.name} league.</>
+                  <>
+                    Invited to join a{" "}
+                    {invite.league?.leagueType?.name ?? "Unknown League Type"}{" "}
+                    league.
+                  </>
                 }
                 footer={
                   <div className="flex w-full justify-end gap-2">

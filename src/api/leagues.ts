@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { API_BASE, authenticatedFetch } from ".";
-import { LEAGUE_TYPE_SLUGS } from "./leagueTypes";
+import { LEAGUE_TYPE_SLUGS, type LeagueTypeResponse } from "./leagueTypes";
 import { useMutation, queryOptions } from "@tanstack/react-query";
 
 export const MIN_PICKS_PER_PHASE = 1;
@@ -93,6 +93,10 @@ export type LeagueResponse = {
   settings: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
+};
+
+export type PopulatedLeagueResponse = LeagueResponse & {
+  leagueType?: LeagueTypeResponse;
 };
 
 export type PickEmLeagueResponse = LeagueResponse & {

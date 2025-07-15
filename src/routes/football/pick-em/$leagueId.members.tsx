@@ -39,6 +39,7 @@ import {
   CreateLeagueInviteSchema,
   MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
   type LeagueInviteResponse,
+  type LeagueInviteResponsePopulated,
 } from "@/api/leagueInvites";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -48,7 +49,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { profileQueryOptions, profileSearchQueryOptions } from "@/api/profiles";
+import { profileSearchQueryOptions } from "@/api/profiles";
 import {
   Command,
   CommandEmpty,
@@ -498,7 +499,7 @@ function DirectInviteList({
   invites,
   onDeactivate,
 }: {
-  invites: LeagueInviteResponse[];
+  invites: LeagueInviteResponsePopulated[];
   onDeactivate: (inviteId: string) => void;
 }) {
   return (
@@ -537,29 +538,25 @@ function DirectInviteRow({
   invite,
   onDeactivate,
 }: {
-  invite: LeagueInviteResponse;
+  invite: LeagueInviteResponsePopulated;
   onDeactivate: (inviteId: string) => void;
 }) {
-  const { data: userProfile } = useSuspenseQuery(
-    profileQueryOptions(invite.inviteeId!),
-  );
-
   return (
     <TableRow>
       <TableCell className="font-medium">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">
             <AvatarImage
-              src={userProfile.avatarUrl ?? undefined}
-              alt={`${userProfile.firstName} ${userProfile.lastName}`}
+              src={invite.invitee?.avatarUrl ?? undefined}
+              alt={`${invite.invitee?.firstName} ${invite.invitee?.lastName}`}
             />
             <AvatarFallback>
               <UserRound className="h-4 w-4 text-primary" />
             </AvatarFallback>
           </Avatar>
           <span>
-            {userProfile.firstName} {userProfile.lastName} (@
-            {userProfile.username})
+            {invite.invitee?.firstName} {invite.invitee?.lastName} (
+            {invite.invitee?.username})
           </span>
         </div>
       </TableCell>

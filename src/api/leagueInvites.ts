@@ -2,8 +2,8 @@ import { z } from "zod";
 import { LEAGUE_MEMBER_ROLES } from "./leagueMembers";
 import { API_BASE, authenticatedFetch } from ".";
 import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
-import type { LeagueResponse } from "./leagues";
-import type { LeagueTypeResponse } from "./leagueTypes";
+import type { PopulatedLeagueResponse } from "./leagues";
+import type { ProfileResponse } from "./profiles";
 
 export enum LEAGUE_INVITE_TYPES {
   DIRECT = "direct",
@@ -71,11 +71,16 @@ export type LeagueInviteResponse = {
   updatedAt: string;
 };
 
+export type LeagueInviteResponsePopulated = LeagueInviteResponse & {
+  invitee?: ProfileResponse;
+};
+
+// todo in frontend refactor, the include should be parameterized
 export async function getLeagueInvites(
   leagueId: string,
-): Promise<LeagueInviteResponse[]> {
-  return await authenticatedFetch<LeagueInviteResponse[]>(
-    `${API_BASE}/v1/leagues/${leagueId}/invites`,
+): Promise<LeagueInviteResponsePopulated[]> {
+  return await authenticatedFetch<LeagueInviteResponsePopulated[]>(
+    `${API_BASE}/v1/leagues/${leagueId}/invites?include=invitee`,
   );
 }
 
@@ -165,16 +170,15 @@ export const useDeactivateLeagueInvite = () => {
   });
 };
 
-export type LeagueInviteWithLeagueAndTypeResponse = LeagueInviteResponse & {
-  league: LeagueResponse;
-  leagueType: LeagueTypeResponse;
+export type PopulatedLeagueInviteResponse = LeagueInviteResponse & {
+  league?: PopulatedLeagueResponse;
 };
 
 export async function getLeagueInvitesForUser(): Promise<
-  LeagueInviteWithLeagueAndTypeResponse[]
+  PopulatedLeagueInviteResponse[]
 > {
-  return await authenticatedFetch<LeagueInviteWithLeagueAndTypeResponse[]>(
-    `${API_BASE}/v1/league-invites/my-invites`,
+  return await authenticatedFetch<PopulatedLeagueInviteResponse[]>(
+    `${API_BASE}/v1/league-invites/my-invites?include=league,league.leagueType`,
   );
 }
 
@@ -188,11 +192,12 @@ export const useLeagueInvitesForUser = () => {
   return useQuery(leagueInvitesForUserQueryOptions());
 };
 
+// todo in frontend refactor, the include should be parameterized
 export async function getLeagueInviteByToken(
   token: string,
-): Promise<LeagueInviteWithLeagueAndTypeResponse> {
-  return await authenticatedFetch<LeagueInviteWithLeagueAndTypeResponse>(
-    `${API_BASE}/v1/league-invites/token/${token}`,
+): Promise<PopulatedLeagueInviteResponse> {
+  return await authenticatedFetch<PopulatedLeagueInviteResponse>(
+    `${API_BASE}/v1/league-invites/token/${token}?include=league,league.leagueType`,
     {
       method: "GET",
       headers: {

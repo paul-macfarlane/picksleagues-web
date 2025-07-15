@@ -62,20 +62,30 @@ export const updateProfileSchema = z.object({
 export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
 
 export async function updateProfile(
+  userId: string,
   profile: UpdateProfileRequest,
 ): Promise<ProfileResponse> {
-  return await authenticatedFetch<ProfileResponse>(`${API_BASE}/v1/profiles`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
+  return await authenticatedFetch<ProfileResponse>(
+    `${API_BASE}/v1/profiles/${userId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(profile),
     },
-    body: JSON.stringify(profile),
-  });
+  );
 }
 
 export const useUpdateProfile = () => {
   return useMutation({
-    mutationFn: updateProfile,
+    mutationFn: ({
+      userId,
+      profile,
+    }: {
+      userId: string;
+      profile: UpdateProfileRequest;
+    }) => updateProfile(userId, profile),
   });
 };
 

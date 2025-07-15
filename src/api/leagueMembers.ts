@@ -19,11 +19,12 @@ export type LeagueMemberWithProfileResponse = LeagueMemberResponse & {
   profile: ProfileResponse;
 };
 
+// todo in frontend refactor, the include should be parameterized
 export async function getLeagueMembers(
   leagueId: string,
 ): Promise<LeagueMemberWithProfileResponse[]> {
   return await authenticatedFetch<LeagueMemberWithProfileResponse[]>(
-    `${API_BASE}/v1/leagues/${leagueId}/members`,
+    `${API_BASE}/v1/leagues/${leagueId}/members?include=profile`,
   );
 }
 
