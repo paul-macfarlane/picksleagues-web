@@ -62,7 +62,7 @@ function RouteComponent() {
 
   if (!session?.user) {
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Please Log In</CardTitle>
@@ -82,7 +82,7 @@ function RouteComponent() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md">
           <LeagueCardSkeleton />
         </div>
@@ -92,7 +92,7 @@ function RouteComponent() {
 
   if (isError) {
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Error</CardTitle>
@@ -109,7 +109,7 @@ function RouteComponent() {
 
   if (!leagueInvite) {
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Invalid Invite</CardTitle>
@@ -124,7 +124,7 @@ function RouteComponent() {
 
   if (new Date(leagueInvite.expiresAt) < new Date()) {
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Invite Expired</CardTitle>
@@ -138,22 +138,22 @@ function RouteComponent() {
   }
 
   return (
-    <div className="flex justify-center items-center">
+    <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="items-center text-center">
           <Avatar className="h-24 w-24">
             <AvatarImage
-              src={leagueInvite.league.image ?? undefined}
-              alt={leagueInvite.league.name}
+              src={leagueInvite.league?.image ?? undefined}
+              alt={leagueInvite.league?.name ?? "Unknown League"}
             />
             <AvatarFallback>
-              {leagueInvite.league.name.charAt(0)}
+              {leagueInvite.league?.name?.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <CardTitle className="text-2xl pt-2">Join League</CardTitle>
           <CardDescription>
             You've been invited to join{" "}
-            <strong>{leagueInvite.league.name}</strong>.
+            <strong>{leagueInvite.league?.name ?? "Unknown League"}</strong>.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
