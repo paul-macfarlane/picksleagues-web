@@ -6,9 +6,9 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 
 **Goal**: Create the new directories and shared hooks that will be used in the refactor.
 
-1.  Create the `src/features` and `src/hooks` directories.
-2.  Create the `useDelayedLoader` hook in `src/hooks/useDelayedLoader.ts` as defined in `STANDARDS.md`.
-3.  Based on the files in `src/api`, create an initial, empty directory for each feature slice (e.g., `src/features/leagues`).
+1.  `[x]` Create the `src/features` and `src/hooks` directories.
+2.  `[x]` Create the `useDelayedLoader` hook in `src/hooks/useDelayedLoader.ts` as defined in `STANDARDS.md`.
+3.  `[x]` Based on the files in `src/api`, create an initial, empty directory for each feature slice (e.g., `src/features/leagues`).
 
 ### Step 2: Relocate and Split Feature Logic
 
