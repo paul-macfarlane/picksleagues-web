@@ -1,14 +1,6 @@
-import {
-  createFileRoute,
-  redirect,
-  useNavigate,
-  useRouter,
-} from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useAppForm } from "@/components/form";
 import z from "zod";
-import { useState } from "react";
 import {
   GetProfileByUserIdQueryKey,
   useGetProfileByUserId,
@@ -17,42 +9,17 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { UserRound } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { UpdateProfileSchema } from "@/features/profiles/profiles.types";
+import {
+  ProfileErrorState,
+  ProfileLoadingSkeleton,
+} from "@/features/profiles/components/profile-states";
+import { ProfileForm } from "@/features/profiles/components/profile-form";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
 });
-
-function ProfileLoadingSkeleton() {
-  return <Skeleton className="h-120 w-full max-w-md mx-auto mt-8" />;
-}
-
-function ProfileErrorState() {
-  const { navigate } = useRouter();
-  return (
-    <div className="flex justify-center items-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Unexpected Error</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center gap-6 py-8">
-            <span className="text-destructive text-center">
-              An unexpected error occurred. Please try again later.
-            </span>
-            <Button variant="outline" onClick={() => navigate({ to: "/" })}>
-              Back to Home
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
 export const Route = createFileRoute("/profile/")({
   validateSearch: zodValidator(searchSchema),
@@ -66,7 +33,6 @@ export const Route = createFileRoute("/profile/")({
 
 function RouteComponent() {
   const { data: session } = authClient.useSession();
-  const [submitError, setSubmitError] = useState<string | undefined>(undefined);
   const queryClient = useQueryClient();
   const {
     data: profileData,
@@ -77,40 +43,28 @@ function RouteComponent() {
   const { setup } = Route.useSearch();
   const navigate = useNavigate();
 
-  const form = useAppForm({
-    defaultValues: {
-      username: profileData?.username ?? "",
-      firstName: profileData?.firstName ?? "",
-      lastName: profileData?.lastName ?? "",
-      avatarUrl: profileData?.avatarUrl ?? "",
-    } as z.infer<typeof UpdateProfileSchema>,
-    validators: {
-      onSubmit: UpdateProfileSchema,
-    },
-    onSubmit: async (values) => {
-      try {
-        await updateProfile({
-          userId: session?.user.id ?? "",
-          profile: values.value,
-        });
-        queryClient.invalidateQueries({
-          queryKey: GetProfileByUserIdQueryKey(session?.user.id ?? ""),
-        });
-        toast.success(
-          setup ? "Profile setup successfully" : "Profile updated successfully",
-        );
-        if (setup) {
-          navigate({ to: "/" });
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          setSubmitError(error.message);
-        } else {
-          setSubmitError("Failed to update profile");
-        }
+  const handleSubmit = async (values: z.infer<typeof UpdateProfileSchema>) => {
+    try {
+      await updateProfile({
+        userId: session?.user.id ?? "",
+        profile: values,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: GetProfileByUserIdQueryKey(session?.user.id ?? ""),
+      });
+      toast.success(
+        setup ? "Profile setup successfully" : "Profile updated successfully",
+      );
+      if (setup) {
+        navigate({ to: "/" });
       }
-    },
-  });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update profile",
+      );
+      throw error;
+    }
+  };
 
   if (isLoadingProfile) {
     return <ProfileLoadingSkeleton />;
@@ -120,6 +74,13 @@ function RouteComponent() {
     return <ProfileErrorState />;
   }
 
+  const defaultValues = {
+    username: profileData?.username ?? "",
+    firstName: profileData?.firstName ?? "",
+    lastName: profileData?.lastName ?? "",
+    avatarUrl: profileData?.avatarUrl ?? "",
+  };
+
   return (
     <div className="flex justify-center items-center p-4">
       <Card className="w-full max-w-md">
@@ -127,98 +88,11 @@ function RouteComponent() {
           <CardTitle>{setup ? "Setup Profile" : "Edit Profile"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form
-            className="flex flex-col gap-6"
-            onSubmit={(e) => {
-              e.preventDefault();
-              form.handleSubmit();
-              setSubmitError(undefined);
-            }}
-          >
-            <form.Subscribe
-              selector={(state) => state.values.avatarUrl}
-              children={(avatarUrl) => (
-                <div className="flex flex-col items-center gap-2">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                    <AvatarFallback>
-                      <UserRound className="w-4 h-4 text-primary" />
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-              )}
-            />
-            <form.AppField
-              name="avatarUrl"
-              children={(field) => (
-                <field.TextField
-                  labelProps={{
-                    htmlFor: "avatarUrl",
-                    children: "Avatar URL",
-                  }}
-                  inputProps={{
-                    id: "avatarUrl",
-                    placeholder: "https://...",
-                    type: "url",
-                  }}
-                />
-              )}
-            />
-            <form.AppField
-              name="username"
-              children={(field) => (
-                <field.TextField
-                  labelProps={{
-                    htmlFor: "username",
-                    children: "Username",
-                  }}
-                  inputProps={{
-                    id: "username",
-                    placeholder: "username",
-                    type: "text",
-                  }}
-                />
-              )}
-            />
-            <form.AppField
-              name="firstName"
-              children={(field) => (
-                <field.TextField
-                  labelProps={{
-                    htmlFor: "firstName",
-                    children: "First Name",
-                  }}
-                  inputProps={{
-                    id: "firstName",
-                    placeholder: "First Name",
-                    type: "text",
-                  }}
-                />
-              )}
-            />
-            <form.AppField
-              name="lastName"
-              children={(field) => (
-                <field.TextField
-                  labelProps={{
-                    htmlFor: "lastName",
-                    children: "Last Name",
-                  }}
-                  inputProps={{
-                    id: "lastName",
-                    placeholder: "Last Name",
-                    type: "text",
-                  }}
-                />
-              )}
-            />
-            <form.AppForm>
-              <form.SubmitButton
-                children={setup ? "Setup Profile" : "Save Changes"}
-                submiterror={submitError}
-              />
-            </form.AppForm>
-          </form>
+          <ProfileForm
+            defaultValues={defaultValues}
+            onSubmit={handleSubmit}
+            isSetupMode={setup}
+          />
         </CardContent>
       </Card>
     </div>

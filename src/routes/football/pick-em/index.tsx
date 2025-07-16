@@ -10,7 +10,7 @@ import { CheckSquare, AlertCircle, Trophy } from "lucide-react";
 import {
   LeagueCard,
   LeagueCardSkeleton,
-} from "@/components/league/league-card";
+} from "@/features/leagues/components/league-card";
 import { useGetMyLeaguesForLeagueType } from "@/features/leagues/leagues.api";
 import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
 import {

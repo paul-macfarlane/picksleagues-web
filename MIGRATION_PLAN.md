@@ -15,7 +15,7 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 **Goal**: Move all existing code from the old structure into the appropriate feature slice.
 
 1.  `[x]` Go through each file in the old `src/api` directory and move its contents to the appropriate feature slice (`[feature-name].types.ts`, `[feature-name].api.ts`).
-2.  `[ ]` Move any feature-specific components (e.g., from `src/components/league`) into the new `components` subdirectory within the corresponding feature slice.
+2.  `[In Progress]` Move any feature-specific components (e.g., from `src/components/league`) into the new `components` subdirectory within the corresponding feature slice. (Completed for `/` and `/profile` routes).
 3.  `[x]` Relocate the base API client logic from `src/api/index.ts` to `src/lib/api.ts`.
 
 ### Step 3: Refactor Routes for Critical Data Loading

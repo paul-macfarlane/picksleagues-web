@@ -11,7 +11,7 @@ import { football } from "@lucide/lab";
 import {
   LeagueCard,
   LeagueCardSkeleton,
-} from "@/components/league/league-card";
+} from "@/features/leagues/components/league-card";
 import {
   Card,
   CardDescription,
