@@ -47,7 +47,7 @@ export function LinkInviteList({ invites, onDeactivate }: LinkInviteListProps) {
               <TableRow key={invite.id}>
                 <TableCell>{invite.role}</TableCell>
                 <TableCell>
-                  {new Date(invite.expiresAt).toLocaleDateString()}
+                  {new Date(invite.expiresAt).toLocaleString()}
                 </TableCell>
                 <TableCell>
                   <Button

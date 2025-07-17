@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   CreateLeagueInviteObjectSchema,
   CreateLeagueInviteSchema,
+  DEFAULT_LEAGUE_INVITE_EXPIRATION_DAYS,
   LEAGUE_INVITE_TYPES,
   type LeagueInviteResponse,
 } from "@/features/leagueInvites/leagueInvites.types";
@@ -220,7 +221,7 @@ export function DirectInviteFormComponent({
       leagueId,
       role: "member",
       type: LEAGUE_INVITE_TYPES.DIRECT,
-      expiresInDays: 30, // Direct invites default to 30 days
+      expiresInDays: DEFAULT_LEAGUE_INVITE_EXPIRATION_DAYS,
       inviteeId: "",
     },
     validators: {
@@ -268,6 +269,18 @@ export function DirectInviteFormComponent({
                   invites={invites}
                 />
               </div>
+            )}
+          />
+        </div>
+        <div className="w-32">
+          <form.AppField
+            name="expiresInDays"
+            children={(field) => (
+              <field.NumberField
+                labelProps={{
+                  children: "Expires in (days)",
+                }}
+              />
             )}
           />
         </div>

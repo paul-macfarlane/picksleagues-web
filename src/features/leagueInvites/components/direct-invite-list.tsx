@@ -36,7 +36,7 @@ function DirectInviteRow({
           </span>
         </div>
       </TableCell>
-      <TableCell>{new Date(invite.expiresAt).toLocaleDateString()}</TableCell>
+      <TableCell>{new Date(invite.expiresAt).toLocaleString()}</TableCell>
       <TableCell className="text-right">
         <Button
           variant="ghost"
