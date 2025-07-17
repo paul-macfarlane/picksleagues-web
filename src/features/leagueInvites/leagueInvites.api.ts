@@ -84,15 +84,12 @@ export const GetLeagueInviteByTokenQueryKey = (token: string) => [
 
 export const GetLeagueInviteByTokenQueryOptions = ({
   token,
-  enabled,
 }: {
   token: string;
-  enabled: boolean;
 }) =>
   queryOptions({
     queryKey: GetLeagueInviteByTokenQueryKey(token),
     queryFn: () => getLeagueInviteByToken(token),
-    enabled,
   });
 
 export const useGetLeagueInviteByToken = (token: string, enabled: boolean) => {

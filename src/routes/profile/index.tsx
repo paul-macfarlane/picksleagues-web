@@ -1,9 +1,4 @@
-import {
-  createFileRoute,
-  redirect,
-  useNavigate,
-  useRouter,
-} from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import z from "zod";
 import {
@@ -11,44 +6,20 @@ import {
   useUpdateProfile,
   GetProfileByUserIdQueryOptions,
 } from "@/features/profiles/profiles.api";
-import {
-  useQueryClient,
-  useSuspenseQuery,
-  useQueryErrorResetBoundary,
-} from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { UpdateProfileSchema } from "@/features/profiles/profiles.types";
 import {
-  ProfileErrorState,
   ProfileLoadingSkeleton,
+  ProfilePageErrorComponent,
 } from "@/features/profiles/components/profile-states";
 import { ProfileForm } from "@/features/profiles/components/profile-form";
-import { Button } from "@/components/ui/button";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
 });
-
-function ProfilePageErrorComponent() {
-  const router = useRouter();
-  const { reset } = useQueryErrorResetBoundary();
-  return (
-    <div className="flex flex-col justify-center items-center h-full">
-      <ProfileErrorState />
-      <Button
-        onClick={() => {
-          reset();
-          router.invalidate();
-        }}
-        className="mt-4"
-      >
-        Try again
-      </Button>
-    </div>
-  );
-}
 
 export const Route = createFileRoute("/profile/")({
   validateSearch: zodValidator(searchSchema),

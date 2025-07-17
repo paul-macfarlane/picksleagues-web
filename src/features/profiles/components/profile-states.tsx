@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 
 export function ProfileLoadingSkeleton() {
@@ -26,6 +27,25 @@ export function ProfileErrorState() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+export function ProfilePageErrorComponent() {
+  const router = useRouter();
+  const { reset } = useQueryErrorResetBoundary();
+  return (
+    <div className="flex flex-col justify-center items-center h-full">
+      <ProfileErrorState />
+      <Button
+        onClick={() => {
+          reset();
+          router.invalidate();
+        }}
+        className="mt-4"
+      >
+        Try again
+      </Button>
     </div>
   );
 }
