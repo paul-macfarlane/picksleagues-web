@@ -43,28 +43,26 @@ export type PopulatedLeagueInviteResponse = LeagueInviteResponse & {
 
 // schemas
 
-export const CreateLeagueInviteSchema = z
-  .object({
-    leagueId: z.string().trim().uuid(),
-    role: z.enum([
-      LEAGUE_MEMBER_ROLES.COMMISSIONER,
-      LEAGUE_MEMBER_ROLES.MEMBER,
-    ]),
-    type: z.enum([LEAGUE_INVITE_TYPES.DIRECT, LEAGUE_INVITE_TYPES.LINK]),
-    expiresInDays: z
-      .number()
-      .int()
-      .min(MIN_LEAGUE_INVITE_EXPIRATION_DAYS, {
-        message: `Expires in days must be at least ${MIN_LEAGUE_INVITE_EXPIRATION_DAYS}`,
-      })
-      .max(MAX_LEAGUE_INVITE_EXPIRATION_DAYS, {
-        message: `Expires in days must be at most ${MAX_LEAGUE_INVITE_EXPIRATION_DAYS}`,
-      }),
+export const CreateLeagueInviteObjectSchema = z.object({
+  leagueId: z.string().trim().uuid(),
+  role: z.enum([LEAGUE_MEMBER_ROLES.COMMISSIONER, LEAGUE_MEMBER_ROLES.MEMBER]),
+  type: z.enum([LEAGUE_INVITE_TYPES.DIRECT, LEAGUE_INVITE_TYPES.LINK]),
+  expiresInDays: z
+    .number()
+    .int()
+    .min(MIN_LEAGUE_INVITE_EXPIRATION_DAYS, {
+      message: `Expires in days must be at least ${MIN_LEAGUE_INVITE_EXPIRATION_DAYS}`,
+    })
+    .max(MAX_LEAGUE_INVITE_EXPIRATION_DAYS, {
+      message: `Expires in days must be at most ${MAX_LEAGUE_INVITE_EXPIRATION_DAYS}`,
+    }),
 
-    // Direct invite only
-    inviteeId: z.string().trim().optional(),
-  })
-  .superRefine((data, ctx) => {
+  // Direct invite only
+  inviteeId: z.string().trim().optional(),
+});
+
+export const CreateLeagueInviteSchema =
+  CreateLeagueInviteObjectSchema.superRefine((data, ctx) => {
     // if the invite type is direct, then inviteeId is required
     if (data.type === LEAGUE_INVITE_TYPES.DIRECT) {
       if (!data.inviteeId) {

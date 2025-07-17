@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Check, X, Icon, AlertCircle } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { football } from "@lucide/lab";
 import {
   LeagueCard,
@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  GetLeagueInvitesForUserQueryKey,
   useGetLeagueInvitesForUser,
   useRespondToLeagueInvite,
 } from "@/features/leagueInvites/leagueInvites.api";
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     data: pickEmLeagues,
@@ -78,9 +80,14 @@ function RouteComponent() {
           params: { leagueId },
         });
       } else {
+        queryClient.invalidateQueries({
+          queryKey: GetLeagueInvitesForUserQueryKey,
+        });
+
         toast.success("Invite declined");
       }
     } catch (error) {
+      toast.error("Error responding to invite");
       console.error(error);
     }
   };
