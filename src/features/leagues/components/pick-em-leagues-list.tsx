@@ -6,25 +6,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckSquare, AlertCircle, Trophy } from "lucide-react";
-import {
-  LeagueCard,
-  LeagueCardSkeleton,
-} from "@/features/leagues/components/league-card";
-import { useGetMyLeaguesForLeagueType } from "@/features/leagues/leagues.api";
+import { CheckSquare, Trophy } from "lucide-react";
+import { LeagueCard } from "@/features/leagues/components/league-card";
+import { GetMyLeaguesForLeagueTypeQueryOptions } from "@/features/leagues/leagues.api";
 import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
 import {
   PICK_EM_PICK_TYPE_LABELS,
   type PickEmLeagueResponse,
 } from "@/features/leagues/leagues.types";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export function PickEmLeaguesList() {
-  const {
-    data: leagues,
-    isLoading: leaguesIsLoading,
-    error: leaguesError,
-  } = useGetMyLeaguesForLeagueType<PickEmLeagueResponse>(
-    LEAGUE_TYPE_SLUGS.PICK_EM,
+  const { data: leagues } = useSuspenseQuery(
+    GetMyLeaguesForLeagueTypeQueryOptions<PickEmLeagueResponse>(
+      LEAGUE_TYPE_SLUGS.PICK_EM,
+    ),
   );
 
   return (
@@ -49,27 +45,7 @@ export function PickEmLeaguesList() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {leaguesIsLoading ? (
-          <>
-            <LeagueCardSkeleton />
-            <LeagueCardSkeleton />
-            <LeagueCardSkeleton />
-          </>
-        ) : leaguesError ? (
-          <Card className="col-span-full">
-            <CardHeader className="flex-row gap-2 items-center">
-              <AlertCircle className="h-8 w-8 text-destructive" />
-              <div>
-                <CardTitle>Unable to Load Leagues</CardTitle>
-                <CardDescription>
-                  {leaguesError instanceof Error
-                    ? leaguesError.message
-                    : "Please try again later"}
-                </CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
-        ) : leagues?.length === 0 ? (
+        {leagues?.length === 0 ? (
           <Card className="col-span-full">
             <CardHeader className="flex-row gap-2 items-center">
               <Trophy className="h-8 w-8 text-primary" />
