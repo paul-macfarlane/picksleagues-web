@@ -1,0 +1,92 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { useParams } from "@tanstack/react-router";
+import { useAppForm } from "@/components/form";
+import { toast } from "sonner";
+import {
+  CreateLeagueInviteObjectSchema,
+  CreateLeagueInviteSchema,
+  LEAGUE_INVITE_TYPES,
+  MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
+} from "@/features/leagueInvites/leagueInvites.types";
+import {
+  GetLeagueInvitesQueryKey,
+  useCreateLeagueInvite,
+} from "@/features/leagueInvites/leagueInvites.api";
+import type z from "zod";
+
+export function CreateInviteLinkFormComponent() {
+  const { leagueId } = useParams({
+    from: "/football/pick-em/$leagueId/members",
+  });
+  const { mutateAsync: createInvite, isPending } = useCreateLeagueInvite();
+  const queryClient = useQueryClient();
+
+  const form = useAppForm({
+    defaultValues: {
+      leagueId,
+      role: "member",
+      type: LEAGUE_INVITE_TYPES.LINK,
+      expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
+    },
+    validators: {
+      onSubmit: CreateLeagueInviteObjectSchema.pick({
+        leagueId: true,
+        role: true,
+        type: true,
+        expiresInDays: true,
+      }),
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        await createInvite(value as z.infer<typeof CreateLeagueInviteSchema>);
+        toast.success("Invite link created");
+        queryClient.invalidateQueries({
+          queryKey: GetLeagueInvitesQueryKey(leagueId),
+        });
+        form.reset();
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("Failed to create invite link");
+        }
+      }
+    },
+  });
+
+  return (
+    <div>
+      <h3 className="text-lg font-medium">Create Invite Link</h3>
+      <form
+        className="mt-2 flex items-end gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+      >
+        <div className="flex-1">
+          <form.AppField
+            name="expiresInDays"
+            children={(field) => (
+              <field.NumberField
+                labelProps={{
+                  htmlFor: "expiresInDays",
+                  children: "Expires in (days)",
+                }}
+                inputProps={{
+                  id: "expiresInDays",
+                  name: "expiresInDays",
+                }}
+              />
+            )}
+          />
+        </div>
+        <form.AppForm>
+          <form.SubmitButton disabled={isPending}>
+            Create Link
+          </form.SubmitButton>
+        </form.AppForm>
+      </form>
+    </div>
+  );
+}

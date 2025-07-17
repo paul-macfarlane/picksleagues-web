@@ -6,17 +6,17 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 
 **Goal**: Create the new directories and shared hooks that will be used in the refactor.
 
-1.  Create the `src/features` and `src/hooks` directories.
-2.  Create the `useDelayedLoader` hook in `src/hooks/useDelayedLoader.ts` as defined in `STANDARDS.md`.
-3.  Based on the files in `src/api`, create an initial, empty directory for each feature slice (e.g., `src/features/leagues`).
+1.  `[x]` Create the `src/features` and `src/hooks` directories.
+2.  `[x]` Create the `useDelayedLoader` hook in `src/hooks/useDelayedLoader.ts` as defined in `STANDARDS.md`.
+3.  `[x]` Based on the files in `src/api`, create an initial, empty directory for each feature slice (e.g., `src/features/leagues`).
 
 ### Step 2: Relocate and Split Feature Logic
 
 **Goal**: Move all existing code from the old structure into the appropriate feature slice.
 
-1.  Go through each file in the old `src/api` directory and move its contents to the appropriate feature slice (`types.ts`, `api.ts`).
-2.  Move any feature-specific components (e.g., from `src/components/league`) into the new `components` subdirectory within the corresponding feature slice.
-3.  Relocate the base API client logic from `src/api/index.ts` to `src/lib/api-client.ts`.
+1.  `[x]` Go through each file in the old `src/api` directory and move its contents to the appropriate feature slice (`[feature-name].types.ts`, `[feature-name].api.ts`).
+2.  `[x]` Move any feature-specific components (e.g., from `src/components/league`) into the new `components` subdirectory within the corresponding feature slice. (Completed for `/`, `/profile`, `/login`, `/join`, `/football/pick-em/create`, `/football/pick-em/$leagueId/members`, the `/football/pick-em/$leagueId` layout, `/football/pick-em/$leagueId/settings`, `/football/pick-em/$leagueId/league-picks`, `/football/pick-em/$leagueId/my-picks`, and `/football/pick-em/$leagueId/` routes).
+3.  `[x]` Relocate the base API client logic from `src/api/index.ts` to `src/lib/api.ts`.
 
 ### Step 3: Refactor Routes for Critical Data Loading
 
@@ -40,14 +40,14 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 **Goal**: Standardize all forms using `@tanstack/react-form` and `Zod`.
 
 1.  Identify all forms in the application.
-2.  Ensure each form's validation uses a `Zod` schema imported from the relevant feature slice's `types.ts` file.
+2.  Ensure each form's validation uses a `Zod` schema imported from the relevant feature slice's `[feature-name].types.ts` file.
 3.  Convert the form to use the `@tanstack/react-form` library.
 
 ### Step 6: Enforce Explicit Return Types
 
 **Goal**: Audit the codebase to ensure all critical functions have explicit return types as defined in `STANDARDS.md`.
 
-1.  **Audit API Functions**: Go through every `api.ts` file and ensure every exported function has an explicit `Promise<T>` return type.
+1.  **Audit API Functions**: Go through every `[feature-name].api.ts` file and ensure every exported function has an explicit `Promise<T>` return type.
 2.  **Audit Route Loaders**: Check every route file in `src/routes` and add explicit return types to all `loader` functions.
 3.  **Audit Custom Hooks**: Review any custom hooks (e.g., in `src/hooks`) and add explicit return types.
 4.  **Audit Components**: Add `JSX.Element` or `React.Node` as the return type for all React components.
@@ -57,6 +57,6 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 
 **Goal**: Remove legacy code and ensure the new structure is consistent.
 
-1.  Once all logic is moved and imports are updated, safely delete the original `src/api` directory.
-2.  Review the `src/features` directory to ensure all slices follow the standard structure (`api.ts`, `types.ts`, `components/`).
-3.  Confirm that `src/routes` files correctly implement the `loader` and `pendingComponent` pattern.
+1.  `[x]` Once all logic is moved and imports are updated, safely delete the original `src/api` directory.
+2.  `[ ]` Review the `src/features` directory to ensure all slices follow the standard structure (`[feature-name].api.ts`, `[feature-name].types.ts`, `components/`).
+3.  `[ ]` Confirm that `src/routes` files correctly implement the `loader` and `pendingComponent` pattern.

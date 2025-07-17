@@ -1,3 +1,7 @@
+// constants
+
+// api types
+
 export type PhaseTemplateResponse = {
   id: string;
   sportLeagueId: string;
@@ -7,3 +11,5 @@ export type PhaseTemplateResponse = {
   createdAt: string;
   updatedAt: string;
 };
+
+// schemas

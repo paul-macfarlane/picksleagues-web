@@ -1,38 +1,5 @@
 import z from "zod";
 
-export const API_BASE = import.meta.env.VITE_API_BASE;
-
-export async function unauthenticatedFetch<T>(
-  url: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const response = await fetch(url, {
-    ...options,
-  });
-
-  await detectAndThrowError(response);
-
-  return (await response.json()) as T;
-}
-
-export async function authenticatedFetch<T>(
-  url: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const response = await fetch(url, {
-    credentials: "include",
-    ...options,
-  });
-
-  await detectAndThrowError(response);
-
-  if (response.status === 204) {
-    return {} as T;
-  }
-
-  return (await response.json()) as T;
-}
-
 // need to maintain this until we have migrated all the clients to the new error response format
 const legacyErrorResponseSchema = z.object({
   error: z.string(),
@@ -45,7 +12,7 @@ const errorResponseSchema = z.object({
   }),
 });
 
-async function detectAndThrowError(response: Response) {
+export async function detectAndThrowError(response: Response) {
   if (!response.ok) {
     const errorResponse = await response.json();
     let errorMessage = "";

@@ -6,20 +6,12 @@ import {
 } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Check, X, Icon, AlertCircle } from "lucide-react";
-import {
-  LEAGUE_TYPE_SLUGS,
-  myLeaguesForLeagueTypeQueryOptions,
-} from "@/api/leagueTypes";
-import { useQuery } from "@tanstack/react-query";
-import {
-  PICK_EM_PICK_TYPE_LABELS,
-  type PickEmLeagueResponse,
-} from "@/api/leagues";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { football } from "@lucide/lab";
 import {
   LeagueCard,
   LeagueCardSkeleton,
-} from "@/components/league/league-card";
+} from "@/features/leagues/components/league-card";
 import {
   Card,
   CardDescription,
@@ -27,12 +19,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  LEAGUE_INVITE_STATUSES,
-  useLeagueInvitesForUser,
+  GetLeagueInvitesForUserQueryKey,
+  useGetLeagueInvitesForUser,
   useRespondToLeagueInvite,
-  type RespondToLeagueInvite,
-} from "@/api/leagueInvites";
+} from "@/features/leagueInvites/leagueInvites.api";
 import { toast } from "sonner";
+import { GetMyLeaguesForLeagueTypeQueryOptions } from "@/features/leagues/leagues.api";
+import {
+  PICK_EM_PICK_TYPE_LABELS,
+  type PickEmLeagueResponse,
+} from "@/features/leagues/leagues.types";
+import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
+import {
+  LEAGUE_INVITE_STATUSES,
+  type RespondToLeagueInviteSchema,
+} from "@/features/leagueInvites/leagueInvites.types";
+import type z from "zod";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -45,13 +47,14 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     data: pickEmLeagues,
     isLoading: pickEmLeaguesIsLoading,
     error: pickEmLeaguesError,
   } = useQuery(
-    myLeaguesForLeagueTypeQueryOptions<PickEmLeagueResponse>(
+    GetMyLeaguesForLeagueTypeQueryOptions<PickEmLeagueResponse>(
       LEAGUE_TYPE_SLUGS.PICK_EM,
     ),
   );
@@ -60,14 +63,14 @@ function RouteComponent() {
     data: leagueInvites,
     isLoading: leagueInvitesIsLoading,
     error: leagueInvitesError,
-  } = useLeagueInvitesForUser();
+  } = useGetLeagueInvitesForUser();
 
   const { mutateAsync: respondToLeagueInvite } = useRespondToLeagueInvite();
 
   const handleRespondToLeagueInvite = async (
     inviteId: string,
     leagueId: string,
-    response: RespondToLeagueInvite,
+    response: z.infer<typeof RespondToLeagueInviteSchema>,
   ) => {
     try {
       await respondToLeagueInvite({ inviteId, response });
@@ -77,9 +80,14 @@ function RouteComponent() {
           params: { leagueId },
         });
       } else {
+        queryClient.invalidateQueries({
+          queryKey: GetLeagueInvitesForUserQueryKey,
+        });
+
         toast.success("Invite declined");
       }
     } catch (error) {
+      toast.error("Error responding to invite");
       console.error(error);
     }
   };

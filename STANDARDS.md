@@ -15,9 +15,9 @@ We will use a hybrid architecture that combines the benefits of feature-sliced d
 ### 2. Directory Structure
 
 - `src/features/[feature-name]/`: Self-contained modules for each feature.
-  - `api.ts`: API functions and TanStack Query hooks (`queryOptions`, `useMutation`).
+  - `[feature-name].api.ts`: API functions and TanStack Query hooks (`queryOptions`, `useMutation`).
   - `components/`: React components specific to this feature.
-  - `types.ts`: TypeScript types, interfaces, enums, and Zod validation schemas.
+  - `[feature-name].types.ts`: TypeScript types, interfaces, enums, and Zod validation schemas.
   - `hooks/`: React hooks specific to this feature.
 - `src/routes/`: File-based routes. These files should import from `src/features` and compose the page.
 - `src/components/`:
@@ -30,7 +30,7 @@ We will use a hybrid architecture that combines the benefits of feature-sliced d
 
 All server state, including data fetching, caching, and mutations, will be managed exclusively by **TanStack Query**.
 
-- **Location of Hooks**: Query and mutation hooks (`queryOptions`, `useMutation`) are co-located with their API functions inside their respective feature slice (e.g., `src/features/leagues/api.ts`).
+- **Location of Hooks**: Query and mutation hooks (`queryOptions`, `useMutation`) are co-located with their API functions inside their respective feature slice (e.g., `src/features/leagues/leagues.api.ts`).
 - **Query Keys**: Query keys must be structured hierarchically by feature to ensure consistency and prevent collisions. The convention is `['featureName', 'resource', { id: '...' }]` (e.g., `['leagues', 'list']`, `['leagues', 'detail', { leagueId: '123' }]`).
 
 #### Data Fetching Strategy: Route Loaders vs. Component-Level Fetching
@@ -72,12 +72,12 @@ By following this hybrid model, we get the best of both worlds: fast perceived p
 ### 4. API Client
 
 - All API interactions will adhere strictly to the **API Design Guide**.
-- **Base Client**: The base fetch logic, including authentication handling and custom error classes, will reside in `src/lib/api-client.ts`.
+- **Base Client**: The base fetch logic, including authentication handling and custom error classes, will reside in `src/lib/api.ts`.
 - **Error Handling**: The client must correctly parse the structured error response: `{ error: { message: string, code: string } }`.
 
 ### 5. Models & Types
 
-- All API-related `type` definitions and `zod` schemas are co-located within their feature slice in a `types.ts` file. This keeps the data definitions right next to the code that uses them.
+- All API-related `type` definitions and `zod` schemas are co-located within their feature slice in a `[feature-name].types.ts` file. This keeps the data definitions right next to the code that uses them.
 
 ### 6. Forms
 
@@ -138,7 +138,7 @@ To improve code clarity, maintainability, and prevent accidental data leaks acro
 
 1.  **Functions at Architectural Boundaries:**
 
-    - **API Layer Functions**: All functions in `api.ts` files that fetch data must have an explicit `Promise<T>` return type, where `T` is a defined type from `types.ts`.
+    - **API Layer Functions**: All functions in `[feature-name].api.ts` files that fetch data must have an explicit `Promise<T>` return type, where `T` is a defined type from `[feature-name].types.ts`.
     - **TanStack Router `loader` Functions**: The `loader` function for each route must have an explicit return type defining the data it provides to the component.
     - **React Components**: Component functions should have an explicit return type, typically `JSX.Element` or `React.ReactNode`.
     - **Custom Hooks**: Any custom hook (e.g., `useDelayedLoader`) must have an explicit return type.
