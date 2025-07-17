@@ -2,7 +2,6 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import z from "zod";
 import {
-  GetProfileByUserIdQueryKey,
   useUpdateProfile,
   GetProfileByUserIdQueryOptions,
 } from "@/features/profiles/profiles.api";
@@ -11,11 +10,9 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { UpdateProfileSchema } from "@/features/profiles/profiles.types";
-import {
-  ProfileLoadingSkeleton,
-  ProfilePageErrorComponent,
-} from "@/features/profiles/components/profile-states";
+import { ProfileLoadingSkeleton } from "@/features/profiles/components/profile-states";
 import { ProfileForm } from "@/features/profiles/components/profile-form";
+import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
@@ -35,7 +32,7 @@ export const Route = createFileRoute("/profile/")({
   },
   pendingMs: 300,
   pendingComponent: ProfileLoadingSkeleton,
-  errorComponent: ProfilePageErrorComponent,
+  errorComponent: () => <RouteErrorBoundary />,
   component: RouteComponent,
 });
 
@@ -56,7 +53,8 @@ function RouteComponent() {
         profile: values,
       });
       await queryClient.invalidateQueries({
-        queryKey: GetProfileByUserIdQueryKey(session?.user.id ?? ""),
+        queryKey: GetProfileByUserIdQueryOptions(session?.user.id ?? "")
+          .queryKey,
       });
       toast.success(
         setup ? "Profile setup successfully" : "Profile updated successfully",

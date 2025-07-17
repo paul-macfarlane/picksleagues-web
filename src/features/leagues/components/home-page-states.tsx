@@ -1,13 +1,3 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useQueryErrorResetBoundary } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
 import { LeagueCardSkeleton } from "./league-card";
 import { football } from "@lucide/lab";
 import { Icon } from "lucide-react";
@@ -54,33 +44,6 @@ export function HomePageSkeleton() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-export function HomePageErrorComponent() {
-  const router = useRouter();
-  const { reset } = useQueryErrorResetBoundary();
-  return (
-    <div className="container py-4 md:py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Error</CardTitle>
-          <CardDescription>
-            There was an error loading your data. Please try again.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            onClick={() => {
-              reset();
-              router.invalidate();
-            }}
-          >
-            Try again
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   );
 }

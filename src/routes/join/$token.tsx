@@ -7,22 +7,23 @@ import {
 } from "@/features/leagueInvites/leagueInvites.api";
 import { JoinLeagueCard } from "@/features/leagueInvites/components/join-league-card";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import {
-  JoinLeagueErrorComponent,
-  JoinLeagueSkeleton,
-} from "@/features/leagueInvites/components/join-league-states";
+import { JoinLeagueSkeleton } from "@/features/leagueInvites/components/join-league-states";
+import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
 export const Route = createFileRoute("/join/$token")({
   loader: async ({ context: { queryClient }, params: { token } }) => {
-    return queryClient.ensureQueryData(
-      GetLeagueInviteByTokenQueryOptions({
-        token,
-      }),
+    await queryClient.ensureQueryData(
+      GetLeagueInviteByTokenQueryOptions({ token }),
     );
   },
   pendingMs: 300,
   pendingComponent: JoinLeagueSkeleton,
-  errorComponent: JoinLeagueErrorComponent,
+  errorComponent: () => (
+    <RouteErrorBoundary
+      title="Invite Not Found"
+      message="This invite link is either invalid or has expired."
+    />
+  ),
   component: RouteComponent,
 });
 

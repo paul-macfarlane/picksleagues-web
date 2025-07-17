@@ -45,7 +45,19 @@ We will use a unified approach that leverages TanStack Router's `loader` functio
   3.  **Access Data with `useSuspenseQuery`**: In the route component, use `useSuspenseQuery(queryOptions)` to access the data. Since the `loader` has already populated the cache with critical data, this hook will read from the cache and will not trigger a suspense fallback on the initial render. For non-critical data, this hook can be used within a `<React.Suspense>` boundary.
   4.  **Set `pendingMs` for Better UX**: Set a `pendingMs` delay on the route (e.g., `300`). This prevents a "flash" of a loading skeleton on fast connections by only showing the `pendingComponent` if the load takes longer than the specified delay.
   5.  **Create a `pendingComponent`**: This component will be rendered if the `loader` exceeds the `pendingMs` threshold. It should contain the page's structural shell with skeleton elements in place of the data.
-  6.  **Create an `errorComponent`**: Each route fetching data should have a dedicated `errorComponent`. This component should use `useQueryErrorResetBoundary` and provide a `router.invalidate()` mechanism to allow the user to retry the failed request.
+  6.  **Create an `errorComponent`**: Each route fetching data should have a dedicated `errorComponent`. To ensure consistency, we will use a standardized `RouteErrorBoundary` component located at `src/components/route-error-boundary.tsx`. This component handles the UI and the "try again" logic.
+
+- **Example `errorComponent`**:
+
+  ```tsx
+  // src/routes/some-route.tsx
+  import { RouteErrorBoundary } from "@/components/route-error-boundary";
+
+  export const Route = createFileRoute("/some-route")({
+    // ...
+    errorComponent: () => <RouteErrorBoundary />,
+  });
+  ```
 
 - **Example Flow**:
   - A user navigates to `/leagues/$leagueId`.

@@ -26,13 +26,10 @@ import {
   type RespondToLeagueInviteSchema,
 } from "@/features/leagueInvites/leagueInvites.types";
 import type z from "zod";
-import {
-  HomePageErrorComponent,
-  HomePageSkeleton,
-} from "@/features/leagues/components/home-page-states";
+import { HomePageSkeleton } from "@/features/leagues/components/home-page-states";
+import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
 export const Route = createFileRoute("/")({
-  component: RouteComponent,
   beforeLoad: async ({ context }) => {
     if (!context.session) {
       throw redirect({ to: "/login" });
@@ -44,9 +41,10 @@ export const Route = createFileRoute("/")({
       GetMyLeaguesForLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
     );
   },
-  pendingMs: 300,
   pendingComponent: HomePageSkeleton,
-  errorComponent: HomePageErrorComponent,
+  errorComponent: () => <RouteErrorBoundary />,
+  component: RouteComponent,
+  pendingMs: 300,
 });
 
 function RouteComponent() {

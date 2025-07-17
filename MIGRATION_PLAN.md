@@ -30,7 +30,7 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 4.  **Create `pending` and `error` Components**:
     - Create a `pendingComponent` for the route that renders the page's structural layout with skeleton elements.
     - To prevent UI flashes on fast connections, set a `pendingMs` delay (e.g., 300ms) on the route.
-    - Create a dedicated `errorComponent` to handle and display any data loading errors from the `loader`.
+    - For the `errorComponent`, use the standardized `RouteErrorBoundary` component from `src/components/route-error-boundary.tsx`. This ensures all data fetching errors are handled consistently.
 5.  **Update Route Component**:
     - Replace any existing data fetching logic (e.g., `useEffect` with fetch, `useQuery`) in the component with `useSuspenseQuery(queryOptions)`.
     - Since the `loader` ensures the data is available, `useSuspenseQuery` will read from the cache and render instantly without triggering a suspense fallback on the initial load.
