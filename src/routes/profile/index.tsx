@@ -1,12 +1,21 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  redirect,
+  useNavigate,
+  useRouter,
+} from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import z from "zod";
 import {
   GetProfileByUserIdQueryKey,
-  useGetProfileByUserId,
   useUpdateProfile,
+  GetProfileByUserIdQueryOptions,
 } from "@/features/profiles/profiles.api";
-import { useQueryClient } from "@tanstack/react-query";
+import {
+  useQueryClient,
+  useSuspenseQuery,
+  useQueryErrorResetBoundary,
+} from "@tanstack/react-query";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
@@ -16,29 +25,55 @@ import {
   ProfileLoadingSkeleton,
 } from "@/features/profiles/components/profile-states";
 import { ProfileForm } from "@/features/profiles/components/profile-form";
+import { Button } from "@/components/ui/button";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
 });
 
+function ProfilePageErrorComponent() {
+  const router = useRouter();
+  const { reset } = useQueryErrorResetBoundary();
+  return (
+    <div className="flex flex-col justify-center items-center h-full">
+      <ProfileErrorState />
+      <Button
+        onClick={() => {
+          reset();
+          router.invalidate();
+        }}
+        className="mt-4"
+      >
+        Try again
+      </Button>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/profile/")({
   validateSearch: zodValidator(searchSchema),
-  component: RouteComponent,
   beforeLoad: async ({ context }) => {
     if (!context.session) {
       throw redirect({ to: "/login" });
     }
   },
+  loader: ({ context: { queryClient, session } }) => {
+    return queryClient.ensureQueryData(
+      GetProfileByUserIdQueryOptions(session!.userId),
+    );
+  },
+  pendingMs: 300,
+  pendingComponent: ProfileLoadingSkeleton,
+  errorComponent: ProfilePageErrorComponent,
+  component: RouteComponent,
 });
 
 function RouteComponent() {
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
-  const {
-    data: profileData,
-    isLoading: isLoadingProfile,
-    error: profileError,
-  } = useGetProfileByUserId(session?.user.id ?? "");
+  const { data: profileData } = useSuspenseQuery(
+    GetProfileByUserIdQueryOptions(session!.user.id),
+  );
   const { mutateAsync: updateProfile } = useUpdateProfile();
   const { setup } = Route.useSearch();
   const navigate = useNavigate();
@@ -65,14 +100,6 @@ function RouteComponent() {
       throw error;
     }
   };
-
-  if (isLoadingProfile) {
-    return <ProfileLoadingSkeleton />;
-  }
-
-  if (profileError) {
-    return <ProfileErrorState />;
-  }
 
   const defaultValues = {
     username: profileData?.username ?? "",
