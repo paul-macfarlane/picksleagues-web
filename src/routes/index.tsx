@@ -38,9 +38,9 @@ export const Route = createFileRoute("/")({
       throw redirect({ to: "/login" });
     }
   },
-  loader: ({ context: { queryClient } }) => {
-    queryClient.ensureQueryData(GetLeagueInvitesForUserQueryOptions());
-    queryClient.ensureQueryData(
+  loader: async ({ context: { queryClient } }) => {
+    await queryClient.ensureQueryData(GetLeagueInvitesForUserQueryOptions());
+    await queryClient.ensureQueryData(
       GetMyLeaguesForLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
     );
   },
