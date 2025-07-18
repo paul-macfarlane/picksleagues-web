@@ -80,7 +80,7 @@ While route-level data fetching is the standard, there are valid exceptions wher
 
 ### 4. API Client
 
-- All API interactions will adhere strictly to the **API Design Guide**.
+- All API interactions will adhere strictly to the [API Design Guide](https://github.com/paul-macfarlane/picksleagues-api/blob/main/STANDARDS.md#part-3-api-design-guide).
 - **Base Client**: The base fetch logic, including authentication handling and custom error classes, will reside in `src/lib/api.ts`.
 - **Error Handling**: The client must correctly parse the structured error response: `{ error: { message: string, code: string } }`.
 
@@ -149,7 +149,6 @@ To improve code clarity, maintainability, and prevent accidental data leaks acro
 
     - **API Layer Functions**: All functions in `[feature-name].api.ts` files that fetch data must have an explicit `Promise<T>` return type, where `T` is a defined type from `[feature-name].types.ts`.
     - **TanStack Router `loader` Functions**: The `loader` function for each route must have an explicit return type defining the data it provides to the component.
-    - **React Components**: Component functions should have an explicit return type, typically `JSX.Element` or `React.ReactNode`.
     - **Custom Hooks**: Any custom hook (e.g., `useDelayedLoader`) must have an explicit return type.
 
 2.  **All Other Exported Functions (`export function ...`)**:
@@ -163,4 +162,7 @@ To improve code clarity, maintainability, and prevent accidental data leaks acro
     - _Example_: `const names = leagues.map(league => league.name); // Implicit is fine here`
 
 2.  **Private, Internal Helper Functions**:
+
     - If a function is not exported and is only used as a simple helper within the same file, type inference is acceptable.
+
+3.  **React Components**: Component functions don't need to have an explicit return type, which if needed is typically `JSX.Element` or `React.ReactNode`.

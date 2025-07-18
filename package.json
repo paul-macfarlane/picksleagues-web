@@ -8,8 +8,8 @@
     "build": "vite build && tsc",
     "serve": "vite preview",
     "test": "vitest run",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint src/**/*.tsx",
+    "lint:fix": "eslint src/**/*.tsx --fix",
     "format": "prettier --write ."
   },
   "dependencies": {

@@ -5,7 +5,7 @@ import type {
   PopulatedLeagueInviteResponse,
   RespondToLeagueInviteSchema,
 } from "./leagueInvites.types";
-import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
+import { queryOptions, useMutation } from "@tanstack/react-query";
 import z from "zod";
 
 // todo in frontend refactor, the include should be parameterized
@@ -36,14 +36,6 @@ export const GetLeagueInvitesQueryOptions = ({
     enabled,
   });
 
-export const useGetLeagueInvites = (leagueId: string, enabled: boolean) => {
-  return useQuery({
-    queryKey: GetLeagueInvitesQueryKey(leagueId),
-    queryFn: () => getLeagueInvites(leagueId),
-    enabled: enabled,
-  });
-};
-
 export async function getLeagueInvitesForUser(): Promise<
   PopulatedLeagueInviteResponse[]
 > {
@@ -59,13 +51,6 @@ export const GetLeagueInvitesForUserQueryOptions = () =>
     queryKey: GetLeagueInvitesForUserQueryKey,
     queryFn: () => getLeagueInvitesForUser(),
   });
-
-export const useGetLeagueInvitesForUser = () => {
-  return useQuery({
-    queryKey: GetLeagueInvitesForUserQueryKey,
-    queryFn: () => getLeagueInvitesForUser(),
-  });
-};
 
 // todo in frontend refactor, the include should be parameterized
 export async function getLeagueInviteByToken(
@@ -91,14 +76,6 @@ export const GetLeagueInviteByTokenQueryOptions = ({
     queryKey: GetLeagueInviteByTokenQueryKey(token),
     queryFn: () => getLeagueInviteByToken(token),
   });
-
-export const useGetLeagueInviteByToken = (token: string, enabled: boolean) => {
-  return useQuery({
-    queryKey: GetLeagueInviteByTokenQueryKey(token),
-    queryFn: () => getLeagueInviteByToken(token),
-    enabled: enabled,
-  });
-};
 
 export async function createLeagueInvite(
   invite: z.infer<typeof CreateLeagueInviteSchema>,
