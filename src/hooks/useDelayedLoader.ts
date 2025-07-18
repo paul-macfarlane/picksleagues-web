@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 
-export const useDelayedLoader = (
+export function useDelayedLoader(
   isLoading: boolean,
   delay: number = 300,
-): boolean => {
+): boolean {
   const [showLoader, setShowLoader] = useState(false);
 
   useEffect(() => {
@@ -23,4 +23,4 @@ export const useDelayedLoader = (
   }, [isLoading, delay]);
 
   return showLoader;
-};
+}

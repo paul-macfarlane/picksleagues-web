@@ -2,7 +2,9 @@ import { API_BASE, authenticatedFetch } from "@/lib/api";
 import type { PhaseTemplateResponse } from "./phaseTemplates.types";
 import { queryOptions } from "@tanstack/react-query";
 
-export async function getPhaseTemplatesForLeagueType(typeIdOrSlug: string) {
+export async function getPhaseTemplatesForLeagueType(
+  typeIdOrSlug: string,
+): Promise<PhaseTemplateResponse[]> {
   return await authenticatedFetch<PhaseTemplateResponse[]>(
     `${API_BASE}/v1/league-types/${typeIdOrSlug}/phase-templates`,
   );

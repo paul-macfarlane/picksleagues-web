@@ -111,7 +111,7 @@ export async function createLeagueInvite(
   );
 }
 
-export const useCreateLeagueInvite = () => {
+export function useCreateLeagueInvite() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (invite: z.infer<typeof CreateLeagueInviteSchema>) =>
@@ -122,7 +122,7 @@ export const useCreateLeagueInvite = () => {
       });
     },
   });
-};
+}
 
 export async function respondToLeagueInvite(
   inviteId: string,
@@ -193,7 +193,7 @@ export async function joinLeagueByInviteToken(token: string): Promise<void> {
   );
 }
 
-export const useJoinLeagueByInviteToken = () => {
+export function useJoinLeagueByInviteToken() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (token: string) => joinLeagueByInviteToken(token),
@@ -203,4 +203,4 @@ export const useJoinLeagueByInviteToken = () => {
       });
     },
   });
-};
+}

@@ -125,12 +125,21 @@ While route-level data fetching is the standard, there are valid exceptions wher
 - **Schemas**: Validation schemas will be imported from the `types.ts` file of the relevant feature slice.
 - **Components**: Generic form components will live in `src/components/form/`.
 
-### 7. UI Components
+### 7. Explicit Return Types
+
+To ensure code clarity, predictability, and maintainability, all functions that define an application boundary or a reusable piece of logic **must** have explicit return types. This creates a clear contract for how these functions are to be used. However, for functions where TypeScript's type inference is highly reliable and verbosity would reduce readability, explicit types are not required.
+
+- **API Functions (`.api.ts` files)**: **Required**. All exported `async` functions that directly interact with the API must have an explicit `Promise<T>` return type. This is critical for understanding the shape of data to expect from the server.
+- **Custom Hooks (`src/hooks` and feature-specific hooks)**: **Required, with exceptions**. Custom hooks should have an explicit return type. The exception is for hooks that are simple wrappers around TanStack Query hooks (e.g., `useQuery`, `useMutation`) or options builders (`queryOptions`). In these cases, we will rely on TypeScript's excellent inference to avoid overly complex and brittle type annotations.
+- **Route Loaders**: **Not Required**. TanStack Router's and TanStack Query's type inference is excellent for loaders. Explicitly typing them is often redundant.
+- **React Components**: **Not Required**. It is idiomatic in React to rely on inference for component return types (e.g., `JSX.Element` or `React.ReactNode`).
+
+### 8. UI Components
 
 - **Feature Components**: Components that are tightly coupled to a specific feature belong inside that feature's `components` directory.
 - **Shared UI**: Components that are purely presentational and could be used by any feature belong in `src/components/ui`.
 
-### 8. Loading UI: Skeletons and Delays
+### 9. Loading UI: Skeletons and Delays
 
 A good user experience requires thoughtful handling of loading states. We must balance providing feedback to the user without introducing jarring UI flashes for fast network requests.
 
@@ -139,33 +148,3 @@ A good user experience requires thoughtful handling of loading states. We must b
 
   - The skeleton should match the layout and dimensions of the content it is replacing to prevent layout shifts when the data arrives.
   - **Delayed Appearance**: To prevent flickering, the `useDelayedLoader` hook should be used. This ensures a loading skeleton only appears if the data takes longer than a reasonable delay (e.g., **300ms**) to load.
-
-- **Implementation**:
-  A simple custom hook can be created in `src/hooks/` to manage this delay for component-level loading.
-
-```tsx
-// src/hooks/useDelayedLoader.ts
-import { useState, useEffect } from "react";
-
-export const useDelayedLoader = (isLoading: boolean, delay: number = 300) => {
-  const [showLoader, setShowLoader] = useState(false);
-
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
-    if (isLoading) {
-      timeoutId = setTimeout(() => {
-        setShowLoader(true);
-      }, delay);
-    } else {
-      setShowLoader(false);
-    }
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [isLoading, delay]);
-
-  return showLoader;
-};
-```

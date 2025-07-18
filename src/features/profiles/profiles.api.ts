@@ -68,7 +68,7 @@ export async function updateProfile(
   );
 }
 
-export const useUpdateProfile = () => {
+export function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -84,7 +84,7 @@ export const useUpdateProfile = () => {
       });
     },
   });
-};
+}
 
 export async function searchProfiles(
   search: z.infer<typeof SearchProfilesSchema>,

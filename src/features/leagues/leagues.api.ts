@@ -13,7 +13,7 @@ import type z from "zod";
 
 export async function getMyLeaguesForLeagueType<T extends LeagueResponse>(
   typeIdOrSlug: string,
-) {
+): Promise<T[]> {
   return await authenticatedFetch<T[]>(
     `${API_BASE}/v1/league-types/${typeIdOrSlug}/my-leagues`,
   );
@@ -70,9 +70,9 @@ export async function createLeague<
   });
 }
 
-export const useCreateLeague = <
+export function useCreateLeague<
   T extends z.infer<typeof CreateLeagueSchema>,
->() => {
+>() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createLeague<T>,
@@ -82,4 +82,4 @@ export const useCreateLeague = <
       });
     },
   });
-};
+}
