@@ -1,5 +1,9 @@
 import { API_BASE, authenticatedFetch } from "@/lib/api";
-import { queryOptions, useMutation } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type {
   CreateLeagueSchema,
   LeagueResponse,
@@ -69,7 +73,13 @@ export async function createLeague<
 export const useCreateLeague = <
   T extends z.infer<typeof CreateLeagueSchema>,
 >() => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createLeague<T>,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesForLeagueTypeQueryKey(data.leagueTypeId),
+      });
+    },
   });
 };

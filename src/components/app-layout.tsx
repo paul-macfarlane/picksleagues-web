@@ -64,6 +64,7 @@ function ProfileMenuError() {
   );
 }
 
+// TODO, find a way to have a layout separately from the entire app, so I don't bother checking this for unauthed users, and I can prefetch the profile for authed users
 function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 

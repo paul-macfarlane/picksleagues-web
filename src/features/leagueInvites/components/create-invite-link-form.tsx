@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { useAppForm } from "@/components/form";
 import { toast } from "sonner";
@@ -8,10 +7,7 @@ import {
   LEAGUE_INVITE_TYPES,
   MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
 } from "@/features/leagueInvites/leagueInvites.types";
-import {
-  GetLeagueInvitesQueryKey,
-  useCreateLeagueInvite,
-} from "@/features/leagueInvites/leagueInvites.api";
+import { useCreateLeagueInvite } from "@/features/leagueInvites/leagueInvites.api";
 import type z from "zod";
 
 export function CreateInviteLinkFormComponent() {
@@ -19,7 +15,6 @@ export function CreateInviteLinkFormComponent() {
     from: "/football/pick-em/$leagueId/members",
   });
   const { mutateAsync: createInvite, isPending } = useCreateLeagueInvite();
-  const queryClient = useQueryClient();
 
   const form = useAppForm({
     defaultValues: {
@@ -40,9 +35,6 @@ export function CreateInviteLinkFormComponent() {
       try {
         await createInvite(value as z.infer<typeof CreateLeagueInviteSchema>);
         toast.success("Invite link created");
-        queryClient.invalidateQueries({
-          queryKey: GetLeagueInvitesQueryKey(leagueId),
-        });
         form.reset();
       } catch (error) {
         if (error instanceof Error) {

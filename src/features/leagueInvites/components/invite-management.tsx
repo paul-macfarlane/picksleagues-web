@@ -1,11 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  GetLeagueInvitesQueryKey,
-  useDeleteLeagueInvite,
-} from "@/features/leagueInvites/leagueInvites.api";
+import { useDeleteLeagueInvite } from "@/features/leagueInvites/leagueInvites.api";
 import { useParams } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
 import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/leagueMembers.types";
 import {
   LEAGUE_INVITE_TYPES,
@@ -29,17 +25,12 @@ export function InviteManagement({
   const { leagueId } = useParams({
     from: "/football/pick-em/$leagueId/members",
   });
-  const queryClient = useQueryClient();
-
   const { mutateAsync: deactivateInvite } = useDeleteLeagueInvite();
 
   async function handleDeactivate(inviteId: string) {
     try {
-      await deactivateInvite(inviteId);
+      await deactivateInvite({ inviteId, leagueId });
       toast.success("Invite link deactivated");
-      queryClient.invalidateQueries({
-        queryKey: GetLeagueInvitesQueryKey(leagueId),
-      });
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);

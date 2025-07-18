@@ -6,11 +6,10 @@ import {
 } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Check, X, Icon } from "lucide-react";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { football } from "@lucide/lab";
 import { LeagueCard } from "@/features/leagues/components/league-card";
 import {
-  GetLeagueInvitesForUserQueryKey,
   GetLeagueInvitesForUserQueryOptions,
   useRespondToLeagueInvite,
 } from "@/features/leagueInvites/leagueInvites.api";
@@ -22,6 +21,7 @@ import {
 } from "@/features/leagues/leagues.types";
 import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
 import {
+  LEAGUE_INVITE_INCLUDES,
   LEAGUE_INVITE_STATUSES,
   type RespondToLeagueInviteSchema,
 } from "@/features/leagueInvites/leagueInvites.types";
@@ -36,7 +36,14 @@ export const Route = createFileRoute("/")({
     }
   },
   loader: async ({ context: { queryClient } }) => {
-    await queryClient.ensureQueryData(GetLeagueInvitesForUserQueryOptions());
+    await queryClient.ensureQueryData(
+      GetLeagueInvitesForUserQueryOptions({
+        includes: [
+          LEAGUE_INVITE_INCLUDES.LEAGUE,
+          LEAGUE_INVITE_INCLUDES.LEAGUE_TYPE,
+        ],
+      }),
+    );
     await queryClient.ensureQueryData(
       GetMyLeaguesForLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
     );
@@ -49,7 +56,6 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const { data: pickEmLeagues } = useSuspenseQuery(
     GetMyLeaguesForLeagueTypeQueryOptions<PickEmLeagueResponse>(
@@ -58,7 +64,12 @@ function RouteComponent() {
   );
 
   const { data: leagueInvites } = useSuspenseQuery(
-    GetLeagueInvitesForUserQueryOptions(),
+    GetLeagueInvitesForUserQueryOptions({
+      includes: [
+        LEAGUE_INVITE_INCLUDES.LEAGUE,
+        LEAGUE_INVITE_INCLUDES.LEAGUE_TYPE,
+      ],
+    }),
   );
 
   const { mutateAsync: respondToLeagueInvite } = useRespondToLeagueInvite();
@@ -69,17 +80,13 @@ function RouteComponent() {
     response: z.infer<typeof RespondToLeagueInviteSchema>,
   ) => {
     try {
-      await respondToLeagueInvite({ inviteId, response });
+      await respondToLeagueInvite({ inviteId, response, leagueId });
       if (response.response === LEAGUE_INVITE_STATUSES.ACCEPTED) {
         router.navigate({
           to: "/football/pick-em/$leagueId",
           params: { leagueId },
         });
       } else {
-        queryClient.invalidateQueries({
-          queryKey: GetLeagueInvitesForUserQueryKey,
-        });
-
         toast.success("Invite declined");
       }
     } catch (error) {

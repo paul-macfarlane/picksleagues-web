@@ -68,6 +68,37 @@ We will use a unified approach that leverages TanStack Router's `loader` functio
 
 This approach combines the strengths of both libraries: TanStack Router handles the orchestration and initial load, while TanStack Query manages the cache and provides reactive, suspense-ready data access in the components.
 
+#### Mutation and Cache Invalidation
+
+To ensure data consistency across the application, all data mutations must handle their own cache invalidation. This logic should be centralized within the `useMutation` hook in the feature's `.api.ts` file, not in the component that calls the mutation.
+
+- **Implementation**:
+
+  1.  **Use `onSuccess`**: In the `useMutation` options, use the `onSuccess` callback to invalidate relevant queries after a mutation succeeds.
+  2.  **Invalidate Queries**: Use `queryClient.invalidateQueries` with the appropriate `queryKey`. Use partial query keys to invalidate groups of related queries (e.g., `['leagues', leagueId, 'invites']` to invalidate all invite queries for a specific league).
+  3.  **Pass Necessary Data**: If the `queryKey` for invalidation requires data from the component (like a `leagueId`), update the mutation function to accept that data alongside the mutation payload.
+
+- **Example**:
+  ```ts
+  // src/features/some-feature/some-feature.api.ts
+  export const useUpdateItem = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: updateItem, // (payload: { id: string; data: any }) => Promise<void>
+      onSuccess: (_, variables) => {
+        // Invalidate the query for the specific item
+        queryClient.invalidateQueries({
+          queryKey: GetItemQueryOptions(variables.id).queryKey,
+        });
+        // Invalidate the list query
+        queryClient.invalidateQueries({
+          queryKey: GetItemsQueryOptions().queryKey,
+        });
+      },
+    });
+  };
+  ```
+
 #### Exceptions to Route-Level Fetching
 
 While route-level data fetching is the standard, there are valid exceptions where fetching within a component is appropriate:
@@ -138,31 +169,3 @@ export const useDelayedLoader = (isLoading: boolean, delay: number = 300) => {
   return showLoader;
 };
 ```
-
-### 9. Explicit Return Types
-
-To improve code clarity, maintainability, and prevent accidental data leaks across boundaries, we favor explicit return types for functions. This is especially critical at architectural boundaries.
-
-#### ALWAYS Use Explicit Return Types For:
-
-1.  **Functions at Architectural Boundaries:**
-
-    - **API Layer Functions**: All functions in `[feature-name].api.ts` files that fetch data must have an explicit `Promise<T>` return type, where `T` is a defined type from `[feature-name].types.ts`.
-    - **TanStack Router `loader` Functions**: The `loader` function for each route must have an explicit return type defining the data it provides to the component.
-    - **Custom Hooks**: Any custom hook (e.g., `useDelayedLoader`) must have an explicit return type.
-
-2.  **All Other Exported Functions (`export function ...`)**:
-    - If a function is exported from any file, it is part of that module's public API and its contract must be made explicit with a return type.
-
-#### It's OK to Use Inferred Return Types For:
-
-1.  **Short, Inline Arrow Functions**:
-
-    - Especially inside methods like `Array.prototype.map` or `Array.prototype.filter`, where the local context makes the return type obvious.
-    - _Example_: `const names = leagues.map(league => league.name); // Implicit is fine here`
-
-2.  **Private, Internal Helper Functions**:
-
-    - If a function is not exported and is only used as a simple helper within the same file, type inference is acceptable.
-
-3.  **React Components**: Component functions don't need to have an explicit return type, which if needed is typically `JSX.Element` or `React.ReactNode`.

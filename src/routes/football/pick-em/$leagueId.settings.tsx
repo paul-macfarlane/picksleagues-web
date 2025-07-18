@@ -2,7 +2,10 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { LeagueSettingsForm } from "@/features/leagues/components/league-settings-form";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { GetLeagueMembersQueryOptions } from "@/features/leagueMembers/leagueMembers.api";
-import { LEAGUE_MEMBER_ROLES } from "@/features/leagueMembers/leagueMembers.types";
+import {
+  LEAGUE_MEMBER_INCLUDES,
+  LEAGUE_MEMBER_ROLES,
+} from "@/features/leagueMembers/leagueMembers.types";
 import { Route as LeagueLayoutRoute } from "./$leagueId";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/settings")({
@@ -13,7 +16,9 @@ export const Route = createFileRoute("/football/pick-em/$leagueId/settings")({
     }
   },
   loader: async ({ context: { queryClient }, params: { leagueId } }) => {
-    await queryClient.ensureQueryData(GetLeagueMembersQueryOptions(leagueId));
+    await queryClient.ensureQueryData(
+      GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
+    );
   },
 });
 
@@ -22,10 +27,9 @@ function SettingsComponent() {
   const { session } = Route.useRouteContext();
   const league = LeagueLayoutRoute.useLoaderData();
   const { data: members } = useSuspenseQuery(
-    GetLeagueMembersQueryOptions(leagueId),
+    GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
   );
 
-  // TODO could add an endpoint to get a user's role in a league, as opposed to fetching all members
   const currentUserMemberInfo = members.find(
     (member) => member.userId === session?.userId,
   );

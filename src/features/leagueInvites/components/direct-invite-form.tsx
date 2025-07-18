@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { useAppForm } from "@/components/form";
 import { toast } from "sonner";
@@ -9,10 +8,7 @@ import {
   LEAGUE_INVITE_TYPES,
   type LeagueInviteResponse,
 } from "@/features/leagueInvites/leagueInvites.types";
-import {
-  GetLeagueInvitesQueryKey,
-  useCreateLeagueInvite,
-} from "@/features/leagueInvites/leagueInvites.api";
+import { useCreateLeagueInvite } from "@/features/leagueInvites/leagueInvites.api";
 import {
   Command,
   CommandEmpty,
@@ -214,7 +210,6 @@ export function DirectInviteFormComponent({
     from: "/football/pick-em/$leagueId/members",
   });
   const { mutateAsync: createInvite, isPending } = useCreateLeagueInvite();
-  const queryClient = useQueryClient();
 
   const form = useAppForm({
     defaultValues: {
@@ -231,9 +226,6 @@ export function DirectInviteFormComponent({
       try {
         await createInvite(value as z.infer<typeof CreateLeagueInviteSchema>);
         toast.success("Invite sent");
-        queryClient.invalidateQueries({
-          queryKey: GetLeagueInvitesQueryKey(leagueId),
-        });
         form.reset();
       } catch (error) {
         if (error instanceof Error) {
