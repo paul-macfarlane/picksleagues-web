@@ -22,7 +22,9 @@ export const Route = createFileRoute("/_authenticated/profile/")({
   validateSearch: zodValidator(searchSchema),
   loader: ({ context: { queryClient, session } }) => {
     return queryClient.ensureQueryData(
-      GetProfileByUserIdQueryOptions(session!.userId),
+      GetProfileByUserIdQueryOptions({
+        userId: session!.userId,
+      }),
     );
   },
   pendingMs: 300,
@@ -35,7 +37,9 @@ function RouteComponent() {
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
   const { data: profileData } = useSuspenseQuery(
-    GetProfileByUserIdQueryOptions(session!.user.id),
+    GetProfileByUserIdQueryOptions({
+      userId: session!.user.id,
+    }),
   );
   const { mutateAsync: updateProfile } = useUpdateProfile();
   const { setup } = Route.useSearch();
@@ -44,12 +48,13 @@ function RouteComponent() {
   const handleSubmit = async (values: z.infer<typeof UpdateProfileSchema>) => {
     try {
       await updateProfile({
-        userId: session?.user.id ?? "",
+        userId: session!.user.id,
         profile: values,
       });
       await queryClient.invalidateQueries({
-        queryKey: GetProfileByUserIdQueryOptions(session?.user.id ?? "")
-          .queryKey,
+        queryKey: GetProfileByUserIdQueryOptions({
+          userId: session!.user.id,
+        }).queryKey,
       });
       toast.success(
         setup ? "Profile setup successfully" : "Profile updated successfully",

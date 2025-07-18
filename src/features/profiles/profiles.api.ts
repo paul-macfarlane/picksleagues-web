@@ -25,18 +25,32 @@ export const GetProfileByUserIdQueryKey = (userId: string) => [
   userId,
 ];
 
-export const GetProfileByUserIdQueryOptions = (userId: string) =>
+export const GetProfileByUserIdQueryOptions = ({
+  userId,
+  enabled = true,
+}: {
+  userId: string;
+  enabled?: boolean;
+}) =>
   queryOptions({
     queryKey: GetProfileByUserIdQueryKey(userId),
     queryFn: () => getProfileByUserId(userId),
+    enabled,
   });
 
-export const useGetProfileByUserId = (userId: string) => {
+export function useGetProfileByUserId({
+  userId,
+  enabled = true,
+}: {
+  userId: string;
+  enabled?: boolean;
+}) {
   return useQuery({
     queryKey: GetProfileByUserIdQueryKey(userId),
     queryFn: () => getProfileByUserId(userId),
+    enabled,
   });
-};
+}
 
 export async function updateProfile(
   userId: string,

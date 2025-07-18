@@ -12,6 +12,8 @@ export const Route = createFileRoute("/_authenticated")({
   },
   loader: ({ context: { queryClient, session } }) =>
     queryClient.ensureQueryData(
-      GetProfileByUserIdQueryOptions(session!.userId),
+      GetProfileByUserIdQueryOptions({
+        userId: session!.userId,
+      }),
     ),
 });

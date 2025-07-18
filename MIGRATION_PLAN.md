@@ -2,7 +2,7 @@
 
 This plan outlines the incremental steps to refactor the codebase to meet the new feature-sliced standards outlined in [STANDARDS.md](./STANDARDS.md).
 
-### Step 1: Create the Foundational Structure
+### Step 1: Create the Foundational Structure [x]
 
 **Goal**: Create the new directories and shared hooks that will be used in the refactor.
 
@@ -18,7 +18,7 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 2.  `[x]` Move any feature-specific components (e.g., from `src/components/league`) into the new `components` subdirectory within the corresponding feature slice. (Completed for `/`, `/profile`, `/login`, `/join`, `/football/pick-em/create`, `/football/pick-em/$leagueId/members`, the `/football/pick-em/$leagueId` layout, `/football/pick-em/$leagueId/settings`, `/football/pick-em/$leagueId/league-picks`, `/football/pick-em/$leagueId/my-picks`, and `/football/pick-em/$leagueId/` routes).
 3.  `[x]` Relocate the base API client logic from `src/api/index.ts` to `src/lib/api.ts`.
 
-### Step 3: Refactor Route-Level Data Fetching
+### Step 3: Refactor Route-Level Data Fetching [x]
 
 **Goal**: Implement the new non-blocking, deferred loading pattern for all routes that fetch data.
 

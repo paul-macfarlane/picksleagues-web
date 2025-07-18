@@ -190,7 +190,9 @@ export const AppLayout: React.FC = () => {
   const { navigate } = useRouter();
 
   const { data: profileData } = useSuspenseQuery(
-    GetProfileByUserIdQueryOptions(session!.user.id),
+    GetProfileByUserIdQueryOptions({
+      userId: session!.user.id,
+    }),
   );
 
   async function signOut() {

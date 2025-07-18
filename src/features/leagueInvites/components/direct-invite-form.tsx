@@ -28,6 +28,7 @@ import type { LeagueMemberResponse } from "@/features/leagueMembers/leagueMember
 import z from "zod";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import { useDelayedLoader } from "@/hooks/useDelayedLoader";
 
 const DirectInviteFormSchema = CreateLeagueInviteObjectSchema.extend({
   inviteeId: z.string().min(1, "Please select a user to invite."),
@@ -51,11 +52,18 @@ function UserSearchCombobox({
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const { data: selectedProfile } = useGetProfileByUserId(selectedUser);
+  const {
+    data: selectedProfile,
+    isFetching: isSelectedProfileFetching,
+    error: selectedProfileError,
+  } = useGetProfileByUserId({
+    userId: selectedUser,
+    enabled: !!selectedUser,
+  });
   const {
     data: profiles,
-    isFetching,
-    isPending,
+    isFetching: isSearchFetching,
+    error: searchError,
   } = useSearchProfiles(
     {
       username: debouncedValue,
@@ -64,6 +72,16 @@ function UserSearchCombobox({
     },
     !!debouncedValue && isOpen,
   );
+
+  const showSearchLoader = useDelayedLoader(isSearchFetching, 300);
+
+  useEffect(() => {
+    if (selectedProfileError) {
+      toast.error(
+        selectedProfileError.message || "Failed to fetch selected user",
+      );
+    }
+  }, [selectedProfileError]);
 
   useEffect(() => {
     if (selectedProfile) {
@@ -124,7 +142,11 @@ function UserSearchCombobox({
   return (
     <Command ref={ref} className="relative overflow-visible">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        {isSelectedProfileFetching ? (
+          <Loader2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+        ) : (
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        )}
         <CommandInput
           id={id}
           value={inputValue}
@@ -155,10 +177,14 @@ function UserSearchCombobox({
       {isOpen && (
         <div className="absolute top-full z-10 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
           <CommandList>
-            {isFetching || isPending ? (
+            {showSearchLoader ? (
               <div className="flex items-center justify-center p-4">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
+            ) : searchError ? (
+              <CommandEmpty>
+                Error: {searchError.message || "Could not search for users."}
+              </CommandEmpty>
             ) : (
               <>
                 {!availableProfiles?.length && debouncedValue && (
