@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { LeagueSettingsForm } from "@/features/leagues/components/league-settings-form";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { GetLeagueMembersQueryOptions } from "@/features/leagueMembers/leagueMembers.api";
@@ -8,17 +8,12 @@ import {
 } from "@/features/leagueMembers/leagueMembers.types";
 import { Route as LeagueLayoutRoute } from "./$leagueId";
 
-export const Route = createFileRoute("/football/pick-em/$leagueId/settings")({
+export const Route = createFileRoute(
+  "/_authenticated/football/pick-em/$leagueId/settings",
+)({
   component: SettingsComponent,
-  beforeLoad: async ({ context }) => {
-    if (!context.session) {
-      throw redirect({ to: "/login" });
-    }
-  },
   loader: async ({ context: { queryClient }, params: { leagueId } }) => {
-    await queryClient.ensureQueryData(
-      GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
-    );
+    await queryClient.ensureQueryData(GetLeagueMembersQueryOptions(leagueId));
   },
 });
 

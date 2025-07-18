@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useParams } from "@tanstack/react-router";
+import { createFileRoute, useParams } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
@@ -16,13 +16,10 @@ import { Suspense } from "react";
 import { InviteManagementSkeleton } from "@/features/leagueInvites/components/invite-management-skeleton";
 import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/leagueMembers.types";
 
-export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
+export const Route = createFileRoute(
+  "/_authenticated/football/pick-em/$leagueId/members",
+)({
   component: MembersComponent,
-  beforeLoad: async ({ context }) => {
-    if (!context.session) {
-      throw redirect({ to: "/login" });
-    }
-  },
   loader: async ({
     context: { queryClient, session },
     params: { leagueId },
@@ -69,7 +66,7 @@ function CommissionerInviteManagement({
 
 function MembersComponent() {
   const { leagueId } = useParams({
-    from: "/football/pick-em/$leagueId/members",
+    from: "/_authenticated/football/pick-em/$leagueId/members",
   });
   const { session } = Route.useRouteContext();
   const { data: members } = useSuspenseQuery(

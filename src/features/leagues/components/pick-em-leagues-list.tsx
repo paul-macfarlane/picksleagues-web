@@ -37,11 +37,9 @@ export function PickEmLeaguesList() {
             </p>
           </div>
         </div>
-        <Link to="/football/pick-em/create">
-          <Button size="lg" className="w-full sm:w-auto">
-            Create League
-          </Button>
-        </Link>
+        <Button asChild>
+          <Link to="/football/pick-em/create">Create League</Link>
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

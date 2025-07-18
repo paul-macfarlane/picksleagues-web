@@ -7,7 +7,9 @@ import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
 import { PendingCard } from "@/features/leagues/components/league-layout-skeleton";
 
 export function LeagueLayout() {
-  const { leagueId } = useParams({ from: "/football/pick-em/$leagueId" });
+  const { leagueId } = useParams({
+    from: "/_authenticated/football/pick-em/$leagueId",
+  });
   const { data: league } = useSuspenseQuery(GetLeagueQueryOptions(leagueId));
 
   const tabs = [

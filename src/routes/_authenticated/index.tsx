@@ -1,9 +1,4 @@
-import {
-  createFileRoute,
-  Link,
-  redirect,
-  useRouter,
-} from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Check, X, Icon } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -21,20 +16,15 @@ import {
 } from "@/features/leagues/leagues.types";
 import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
 import {
-  LEAGUE_INVITE_INCLUDES,
   LEAGUE_INVITE_STATUSES,
   type RespondToLeagueInviteSchema,
+  LEAGUE_INVITE_INCLUDES,
 } from "@/features/leagueInvites/leagueInvites.types";
 import type z from "zod";
 import { HomePageSkeleton } from "@/features/leagues/components/home-page-states";
 import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
-export const Route = createFileRoute("/")({
-  beforeLoad: async ({ context }) => {
-    if (!context.session) {
-      throw redirect({ to: "/login" });
-    }
-  },
+export const Route = createFileRoute("/_authenticated/")({
   loader: async ({ context: { queryClient } }) => {
     await queryClient.ensureQueryData(
       GetLeagueInvitesForUserQueryOptions({
@@ -50,8 +40,8 @@ export const Route = createFileRoute("/")({
   },
   pendingComponent: HomePageSkeleton,
   errorComponent: () => <RouteErrorBoundary />,
-  component: RouteComponent,
   pendingMs: 300,
+  component: RouteComponent,
 });
 
 function RouteComponent() {

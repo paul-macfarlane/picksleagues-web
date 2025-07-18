@@ -21,7 +21,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "@tanstack/react-router";
+import { Outlet, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   Trophy,
@@ -44,7 +44,8 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { useGetProfileByUserId } from "@/features/profiles/profiles.api";
+import { GetProfileByUserIdQueryOptions } from "@/features/profiles/profiles.api";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 function ProfileMenuSkeleton() {
   return (
@@ -54,17 +55,6 @@ function ProfileMenuSkeleton() {
   );
 }
 
-function ProfileMenuError() {
-  return (
-    <div className="flex items-center">
-      <Button variant="destructive" disabled>
-        Error
-      </Button>
-    </div>
-  );
-}
-
-// TODO, find a way to have a layout separately from the entire app, so I don't bother checking this for unauthed users, and I can prefetch the profile for authed users
 function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -183,18 +173,25 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
   );
 }
 
-export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export function AppLayoutSkeleton() {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar rightContent={<ProfileMenuSkeleton />} />
+      <main className="flex-1 w-full container mx-auto px-4 py-6">
+        <Skeleton className="h-96 w-full" />
+      </main>
+    </div>
+  );
+}
+
+export const AppLayout: React.FC = () => {
   const { data: session } = authClient.useSession();
   const { theme, setTheme } = useTheme();
   const { navigate } = useRouter();
 
-  const {
-    data: profileData,
-    isLoading: isLoadingProfile,
-    error: profileError,
-  } = useGetProfileByUserId(session?.user.id ?? "");
+  const { data: profileData } = useSuspenseQuery(
+    GetProfileByUserIdQueryOptions(session!.user.id),
+  );
 
   async function signOut() {
     try {
@@ -206,75 +203,61 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
     }
   }
 
-  if (!session) {
-    // don't show layout if not logged in
-    return children;
-  }
-
-  let rightContent: React.ReactNode;
-  if (isLoadingProfile) {
-    rightContent = <ProfileMenuSkeleton />;
-  } else if (profileError) {
-    rightContent = <ProfileMenuError />;
-  } else {
-    rightContent = (
-      <div className="flex items-center">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="p-0 rounded-full h-10 w-10">
-              <Avatar>
-                <AvatarImage
-                  src={profileData?.avatarUrl ?? undefined}
-                  alt={profileData?.username ?? "Profile"}
-                />
-                <AvatarFallback>
-                  <UserRound className="w-4 h-4 text-primary" />
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">
-                  {profileData?.username || "Loading..."}
-                </p>
-                <span className="text-xs leading-none text-muted-foreground">
-                  {session?.user?.email || "Loading..."}
-                </span>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/profile">View Profile</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Theme</DropdownMenuLabel>
-            <DropdownMenuRadioGroup
-              value={theme}
-              onValueChange={(v) => setTheme(v as "light" | "dark" | "system")}
-            >
-              <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="system">
-                System
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut} variant="destructive">
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    );
-  }
+  const rightContent = (
+    <div className="flex items-center">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="p-0 rounded-full h-10 w-10">
+            <Avatar>
+              <AvatarImage
+                src={profileData?.avatarUrl ?? undefined}
+                alt={profileData?.username ?? "Profile"}
+              />
+              <AvatarFallback>
+                <UserRound className="w-4 h-4 text-primary" />
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">
+                {profileData?.username || "Loading..."}
+              </p>
+              <span className="text-xs leading-none text-muted-foreground">
+                {session?.user?.email || "Loading..."}
+              </span>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/profile">View Profile</Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>Theme</DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={theme}
+            onValueChange={(v) => setTheme(v as "light" | "dark" | "system")}
+          >
+            <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={signOut} variant="destructive">
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar rightContent={rightContent} />
       <main className="flex-1 w-full container mx-auto px-4 py-6">
-        {children}
+        <Outlet />
       </main>
     </div>
   );

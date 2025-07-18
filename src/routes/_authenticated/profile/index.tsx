@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import z from "zod";
 import {
@@ -18,13 +18,8 @@ const searchSchema = z.object({
   setup: z.boolean().optional(),
 });
 
-export const Route = createFileRoute("/profile/")({
+export const Route = createFileRoute("/_authenticated/profile/")({
   validateSearch: zodValidator(searchSchema),
-  beforeLoad: async ({ context }) => {
-    if (!context.session) {
-      throw redirect({ to: "/login" });
-    }
-  },
   loader: ({ context: { queryClient, session } }) => {
     return queryClient.ensureQueryData(
       GetProfileByUserIdQueryOptions(session!.userId),

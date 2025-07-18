@@ -207,7 +207,7 @@ export function DirectInviteFormComponent({
   invites: LeagueInviteResponse[];
 }) {
   const { leagueId } = useParams({
-    from: "/football/pick-em/$leagueId/members",
+    from: "/_authenticated/football/pick-em/$leagueId/members",
   });
   const { mutateAsync: createInvite, isPending } = useCreateLeagueInvite();
 

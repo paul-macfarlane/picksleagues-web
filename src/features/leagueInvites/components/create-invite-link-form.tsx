@@ -12,7 +12,7 @@ import type z from "zod";
 
 export function CreateInviteLinkFormComponent() {
   const { leagueId } = useParams({
-    from: "/football/pick-em/$leagueId/members",
+    from: "/_authenticated/football/pick-em/$leagueId/members",
   });
   const { mutateAsync: createInvite, isPending } = useCreateLeagueInvite();
 
