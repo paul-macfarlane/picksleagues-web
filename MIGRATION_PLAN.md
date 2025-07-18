@@ -1,3 +1,6 @@
+> [!NOTE]
+> This migration is complete. The plan is preserved for historical reference.
+
 # Migration Plan
 
 This plan outlines the incremental steps to refactor the codebase to meet the new feature-sliced standards outlined in [STANDARDS.md](./STANDARDS.md).
@@ -67,5 +70,5 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 **Goal**: Remove legacy code and ensure the new structure is consistent.
 
 1.  `[x]` Once all logic is moved and imports are updated, safely delete the original `src/api` directory.
-2.  `[ ]` Review the `src/features` directory to ensure all slices follow the standard structure (`[feature-name].api.ts`, `[feature-name].types.ts`, `components/`).
-3.  `[ ]` Confirm that `src/routes` files correctly implement the `loader` and `pendingComponent` pattern.
+2.  `[x]` Review the `src/features` directory to ensure all slices follow the standard structure (`[feature-name].api.ts`, `[feature-name].types.ts`, `components/`).
+3.  `[x]` Confirm that `src/routes` files correctly implement the `loader` and `pendingComponent` pattern.
