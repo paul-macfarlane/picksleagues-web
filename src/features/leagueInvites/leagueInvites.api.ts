@@ -32,13 +32,16 @@ export const GetLeagueInvitesQueryKey = (
 export const GetLeagueInvitesQueryOptions = ({
   leagueId,
   includes = [],
+  enabled = true,
 }: {
   leagueId: string;
   includes?: LEAGUE_INVITE_INCLUDES[];
+  enabled?: boolean;
 }) =>
   queryOptions({
     queryKey: GetLeagueInvitesQueryKey(leagueId, includes),
     queryFn: () => getLeagueInvites(leagueId, includes),
+    enabled: enabled,
   });
 
 export async function getLeagueInvitesForUser(

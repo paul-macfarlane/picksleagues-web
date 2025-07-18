@@ -12,6 +12,9 @@ import { GetLeagueInvitesQueryOptions } from "@/features/leagueInvites/leagueInv
 import { MembersPageSkeleton } from "@/features/leagueMembers/components/members-page-states";
 import { RouteErrorBoundary } from "@/components/route-error-boundary";
 import { LEAGUE_INVITE_INCLUDES } from "@/features/leagueInvites/leagueInvites.types";
+import { Suspense } from "react";
+import { InviteManagementSkeleton } from "@/features/leagueInvites/components/invite-management-skeleton";
+import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/leagueMembers.types";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   component: MembersComponent,
@@ -20,27 +23,49 @@ export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
       throw redirect({ to: "/login" });
     }
   },
-  loader: async ({ context: { queryClient }, params: { leagueId } }) => {
-    await Promise.all([
-      queryClient.ensureQueryData(
-        GetLeagueMembersQueryOptions(leagueId, [
-          LEAGUE_MEMBER_INCLUDES.PROFILE,
-        ]),
-      ),
+  loader: async ({
+    context: { queryClient, session },
+    params: { leagueId },
+  }) => {
+    const members = await queryClient.ensureQueryData(
+      GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
+    );
 
-      // TODO - there is an issue where only league commissioners can see invites, so this will return a 403. Need to look into a way to see if we can conditionally prefetch
-      queryClient.ensureQueryData(
+    const currentUserMemberInfo = members.find(
+      (member) => member.userId === session?.userId,
+    );
+    const isCommissioner =
+      currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
+
+    if (isCommissioner) {
+      await queryClient.ensureQueryData(
         GetLeagueInvitesQueryOptions({
           leagueId,
           includes: [LEAGUE_INVITE_INCLUDES.INVITEE],
         }),
-      ),
-    ]);
+      );
+    }
   },
   pendingComponent: MembersPageSkeleton,
   errorComponent: () => <RouteErrorBoundary />,
   pendingMs: 300,
 });
+
+function CommissionerInviteManagement({
+  leagueId,
+  currentMembers,
+}: {
+  leagueId: string;
+  currentMembers: PopulatedLeagueMemberResponse[];
+}) {
+  const { data: invites } = useSuspenseQuery(
+    GetLeagueInvitesQueryOptions({
+      leagueId,
+      includes: [LEAGUE_INVITE_INCLUDES.INVITEE],
+    }),
+  );
+  return <InviteManagement currentMembers={currentMembers} invites={invites} />;
+}
 
 function MembersComponent() {
   const { leagueId } = useParams({
@@ -49,12 +74,6 @@ function MembersComponent() {
   const { session } = Route.useRouteContext();
   const { data: members } = useSuspenseQuery(
     GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
-  );
-  const { data: invites } = useSuspenseQuery(
-    GetLeagueInvitesQueryOptions({
-      leagueId,
-      includes: [LEAGUE_INVITE_INCLUDES.INVITEE],
-    }),
   );
 
   const currentUserMemberInfo = members.find(
@@ -81,7 +100,12 @@ function MembersComponent() {
       </Card>
 
       {isCommissioner && (
-        <InviteManagement currentMembers={members} invites={invites} />
+        <Suspense fallback={<InviteManagementSkeleton />}>
+          <CommissionerInviteManagement
+            leagueId={leagueId}
+            currentMembers={members}
+          />
+        </Suspense>
       )}
     </div>
   );
