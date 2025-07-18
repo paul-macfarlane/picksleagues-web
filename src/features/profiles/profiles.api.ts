@@ -4,7 +4,12 @@ import type {
   SearchProfilesSchema,
   UpdateProfileSchema,
 } from "./profiles.types";
-import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type z from "zod";
 
 export async function getProfileByUserId(
@@ -20,18 +25,32 @@ export const GetProfileByUserIdQueryKey = (userId: string) => [
   userId,
 ];
 
-export const GetProfileByUserIdQueryOptions = (userId: string) =>
+export const GetProfileByUserIdQueryOptions = ({
+  userId,
+  enabled = true,
+}: {
+  userId: string;
+  enabled?: boolean;
+}) =>
   queryOptions({
     queryKey: GetProfileByUserIdQueryKey(userId),
     queryFn: () => getProfileByUserId(userId),
+    enabled,
   });
 
-export const useGetProfileByUserId = (userId: string) => {
+export function useGetProfileByUserId({
+  userId,
+  enabled = true,
+}: {
+  userId: string;
+  enabled?: boolean;
+}) {
   return useQuery({
     queryKey: GetProfileByUserIdQueryKey(userId),
     queryFn: () => getProfileByUserId(userId),
+    enabled,
   });
-};
+}
 
 export async function updateProfile(
   userId: string,
@@ -50,6 +69,7 @@ export async function updateProfile(
 }
 
 export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
       userId,
@@ -58,6 +78,11 @@ export const useUpdateProfile = () => {
       userId: string;
       profile: z.infer<typeof UpdateProfileSchema>;
     }) => updateProfile(userId, profile),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: GetProfileByUserIdQueryKey(variables.userId),
+      });
+    },
   });
 };
 

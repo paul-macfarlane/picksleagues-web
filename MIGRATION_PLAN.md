@@ -2,7 +2,7 @@
 
 This plan outlines the incremental steps to refactor the codebase to meet the new feature-sliced standards outlined in [STANDARDS.md](./STANDARDS.md).
 
-### Step 1: Create the Foundational Structure
+### Step 1: Create the Foundational Structure [x]
 
 **Goal**: Create the new directories and shared hooks that will be used in the refactor.
 
@@ -18,22 +18,33 @@ This plan outlines the incremental steps to refactor the codebase to meet the ne
 2.  `[x]` Move any feature-specific components (e.g., from `src/components/league`) into the new `components` subdirectory within the corresponding feature slice. (Completed for `/`, `/profile`, `/login`, `/join`, `/football/pick-em/create`, `/football/pick-em/$leagueId/members`, the `/football/pick-em/$leagueId` layout, `/football/pick-em/$leagueId/settings`, `/football/pick-em/$leagueId/league-picks`, `/football/pick-em/$leagueId/my-picks`, and `/football/pick-em/$leagueId/` routes).
 3.  `[x]` Relocate the base API client logic from `src/api/index.ts` to `src/lib/api.ts`.
 
-### Step 3: Refactor Routes for Critical Data Loading
+### Step 3: Refactor Route-Level Data Fetching [x]
 
-**Goal**: Implement the new non-blocking, deferred loading pattern for all routes that fetch essential data.
+**Goal**: Implement the new non-blocking, deferred loading pattern for all routes that fetch data.
 
-1.  Identify all routes that require critical data to render (e.g., a league detail page).
-2.  For each of these routes, define a `loader` function that uses `queryClient.ensureQueryData` to pre-fetch its data.
-3.  Set a `pendingMs` delay (e.g., 300) on the route to prevent loading UI flashes on fast connections.
-4.  Create a dedicated `pendingComponent` for the route. This component should render the page's structural layout with skeleton elements in place of the loading data.
+1.  **Identify Data Requirements**: For each route, identify what data is needed and whether it's critical for the initial render.
+2.  **Define `queryOptions`**: In the corresponding `[feature-name].api.ts` file, create and export a reusable `queryOptions` object for each query. This should contain the `queryKey` and `queryFn`. Note that in many cases these will already be defined in the api file.
+3.  **Implement Route `loader`s**: In the route definition file, add a `loader` function.
+    - Use `await queryClient.ensureQueryData(queryOptions)` for data that is **critical** for the initial render.
+    - Use `queryClient.ensureQueryData(queryOptions)` (without `await`) for non-critical data that can be loaded in the background.
+4.  **Create `pending` and `error` Components**:
+    - Create a `pendingComponent` for the route that renders the page's structural layout with skeleton elements.
+    - To prevent UI flashes on fast connections, set a `pendingMs` delay (e.g., 300ms) on the route.
+    - For the `errorComponent`, use the standardized `RouteErrorBoundary` component from `src/components/route-error-boundary.tsx`. This ensures all data fetching errors are handled consistently.
+5.  **Update Route Component**:
+    - Replace any existing data fetching logic (e.g., `useEffect` with fetch, `useQuery`) in the component with `useSuspenseQuery(queryOptions)`.
+    - Since the `loader` ensures the data is available, `useSuspenseQuery` will read from the cache and render instantly without triggering a suspense fallback on the initial load.
 
-### Step 4: Refactor UI Components and Non-Critical Data
+### Step 4: Refactor Components and Update Imports
 
-**Goal**: Update components to use the new structure and handle their own loading states correctly.
+**Goal**: Update components to use data from route loaders, handle component-level data fetching correctly, and update all imports to reflect the new project structure.
 
-1.  Systematically go through all components, updating their `import` statements to point to the new locations in `src/features`.
-2.  For components that fetch their own non-critical data, use the `useDelayedLoader` hook to manage loading skeletons gracefully.
-3.  Ensure components that rely on data from the route `loader` have their internal loading logic removed, as the router now handles this state.
+1.  **Update Imports**: Systematically go through all components and update their `import` statements to point to the new locations in `src/features`.
+2.  **Refactor Components for Route Data**: Ensure components that rely on data from a route `loader` have their internal loading logic removed and are using `useSuspenseQuery` as described in Step 3.
+3.  **Handle Component-Level Data Fetching**:
+    - Identify components that fetch their own data based on user interaction (e.g., a search input) rather than the route URL.
+    - For these components, continue to use `useQuery`.
+    - To prevent UI flashes for these queries, use the `useDelayedLoader` hook to only show a loading skeleton if the request takes longer than a set delay (e.g., 300ms).
 
 ### Step 5: Refactor Forms
 

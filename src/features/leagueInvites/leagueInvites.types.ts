@@ -21,6 +21,13 @@ export const MAX_LEAGUE_INVITE_USES = 10;
 
 export const MIN_LEAGUE_INVITE_EXPIRATION_DAYS = 1;
 export const MAX_LEAGUE_INVITE_EXPIRATION_DAYS = 30;
+export const DEFAULT_LEAGUE_INVITE_EXPIRATION_DAYS = 7;
+
+export enum LEAGUE_INVITE_INCLUDES {
+  INVITEE = "invitee",
+  LEAGUE = "league",
+  LEAGUE_TYPE = "league.leagueType",
+}
 
 // api types
 

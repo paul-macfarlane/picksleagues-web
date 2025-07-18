@@ -9,15 +9,12 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { LeagueCardSkeleton } from "@/features/leagues/components/league-card";
 import type { PopulatedLeagueInviteResponse } from "../leagueInvites.types";
 import { Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 type JoinLeagueCardProps = {
-  leagueInvite: PopulatedLeagueInviteResponse | undefined;
-  isLoading: boolean;
-  error: Error | null;
+  leagueInvite: PopulatedLeagueInviteResponse;
   isJoining: boolean;
   onJoin: () => void;
   isLoggedIn: boolean;
@@ -41,30 +38,6 @@ function LoginPromptCard() {
   );
 }
 
-function ErrorCard({ error }: { error: Error }) {
-  return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Error</CardTitle>
-        <CardDescription>{error.message}</CardDescription>
-      </CardHeader>
-    </Card>
-  );
-}
-
-function InvalidInviteCard() {
-  return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Invalid Invite</CardTitle>
-        <CardDescription>
-          This invite link is invalid or has been used.
-        </CardDescription>
-      </CardHeader>
-    </Card>
-  );
-}
-
 function ExpiredInviteCard() {
   return (
     <Card className="w-full max-w-sm">
@@ -80,30 +53,12 @@ function ExpiredInviteCard() {
 
 export function JoinLeagueCard({
   leagueInvite,
-  isLoading,
-  error,
   isJoining,
   onJoin,
   isLoggedIn,
 }: JoinLeagueCardProps) {
   if (!isLoggedIn) {
     return <LoginPromptCard />;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="w-full max-w-md">
-        <LeagueCardSkeleton />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <ErrorCard error={error} />;
-  }
-
-  if (!leagueInvite) {
-    return <InvalidInviteCard />;
   }
 
   if (new Date(leagueInvite.expiresAt) < new Date()) {

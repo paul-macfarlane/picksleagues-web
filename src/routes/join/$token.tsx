@@ -2,12 +2,28 @@ import { authClient } from "@/lib/auth-client";
 import { createFileRoute, useParams, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
-  useGetLeagueInviteByToken,
+  GetLeagueInviteByTokenQueryOptions,
   useJoinLeagueByInviteToken,
 } from "@/features/leagueInvites/leagueInvites.api";
 import { JoinLeagueCard } from "@/features/leagueInvites/components/join-league-card";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { JoinLeagueSkeleton } from "@/features/leagueInvites/components/join-league-states";
+import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
 export const Route = createFileRoute("/join/$token")({
+  loader: async ({ context: { queryClient }, params: { token } }) => {
+    await queryClient.ensureQueryData(
+      GetLeagueInviteByTokenQueryOptions({ token }),
+    );
+  },
+  pendingMs: 300,
+  pendingComponent: JoinLeagueSkeleton,
+  errorComponent: () => (
+    <RouteErrorBoundary
+      title="Invite Not Found"
+      message="This invite link is either invalid or has expired."
+    />
+  ),
   component: RouteComponent,
 });
 
@@ -16,11 +32,9 @@ function RouteComponent() {
   const { data: session } = authClient.useSession();
   const router = useRouter();
 
-  const {
-    data: leagueInvite,
-    isLoading: isLoadingLeagueInvite,
-    error: leagueInviteError,
-  } = useGetLeagueInviteByToken(token, !!session);
+  const { data: leagueInvite } = useSuspenseQuery(
+    GetLeagueInviteByTokenQueryOptions({ token }),
+  );
 
   const {
     mutateAsync: joinLeagueByInviteToken,
@@ -42,11 +56,9 @@ function RouteComponent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex items-center justify-center p-4">
       <JoinLeagueCard
         leagueInvite={leagueInvite}
-        isLoading={isLoadingLeagueInvite}
-        error={leagueInviteError}
         isJoining={isPendingJoinLeague}
         onJoin={handleJoinLeague}
         isLoggedIn={!!session?.user}

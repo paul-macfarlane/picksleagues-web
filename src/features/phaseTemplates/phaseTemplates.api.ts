@@ -1,6 +1,6 @@
 import { API_BASE, authenticatedFetch } from "@/lib/api";
 import type { PhaseTemplateResponse } from "./phaseTemplates.types";
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 
 export async function getPhaseTemplatesForLeagueType(typeIdOrSlug: string) {
   return await authenticatedFetch<PhaseTemplateResponse[]>(
@@ -20,10 +20,3 @@ export const GetPhaseTemplatesByLeagueTypeQueryOptions = (
     queryKey: GetPhaseTemplatesByLeagueTypeQueryKey(typeIdOrSlug),
     queryFn: () => getPhaseTemplatesForLeagueType(typeIdOrSlug),
   });
-
-export const useGetPhaseTemplatesForLeagueType = (typeIdOrSlug: string) => {
-  return useQuery({
-    queryKey: GetPhaseTemplatesByLeagueTypeQueryKey(typeIdOrSlug),
-    queryFn: () => getPhaseTemplatesForLeagueType(typeIdOrSlug),
-  });
-};

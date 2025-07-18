@@ -1,44 +1,46 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import z from "zod";
 import {
-  GetProfileByUserIdQueryKey,
-  useGetProfileByUserId,
   useUpdateProfile,
+  GetProfileByUserIdQueryOptions,
 } from "@/features/profiles/profiles.api";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { UpdateProfileSchema } from "@/features/profiles/profiles.types";
-import {
-  ProfileErrorState,
-  ProfileLoadingSkeleton,
-} from "@/features/profiles/components/profile-states";
+import { ProfileLoadingSkeleton } from "@/features/profiles/components/profile-states";
 import { ProfileForm } from "@/features/profiles/components/profile-form";
+import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
 const searchSchema = z.object({
   setup: z.boolean().optional(),
 });
 
-export const Route = createFileRoute("/profile/")({
+export const Route = createFileRoute("/_authenticated/profile/")({
   validateSearch: zodValidator(searchSchema),
-  component: RouteComponent,
-  beforeLoad: async ({ context }) => {
-    if (!context.session) {
-      throw redirect({ to: "/login" });
-    }
+  loader: ({ context: { queryClient, session } }) => {
+    return queryClient.ensureQueryData(
+      GetProfileByUserIdQueryOptions({
+        userId: session!.userId,
+      }),
+    );
   },
+  pendingMs: 300,
+  pendingComponent: ProfileLoadingSkeleton,
+  errorComponent: () => <RouteErrorBoundary />,
+  component: RouteComponent,
 });
 
 function RouteComponent() {
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
-  const {
-    data: profileData,
-    isLoading: isLoadingProfile,
-    error: profileError,
-  } = useGetProfileByUserId(session?.user.id ?? "");
+  const { data: profileData } = useSuspenseQuery(
+    GetProfileByUserIdQueryOptions({
+      userId: session!.user.id,
+    }),
+  );
   const { mutateAsync: updateProfile } = useUpdateProfile();
   const { setup } = Route.useSearch();
   const navigate = useNavigate();
@@ -46,11 +48,13 @@ function RouteComponent() {
   const handleSubmit = async (values: z.infer<typeof UpdateProfileSchema>) => {
     try {
       await updateProfile({
-        userId: session?.user.id ?? "",
+        userId: session!.user.id,
         profile: values,
       });
       await queryClient.invalidateQueries({
-        queryKey: GetProfileByUserIdQueryKey(session?.user.id ?? ""),
+        queryKey: GetProfileByUserIdQueryOptions({
+          userId: session!.user.id,
+        }).queryKey,
       });
       toast.success(
         setup ? "Profile setup successfully" : "Profile updated successfully",
@@ -65,14 +69,6 @@ function RouteComponent() {
       throw error;
     }
   };
-
-  if (isLoadingProfile) {
-    return <ProfileLoadingSkeleton />;
-  }
-
-  if (profileError) {
-    return <ProfileErrorState />;
-  }
 
   const defaultValues = {
     username: profileData?.username ?? "",

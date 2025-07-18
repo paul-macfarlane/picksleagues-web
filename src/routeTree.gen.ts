@@ -9,27 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as JoinTokenRouteImport } from './routes/join/$token'
-import { Route as FootballPickEmIndexRouteImport } from './routes/football/pick-em/index'
-import { Route as FootballPickEmCreateRouteImport } from './routes/football/pick-em/create'
-import { Route as FootballPickEmLeagueIdRouteImport } from './routes/football/pick-em/$leagueId'
-import { Route as FootballPickEmLeagueIdIndexRouteImport } from './routes/football/pick-em/$leagueId.index'
-import { Route as FootballPickEmLeagueIdSettingsRouteImport } from './routes/football/pick-em/$leagueId.settings'
-import { Route as FootballPickEmLeagueIdMyPicksRouteImport } from './routes/football/pick-em/$leagueId.my-picks'
-import { Route as FootballPickEmLeagueIdMembersRouteImport } from './routes/football/pick-em/$leagueId.members'
-import { Route as FootballPickEmLeagueIdLeaguePicksRouteImport } from './routes/football/pick-em/$leagueId.league-picks'
+import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
+import { Route as AuthenticatedFootballPickEmIndexRouteImport } from './routes/_authenticated/football/pick-em/index'
+import { Route as AuthenticatedFootballPickEmCreateRouteImport } from './routes/_authenticated/football/pick-em/create'
+import { Route as AuthenticatedFootballPickEmLeagueIdRouteImport } from './routes/_authenticated/football/pick-em/$leagueId'
+import { Route as AuthenticatedFootballPickEmLeagueIdIndexRouteImport } from './routes/_authenticated/football/pick-em/$leagueId.index'
+import { Route as AuthenticatedFootballPickEmLeagueIdSettingsRouteImport } from './routes/_authenticated/football/pick-em/$leagueId.settings'
+import { Route as AuthenticatedFootballPickEmLeagueIdMyPicksRouteImport } from './routes/_authenticated/football/pick-em/$leagueId.my-picks'
+import { Route as AuthenticatedFootballPickEmLeagueIdMembersRouteImport } from './routes/_authenticated/football/pick-em/$leagueId.members'
+import { Route as AuthenticatedFootballPickEmLeagueIdLeaguePicksRouteImport } from './routes/_authenticated/football/pick-em/$leagueId.league-picks'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileIndexRoute = ProfileIndexRouteImport.update({
-  id: '/profile/',
-  path: '/profile/',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginIndexRoute = LoginIndexRouteImport.update({
@@ -37,104 +32,119 @@ const LoginIndexRoute = LoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const JoinTokenRoute = JoinTokenRouteImport.update({
   id: '/join/$token',
   path: '/join/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FootballPickEmIndexRoute = FootballPickEmIndexRouteImport.update({
-  id: '/football/pick-em/',
-  path: '/football/pick-em/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FootballPickEmCreateRoute = FootballPickEmCreateRouteImport.update({
-  id: '/football/pick-em/create',
-  path: '/football/pick-em/create',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FootballPickEmLeagueIdRoute = FootballPickEmLeagueIdRouteImport.update({
-  id: '/football/pick-em/$leagueId',
-  path: '/football/pick-em/$leagueId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FootballPickEmLeagueIdIndexRoute =
-  FootballPickEmLeagueIdIndexRouteImport.update({
+const AuthenticatedProfileIndexRoute =
+  AuthenticatedProfileIndexRouteImport.update({
+    id: '/profile/',
+    path: '/profile/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedFootballPickEmIndexRoute =
+  AuthenticatedFootballPickEmIndexRouteImport.update({
+    id: '/football/pick-em/',
+    path: '/football/pick-em/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedFootballPickEmCreateRoute =
+  AuthenticatedFootballPickEmCreateRouteImport.update({
+    id: '/football/pick-em/create',
+    path: '/football/pick-em/create',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedFootballPickEmLeagueIdRoute =
+  AuthenticatedFootballPickEmLeagueIdRouteImport.update({
+    id: '/football/pick-em/$leagueId',
+    path: '/football/pick-em/$leagueId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedFootballPickEmLeagueIdIndexRoute =
+  AuthenticatedFootballPickEmLeagueIdIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => FootballPickEmLeagueIdRoute,
+    getParentRoute: () => AuthenticatedFootballPickEmLeagueIdRoute,
   } as any)
-const FootballPickEmLeagueIdSettingsRoute =
-  FootballPickEmLeagueIdSettingsRouteImport.update({
+const AuthenticatedFootballPickEmLeagueIdSettingsRoute =
+  AuthenticatedFootballPickEmLeagueIdSettingsRouteImport.update({
     id: '/settings',
     path: '/settings',
-    getParentRoute: () => FootballPickEmLeagueIdRoute,
+    getParentRoute: () => AuthenticatedFootballPickEmLeagueIdRoute,
   } as any)
-const FootballPickEmLeagueIdMyPicksRoute =
-  FootballPickEmLeagueIdMyPicksRouteImport.update({
+const AuthenticatedFootballPickEmLeagueIdMyPicksRoute =
+  AuthenticatedFootballPickEmLeagueIdMyPicksRouteImport.update({
     id: '/my-picks',
     path: '/my-picks',
-    getParentRoute: () => FootballPickEmLeagueIdRoute,
+    getParentRoute: () => AuthenticatedFootballPickEmLeagueIdRoute,
   } as any)
-const FootballPickEmLeagueIdMembersRoute =
-  FootballPickEmLeagueIdMembersRouteImport.update({
+const AuthenticatedFootballPickEmLeagueIdMembersRoute =
+  AuthenticatedFootballPickEmLeagueIdMembersRouteImport.update({
     id: '/members',
     path: '/members',
-    getParentRoute: () => FootballPickEmLeagueIdRoute,
+    getParentRoute: () => AuthenticatedFootballPickEmLeagueIdRoute,
   } as any)
-const FootballPickEmLeagueIdLeaguePicksRoute =
-  FootballPickEmLeagueIdLeaguePicksRouteImport.update({
+const AuthenticatedFootballPickEmLeagueIdLeaguePicksRoute =
+  AuthenticatedFootballPickEmLeagueIdLeaguePicksRouteImport.update({
     id: '/league-picks',
     path: '/league-picks',
-    getParentRoute: () => FootballPickEmLeagueIdRoute,
+    getParentRoute: () => AuthenticatedFootballPickEmLeagueIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/join/$token': typeof JoinTokenRoute
+  '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginIndexRoute
-  '/profile': typeof ProfileIndexRoute
-  '/football/pick-em/$leagueId': typeof FootballPickEmLeagueIdRouteWithChildren
-  '/football/pick-em/create': typeof FootballPickEmCreateRoute
-  '/football/pick-em': typeof FootballPickEmIndexRoute
-  '/football/pick-em/$leagueId/league-picks': typeof FootballPickEmLeagueIdLeaguePicksRoute
-  '/football/pick-em/$leagueId/members': typeof FootballPickEmLeagueIdMembersRoute
-  '/football/pick-em/$leagueId/my-picks': typeof FootballPickEmLeagueIdMyPicksRoute
-  '/football/pick-em/$leagueId/settings': typeof FootballPickEmLeagueIdSettingsRoute
-  '/football/pick-em/$leagueId/': typeof FootballPickEmLeagueIdIndexRoute
+  '/profile': typeof AuthenticatedProfileIndexRoute
+  '/football/pick-em/$leagueId': typeof AuthenticatedFootballPickEmLeagueIdRouteWithChildren
+  '/football/pick-em/create': typeof AuthenticatedFootballPickEmCreateRoute
+  '/football/pick-em': typeof AuthenticatedFootballPickEmIndexRoute
+  '/football/pick-em/$leagueId/league-picks': typeof AuthenticatedFootballPickEmLeagueIdLeaguePicksRoute
+  '/football/pick-em/$leagueId/members': typeof AuthenticatedFootballPickEmLeagueIdMembersRoute
+  '/football/pick-em/$leagueId/my-picks': typeof AuthenticatedFootballPickEmLeagueIdMyPicksRoute
+  '/football/pick-em/$leagueId/settings': typeof AuthenticatedFootballPickEmLeagueIdSettingsRoute
+  '/football/pick-em/$leagueId/': typeof AuthenticatedFootballPickEmLeagueIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/join/$token': typeof JoinTokenRoute
+  '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginIndexRoute
-  '/profile': typeof ProfileIndexRoute
-  '/football/pick-em/create': typeof FootballPickEmCreateRoute
-  '/football/pick-em': typeof FootballPickEmIndexRoute
-  '/football/pick-em/$leagueId/league-picks': typeof FootballPickEmLeagueIdLeaguePicksRoute
-  '/football/pick-em/$leagueId/members': typeof FootballPickEmLeagueIdMembersRoute
-  '/football/pick-em/$leagueId/my-picks': typeof FootballPickEmLeagueIdMyPicksRoute
-  '/football/pick-em/$leagueId/settings': typeof FootballPickEmLeagueIdSettingsRoute
-  '/football/pick-em/$leagueId': typeof FootballPickEmLeagueIdIndexRoute
+  '/profile': typeof AuthenticatedProfileIndexRoute
+  '/football/pick-em/create': typeof AuthenticatedFootballPickEmCreateRoute
+  '/football/pick-em': typeof AuthenticatedFootballPickEmIndexRoute
+  '/football/pick-em/$leagueId/league-picks': typeof AuthenticatedFootballPickEmLeagueIdLeaguePicksRoute
+  '/football/pick-em/$leagueId/members': typeof AuthenticatedFootballPickEmLeagueIdMembersRoute
+  '/football/pick-em/$leagueId/my-picks': typeof AuthenticatedFootballPickEmLeagueIdMyPicksRoute
+  '/football/pick-em/$leagueId/settings': typeof AuthenticatedFootballPickEmLeagueIdSettingsRoute
+  '/football/pick-em/$leagueId': typeof AuthenticatedFootballPickEmLeagueIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/join/$token': typeof JoinTokenRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
   '/login/': typeof LoginIndexRoute
-  '/profile/': typeof ProfileIndexRoute
-  '/football/pick-em/$leagueId': typeof FootballPickEmLeagueIdRouteWithChildren
-  '/football/pick-em/create': typeof FootballPickEmCreateRoute
-  '/football/pick-em/': typeof FootballPickEmIndexRoute
-  '/football/pick-em/$leagueId/league-picks': typeof FootballPickEmLeagueIdLeaguePicksRoute
-  '/football/pick-em/$leagueId/members': typeof FootballPickEmLeagueIdMembersRoute
-  '/football/pick-em/$leagueId/my-picks': typeof FootballPickEmLeagueIdMyPicksRoute
-  '/football/pick-em/$leagueId/settings': typeof FootballPickEmLeagueIdSettingsRoute
-  '/football/pick-em/$leagueId/': typeof FootballPickEmLeagueIdIndexRoute
+  '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
+  '/_authenticated/football/pick-em/$leagueId': typeof AuthenticatedFootballPickEmLeagueIdRouteWithChildren
+  '/_authenticated/football/pick-em/create': typeof AuthenticatedFootballPickEmCreateRoute
+  '/_authenticated/football/pick-em/': typeof AuthenticatedFootballPickEmIndexRoute
+  '/_authenticated/football/pick-em/$leagueId/league-picks': typeof AuthenticatedFootballPickEmLeagueIdLeaguePicksRoute
+  '/_authenticated/football/pick-em/$leagueId/members': typeof AuthenticatedFootballPickEmLeagueIdMembersRoute
+  '/_authenticated/football/pick-em/$leagueId/my-picks': typeof AuthenticatedFootballPickEmLeagueIdMyPicksRoute
+  '/_authenticated/football/pick-em/$leagueId/settings': typeof AuthenticatedFootballPickEmLeagueIdSettingsRoute
+  '/_authenticated/football/pick-em/$leagueId/': typeof AuthenticatedFootballPickEmLeagueIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/join/$token'
+    | '/'
     | '/login'
     | '/profile'
     | '/football/pick-em/$leagueId'
@@ -147,8 +157,8 @@ export interface FileRouteTypes {
     | '/football/pick-em/$leagueId/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/join/$token'
+    | '/'
     | '/login'
     | '/profile'
     | '/football/pick-em/create'
@@ -160,44 +170,34 @@ export interface FileRouteTypes {
     | '/football/pick-em/$leagueId'
   id:
     | '__root__'
-    | '/'
+    | '/_authenticated'
     | '/join/$token'
+    | '/_authenticated/'
     | '/login/'
-    | '/profile/'
-    | '/football/pick-em/$leagueId'
-    | '/football/pick-em/create'
-    | '/football/pick-em/'
-    | '/football/pick-em/$leagueId/league-picks'
-    | '/football/pick-em/$leagueId/members'
-    | '/football/pick-em/$leagueId/my-picks'
-    | '/football/pick-em/$leagueId/settings'
-    | '/football/pick-em/$leagueId/'
+    | '/_authenticated/profile/'
+    | '/_authenticated/football/pick-em/$leagueId'
+    | '/_authenticated/football/pick-em/create'
+    | '/_authenticated/football/pick-em/'
+    | '/_authenticated/football/pick-em/$leagueId/league-picks'
+    | '/_authenticated/football/pick-em/$leagueId/members'
+    | '/_authenticated/football/pick-em/$leagueId/my-picks'
+    | '/_authenticated/football/pick-em/$leagueId/settings'
+    | '/_authenticated/football/pick-em/$leagueId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   JoinTokenRoute: typeof JoinTokenRoute
   LoginIndexRoute: typeof LoginIndexRoute
-  ProfileIndexRoute: typeof ProfileIndexRoute
-  FootballPickEmLeagueIdRoute: typeof FootballPickEmLeagueIdRouteWithChildren
-  FootballPickEmCreateRoute: typeof FootballPickEmCreateRoute
-  FootballPickEmIndexRoute: typeof FootballPickEmIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile/': {
-      id: '/profile/'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileIndexRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login/': {
@@ -207,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/join/$token': {
       id: '/join/$token'
       path: '/join/$token'
@@ -214,96 +221,125 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/football/pick-em/': {
-      id: '/football/pick-em/'
+    '/_authenticated/profile/': {
+      id: '/_authenticated/profile/'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/football/pick-em/': {
+      id: '/_authenticated/football/pick-em/'
       path: '/football/pick-em'
       fullPath: '/football/pick-em'
-      preLoaderRoute: typeof FootballPickEmIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedFootballPickEmIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
-    '/football/pick-em/create': {
-      id: '/football/pick-em/create'
+    '/_authenticated/football/pick-em/create': {
+      id: '/_authenticated/football/pick-em/create'
       path: '/football/pick-em/create'
       fullPath: '/football/pick-em/create'
-      preLoaderRoute: typeof FootballPickEmCreateRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedFootballPickEmCreateRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
-    '/football/pick-em/$leagueId': {
-      id: '/football/pick-em/$leagueId'
+    '/_authenticated/football/pick-em/$leagueId': {
+      id: '/_authenticated/football/pick-em/$leagueId'
       path: '/football/pick-em/$leagueId'
       fullPath: '/football/pick-em/$leagueId'
-      preLoaderRoute: typeof FootballPickEmLeagueIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedFootballPickEmLeagueIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
-    '/football/pick-em/$leagueId/': {
-      id: '/football/pick-em/$leagueId/'
+    '/_authenticated/football/pick-em/$leagueId/': {
+      id: '/_authenticated/football/pick-em/$leagueId/'
       path: '/'
       fullPath: '/football/pick-em/$leagueId/'
-      preLoaderRoute: typeof FootballPickEmLeagueIdIndexRouteImport
-      parentRoute: typeof FootballPickEmLeagueIdRoute
+      preLoaderRoute: typeof AuthenticatedFootballPickEmLeagueIdIndexRouteImport
+      parentRoute: typeof AuthenticatedFootballPickEmLeagueIdRoute
     }
-    '/football/pick-em/$leagueId/settings': {
-      id: '/football/pick-em/$leagueId/settings'
+    '/_authenticated/football/pick-em/$leagueId/settings': {
+      id: '/_authenticated/football/pick-em/$leagueId/settings'
       path: '/settings'
       fullPath: '/football/pick-em/$leagueId/settings'
-      preLoaderRoute: typeof FootballPickEmLeagueIdSettingsRouteImport
-      parentRoute: typeof FootballPickEmLeagueIdRoute
+      preLoaderRoute: typeof AuthenticatedFootballPickEmLeagueIdSettingsRouteImport
+      parentRoute: typeof AuthenticatedFootballPickEmLeagueIdRoute
     }
-    '/football/pick-em/$leagueId/my-picks': {
-      id: '/football/pick-em/$leagueId/my-picks'
+    '/_authenticated/football/pick-em/$leagueId/my-picks': {
+      id: '/_authenticated/football/pick-em/$leagueId/my-picks'
       path: '/my-picks'
       fullPath: '/football/pick-em/$leagueId/my-picks'
-      preLoaderRoute: typeof FootballPickEmLeagueIdMyPicksRouteImport
-      parentRoute: typeof FootballPickEmLeagueIdRoute
+      preLoaderRoute: typeof AuthenticatedFootballPickEmLeagueIdMyPicksRouteImport
+      parentRoute: typeof AuthenticatedFootballPickEmLeagueIdRoute
     }
-    '/football/pick-em/$leagueId/members': {
-      id: '/football/pick-em/$leagueId/members'
+    '/_authenticated/football/pick-em/$leagueId/members': {
+      id: '/_authenticated/football/pick-em/$leagueId/members'
       path: '/members'
       fullPath: '/football/pick-em/$leagueId/members'
-      preLoaderRoute: typeof FootballPickEmLeagueIdMembersRouteImport
-      parentRoute: typeof FootballPickEmLeagueIdRoute
+      preLoaderRoute: typeof AuthenticatedFootballPickEmLeagueIdMembersRouteImport
+      parentRoute: typeof AuthenticatedFootballPickEmLeagueIdRoute
     }
-    '/football/pick-em/$leagueId/league-picks': {
-      id: '/football/pick-em/$leagueId/league-picks'
+    '/_authenticated/football/pick-em/$leagueId/league-picks': {
+      id: '/_authenticated/football/pick-em/$leagueId/league-picks'
       path: '/league-picks'
       fullPath: '/football/pick-em/$leagueId/league-picks'
-      preLoaderRoute: typeof FootballPickEmLeagueIdLeaguePicksRouteImport
-      parentRoute: typeof FootballPickEmLeagueIdRoute
+      preLoaderRoute: typeof AuthenticatedFootballPickEmLeagueIdLeaguePicksRouteImport
+      parentRoute: typeof AuthenticatedFootballPickEmLeagueIdRoute
     }
   }
 }
 
-interface FootballPickEmLeagueIdRouteChildren {
-  FootballPickEmLeagueIdLeaguePicksRoute: typeof FootballPickEmLeagueIdLeaguePicksRoute
-  FootballPickEmLeagueIdMembersRoute: typeof FootballPickEmLeagueIdMembersRoute
-  FootballPickEmLeagueIdMyPicksRoute: typeof FootballPickEmLeagueIdMyPicksRoute
-  FootballPickEmLeagueIdSettingsRoute: typeof FootballPickEmLeagueIdSettingsRoute
-  FootballPickEmLeagueIdIndexRoute: typeof FootballPickEmLeagueIdIndexRoute
+interface AuthenticatedFootballPickEmLeagueIdRouteChildren {
+  AuthenticatedFootballPickEmLeagueIdLeaguePicksRoute: typeof AuthenticatedFootballPickEmLeagueIdLeaguePicksRoute
+  AuthenticatedFootballPickEmLeagueIdMembersRoute: typeof AuthenticatedFootballPickEmLeagueIdMembersRoute
+  AuthenticatedFootballPickEmLeagueIdMyPicksRoute: typeof AuthenticatedFootballPickEmLeagueIdMyPicksRoute
+  AuthenticatedFootballPickEmLeagueIdSettingsRoute: typeof AuthenticatedFootballPickEmLeagueIdSettingsRoute
+  AuthenticatedFootballPickEmLeagueIdIndexRoute: typeof AuthenticatedFootballPickEmLeagueIdIndexRoute
 }
 
-const FootballPickEmLeagueIdRouteChildren: FootballPickEmLeagueIdRouteChildren =
+const AuthenticatedFootballPickEmLeagueIdRouteChildren: AuthenticatedFootballPickEmLeagueIdRouteChildren =
   {
-    FootballPickEmLeagueIdLeaguePicksRoute:
-      FootballPickEmLeagueIdLeaguePicksRoute,
-    FootballPickEmLeagueIdMembersRoute: FootballPickEmLeagueIdMembersRoute,
-    FootballPickEmLeagueIdMyPicksRoute: FootballPickEmLeagueIdMyPicksRoute,
-    FootballPickEmLeagueIdSettingsRoute: FootballPickEmLeagueIdSettingsRoute,
-    FootballPickEmLeagueIdIndexRoute: FootballPickEmLeagueIdIndexRoute,
+    AuthenticatedFootballPickEmLeagueIdLeaguePicksRoute:
+      AuthenticatedFootballPickEmLeagueIdLeaguePicksRoute,
+    AuthenticatedFootballPickEmLeagueIdMembersRoute:
+      AuthenticatedFootballPickEmLeagueIdMembersRoute,
+    AuthenticatedFootballPickEmLeagueIdMyPicksRoute:
+      AuthenticatedFootballPickEmLeagueIdMyPicksRoute,
+    AuthenticatedFootballPickEmLeagueIdSettingsRoute:
+      AuthenticatedFootballPickEmLeagueIdSettingsRoute,
+    AuthenticatedFootballPickEmLeagueIdIndexRoute:
+      AuthenticatedFootballPickEmLeagueIdIndexRoute,
   }
 
-const FootballPickEmLeagueIdRouteWithChildren =
-  FootballPickEmLeagueIdRoute._addFileChildren(
-    FootballPickEmLeagueIdRouteChildren,
+const AuthenticatedFootballPickEmLeagueIdRouteWithChildren =
+  AuthenticatedFootballPickEmLeagueIdRoute._addFileChildren(
+    AuthenticatedFootballPickEmLeagueIdRouteChildren,
   )
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
+  AuthenticatedFootballPickEmLeagueIdRoute: typeof AuthenticatedFootballPickEmLeagueIdRouteWithChildren
+  AuthenticatedFootballPickEmCreateRoute: typeof AuthenticatedFootballPickEmCreateRoute
+  AuthenticatedFootballPickEmIndexRoute: typeof AuthenticatedFootballPickEmIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
+  AuthenticatedFootballPickEmLeagueIdRoute:
+    AuthenticatedFootballPickEmLeagueIdRouteWithChildren,
+  AuthenticatedFootballPickEmCreateRoute:
+    AuthenticatedFootballPickEmCreateRoute,
+  AuthenticatedFootballPickEmIndexRoute: AuthenticatedFootballPickEmIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   JoinTokenRoute: JoinTokenRoute,
   LoginIndexRoute: LoginIndexRoute,
-  ProfileIndexRoute: ProfileIndexRoute,
-  FootballPickEmLeagueIdRoute: FootballPickEmLeagueIdRouteWithChildren,
-  FootballPickEmCreateRoute: FootballPickEmCreateRoute,
-  FootballPickEmIndexRoute: FootballPickEmIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

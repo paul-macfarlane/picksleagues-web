@@ -2,12 +2,16 @@
 
 import type { ProfileResponse } from "../profiles/profiles.types";
 
-// api types
-
 export enum LEAGUE_MEMBER_ROLES {
   COMMISSIONER = "commissioner",
   MEMBER = "member",
 }
+
+export enum LEAGUE_MEMBER_INCLUDES {
+  PROFILE = "profile",
+}
+
+// api types
 
 export type LeagueMemberResponse = {
   createdAt: Date;

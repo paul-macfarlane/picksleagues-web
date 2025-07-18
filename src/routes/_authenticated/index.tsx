@@ -1,26 +1,11 @@
-import {
-  createFileRoute,
-  Link,
-  redirect,
-  useRouter,
-} from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Check, X, Icon, AlertCircle } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, X, Icon } from "lucide-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { football } from "@lucide/lab";
+import { LeagueCard } from "@/features/leagues/components/league-card";
 import {
-  LeagueCard,
-  LeagueCardSkeleton,
-} from "@/features/leagues/components/league-card";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  GetLeagueInvitesForUserQueryKey,
-  useGetLeagueInvitesForUser,
+  GetLeagueInvitesForUserQueryOptions,
   useRespondToLeagueInvite,
 } from "@/features/leagueInvites/leagueInvites.api";
 import { toast } from "sonner";
@@ -33,37 +18,49 @@ import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
 import {
   LEAGUE_INVITE_STATUSES,
   type RespondToLeagueInviteSchema,
+  LEAGUE_INVITE_INCLUDES,
 } from "@/features/leagueInvites/leagueInvites.types";
 import type z from "zod";
+import { HomePageSkeleton } from "@/features/leagues/components/home-page-states";
+import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
-export const Route = createFileRoute("/")({
-  component: RouteComponent,
-  beforeLoad: async ({ context }) => {
-    if (!context.session) {
-      throw redirect({ to: "/login" });
-    }
+export const Route = createFileRoute("/_authenticated/")({
+  loader: async ({ context: { queryClient } }) => {
+    await queryClient.ensureQueryData(
+      GetLeagueInvitesForUserQueryOptions({
+        includes: [
+          LEAGUE_INVITE_INCLUDES.LEAGUE,
+          LEAGUE_INVITE_INCLUDES.LEAGUE_TYPE,
+        ],
+      }),
+    );
+    await queryClient.ensureQueryData(
+      GetMyLeaguesForLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
+    );
   },
+  pendingComponent: HomePageSkeleton,
+  errorComponent: () => <RouteErrorBoundary />,
+  pendingMs: 300,
+  component: RouteComponent,
 });
 
 function RouteComponent() {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
-  const {
-    data: pickEmLeagues,
-    isLoading: pickEmLeaguesIsLoading,
-    error: pickEmLeaguesError,
-  } = useQuery(
+  const { data: pickEmLeagues } = useSuspenseQuery(
     GetMyLeaguesForLeagueTypeQueryOptions<PickEmLeagueResponse>(
       LEAGUE_TYPE_SLUGS.PICK_EM,
     ),
   );
 
-  const {
-    data: leagueInvites,
-    isLoading: leagueInvitesIsLoading,
-    error: leagueInvitesError,
-  } = useGetLeagueInvitesForUser();
+  const { data: leagueInvites } = useSuspenseQuery(
+    GetLeagueInvitesForUserQueryOptions({
+      includes: [
+        LEAGUE_INVITE_INCLUDES.LEAGUE,
+        LEAGUE_INVITE_INCLUDES.LEAGUE_TYPE,
+      ],
+    }),
+  );
 
   const { mutateAsync: respondToLeagueInvite } = useRespondToLeagueInvite();
 
@@ -73,17 +70,13 @@ function RouteComponent() {
     response: z.infer<typeof RespondToLeagueInviteSchema>,
   ) => {
     try {
-      await respondToLeagueInvite({ inviteId, response });
+      await respondToLeagueInvite({ inviteId, response, leagueId });
       if (response.response === LEAGUE_INVITE_STATUSES.ACCEPTED) {
         router.navigate({
           to: "/football/pick-em/$leagueId",
           params: { leagueId },
         });
       } else {
-        queryClient.invalidateQueries({
-          queryKey: GetLeagueInvitesForUserQueryKey,
-        });
-
         toast.success("Invite declined");
       }
     } catch (error) {
@@ -105,29 +98,7 @@ function RouteComponent() {
         <h2 className="text-xl md:text-2xl font-semibold tracking-tight">
           Open Invites
         </h2>
-        {leagueInvitesIsLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <LeagueCardSkeleton />
-            <LeagueCardSkeleton />
-            <LeagueCardSkeleton />
-          </div>
-        ) : leagueInvitesError ? (
-          <Card>
-            <CardHeader className="flex-row items-center gap-2">
-              <AlertCircle className="h-6 w-6 text-destructive" />
-              <div>
-                <CardTitle className="text-base">
-                  Error loading invites
-                </CardTitle>
-                <CardDescription>
-                  {leagueInvitesError instanceof Error
-                    ? leagueInvitesError.message
-                    : "Please try again later."}
-                </CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
-        ) : leagueInvites && leagueInvites.length > 0 ? (
+        {leagueInvites && leagueInvites.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {leagueInvites.map((invite) => (
               <LeagueCard
@@ -199,29 +170,7 @@ function RouteComponent() {
               <Link to="/football/pick-em">View All</Link>
             </Button>
           </div>
-          {pickEmLeaguesIsLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <LeagueCardSkeleton />
-              <LeagueCardSkeleton />
-              <LeagueCardSkeleton />
-            </div>
-          ) : pickEmLeaguesError ? (
-            <Card>
-              <CardHeader className="flex-row items-center gap-2">
-                <AlertCircle className="h-6 w-6 text-destructive" />
-                <div>
-                  <CardTitle className="text-base">
-                    Error loading leagues
-                  </CardTitle>
-                  <CardDescription>
-                    {pickEmLeaguesError instanceof Error
-                      ? pickEmLeaguesError.message
-                      : "Please try again later."}
-                  </CardDescription>
-                </div>
-              </CardHeader>
-            </Card>
-          ) : pickEmLeagues && pickEmLeagues.length > 0 ? (
+          {pickEmLeagues && pickEmLeagues.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {pickEmLeagues.slice(0, 3).map((league) => (
                 <Link

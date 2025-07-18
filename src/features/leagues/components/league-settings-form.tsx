@@ -8,21 +8,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-// Mock settings data
-const mockSettings = {
-  leagueName: "Office Pick'em League",
-  logoUrl: "https://github.com/shadcn.png",
-  leagueSize: 12,
-  picksPerPhase: 5,
-};
+import type { PickEmLeagueResponse } from "@/features/leagues/leagues.types";
 
 type LeagueSettingsFormProps = {
+  league: PickEmLeagueResponse;
   isCommissioner: boolean;
   isOffSeason: boolean;
 };
 
 export function LeagueSettingsForm({
+  league,
   isCommissioner,
   isOffSeason,
 }: LeagueSettingsFormProps) {
@@ -36,7 +31,7 @@ export function LeagueSettingsForm({
           <Label htmlFor="leagueName">League Name</Label>
           <Input
             id="leagueName"
-            defaultValue={mockSettings.leagueName}
+            defaultValue={league.name}
             disabled={!isCommissioner}
           />
         </div>
@@ -44,7 +39,7 @@ export function LeagueSettingsForm({
           <Label htmlFor="logoUrl">Logo URL</Label>
           <Input
             id="logoUrl"
-            defaultValue={mockSettings.logoUrl}
+            defaultValue={league.image ?? ""}
             disabled={!isCommissioner}
           />
         </div>
@@ -54,7 +49,7 @@ export function LeagueSettingsForm({
             <Input
               id="leagueSize"
               type="number"
-              defaultValue={mockSettings.leagueSize}
+              defaultValue={league.size}
               disabled={!isCommissioner || !isOffSeason}
             />
           </div>
@@ -63,7 +58,7 @@ export function LeagueSettingsForm({
             <Input
               id="picksPerPhase"
               type="number"
-              defaultValue={mockSettings.picksPerPhase}
+              defaultValue={league.settings.picksPerPhase}
               disabled={!isCommissioner || !isOffSeason}
             />
           </div>

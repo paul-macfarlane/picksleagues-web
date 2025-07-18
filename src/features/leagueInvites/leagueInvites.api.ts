@@ -1,107 +1,100 @@
 import { API_BASE, authenticatedFetch } from "@/lib/api";
-import type {
-  CreateLeagueInviteSchema,
-  LeagueInviteResponse,
-  PopulatedLeagueInviteResponse,
-  RespondToLeagueInviteSchema,
+import {
+  type CreateLeagueInviteSchema,
+  type LeagueInviteResponse,
+  type PopulatedLeagueInviteResponse,
+  type RespondToLeagueInviteSchema,
+  LEAGUE_INVITE_INCLUDES,
 } from "./leagueInvites.types";
-import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import z from "zod";
 
-// todo in frontend refactor, the include should be parameterized
 export async function getLeagueInvites(
   leagueId: string,
+  includes: LEAGUE_INVITE_INCLUDES[] = [],
 ): Promise<PopulatedLeagueInviteResponse[]> {
+  const includeQuery =
+    includes.length > 0 ? `?include=${includes.join(",")}` : "";
   return await authenticatedFetch<PopulatedLeagueInviteResponse[]>(
-    `${API_BASE}/v1/leagues/${leagueId}/invites?include=invitee`,
+    `${API_BASE}/v1/leagues/${leagueId}/invites${includeQuery}`,
   );
 }
 
-export const GetLeagueInvitesQueryKey = (leagueId: string) => [
-  "leagues",
-  leagueId,
-  "invites",
-];
+export const GetLeagueInvitesQueryKey = (
+  leagueId: string,
+  includes: LEAGUE_INVITE_INCLUDES[] = [],
+) => ["leagues", leagueId, "invites", ...includes];
 
 export const GetLeagueInvitesQueryOptions = ({
   leagueId,
+  includes = [],
   enabled = true,
 }: {
   leagueId: string;
+  includes?: LEAGUE_INVITE_INCLUDES[];
   enabled?: boolean;
 }) =>
   queryOptions({
-    queryKey: GetLeagueInvitesQueryKey(leagueId),
-    queryFn: () => getLeagueInvites(leagueId),
-    enabled,
-  });
-
-export const useGetLeagueInvites = (leagueId: string, enabled: boolean) => {
-  return useQuery({
-    queryKey: GetLeagueInvitesQueryKey(leagueId),
-    queryFn: () => getLeagueInvites(leagueId),
+    queryKey: GetLeagueInvitesQueryKey(leagueId, includes),
+    queryFn: () => getLeagueInvites(leagueId, includes),
     enabled: enabled,
   });
-};
 
-export async function getLeagueInvitesForUser(): Promise<
-  PopulatedLeagueInviteResponse[]
-> {
+export async function getLeagueInvitesForUser(
+  includes: LEAGUE_INVITE_INCLUDES[] = [],
+): Promise<PopulatedLeagueInviteResponse[]> {
   return await authenticatedFetch<PopulatedLeagueInviteResponse[]>(
-    `${API_BASE}/v1/league-invites/my-invites?include=league,league.leagueType`,
+    `${API_BASE}/v1/league-invites/my-invites${
+      includes.length > 0 ? `?include=${includes.join(",")}` : ""
+    }`,
   );
 }
 
-export const GetLeagueInvitesForUserQueryKey = ["league-invites", "my-invites"];
+export const GetLeagueInvitesForUserQueryKey = (
+  includes: LEAGUE_INVITE_INCLUDES[] = [],
+) => ["league-invites", "my-invites", ...includes];
 
-export const GetLeagueInvitesForUserQueryOptions = () =>
+export const GetLeagueInvitesForUserQueryOptions = ({
+  includes = [],
+}: {
+  includes?: LEAGUE_INVITE_INCLUDES[];
+}) =>
   queryOptions({
-    queryKey: GetLeagueInvitesForUserQueryKey,
-    queryFn: () => getLeagueInvitesForUser(),
+    queryKey: GetLeagueInvitesForUserQueryKey(includes),
+    queryFn: () => getLeagueInvitesForUser(includes),
   });
 
-export const useGetLeagueInvitesForUser = () => {
-  return useQuery({
-    queryKey: GetLeagueInvitesForUserQueryKey,
-    queryFn: () => getLeagueInvitesForUser(),
-  });
-};
-
-// todo in frontend refactor, the include should be parameterized
 export async function getLeagueInviteByToken(
   token: string,
+  includes: LEAGUE_INVITE_INCLUDES[] = [],
 ): Promise<PopulatedLeagueInviteResponse> {
+  const includeQuery =
+    includes.length > 0 ? `?include=${includes.join(",")}` : "";
   return await authenticatedFetch<PopulatedLeagueInviteResponse>(
-    `${API_BASE}/v1/league-invites/token/${token}?include=league,league.leagueType`,
+    `${API_BASE}/v1/league-invites/token/${token}${includeQuery}`,
   );
 }
 
-export const GetLeagueInviteByTokenQueryKey = (token: string) => [
-  "league-invites",
-  "token",
-  token,
-];
+export const GetLeagueInviteByTokenQueryKey = (
+  token: string,
+  includes: LEAGUE_INVITE_INCLUDES[] = [],
+) => ["league-invites", "token", token, ...includes];
 
 export const GetLeagueInviteByTokenQueryOptions = ({
   token,
-  enabled,
+  includes = [],
 }: {
   token: string;
-  enabled: boolean;
+  includes?: LEAGUE_INVITE_INCLUDES[];
 }) =>
   queryOptions({
-    queryKey: GetLeagueInviteByTokenQueryKey(token),
-    queryFn: () => getLeagueInviteByToken(token),
-    enabled,
+    queryKey: GetLeagueInviteByTokenQueryKey(token, includes),
+    queryFn: () => getLeagueInviteByToken(token, includes),
   });
-
-export const useGetLeagueInviteByToken = (token: string, enabled: boolean) => {
-  return useQuery({
-    queryKey: GetLeagueInviteByTokenQueryKey(token),
-    queryFn: () => getLeagueInviteByToken(token),
-    enabled: enabled,
-  });
-};
 
 export async function createLeagueInvite(
   invite: z.infer<typeof CreateLeagueInviteSchema>,
@@ -119,9 +112,15 @@ export async function createLeagueInvite(
 }
 
 export const useCreateLeagueInvite = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (invite: z.infer<typeof CreateLeagueInviteSchema>) =>
       createLeagueInvite(invite),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: GetLeagueInvitesQueryKey(variables.leagueId),
+      });
+    },
   });
 };
 
@@ -142,6 +141,7 @@ export async function respondToLeagueInvite(
 }
 
 export const useRespondToLeagueInvite = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
       inviteId,
@@ -149,7 +149,13 @@ export const useRespondToLeagueInvite = () => {
     }: {
       inviteId: string;
       response: z.infer<typeof RespondToLeagueInviteSchema>;
+      leagueId: string;
     }) => respondToLeagueInvite(inviteId, response),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: GetLeagueInvitesForUserQueryKey(),
+      });
+    },
   });
 };
 
@@ -163,8 +169,15 @@ export async function deleteLeagueInvite(inviteId: string): Promise<void> {
 }
 
 export const useDeleteLeagueInvite = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (inviteId: string) => deleteLeagueInvite(inviteId),
+    mutationFn: ({ inviteId }: { inviteId: string; leagueId: string }) =>
+      deleteLeagueInvite(inviteId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: GetLeagueInvitesQueryKey(variables.leagueId),
+      });
+    },
   });
 };
 
@@ -181,7 +194,13 @@ export async function joinLeagueByInviteToken(token: string): Promise<void> {
 }
 
 export const useJoinLeagueByInviteToken = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (token: string) => joinLeagueByInviteToken(token),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: GetLeagueInvitesForUserQueryKey(),
+      });
+    },
   });
 };

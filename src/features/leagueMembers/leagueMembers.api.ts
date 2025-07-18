@@ -1,32 +1,31 @@
 import { API_BASE, authenticatedFetch } from "@/lib/api";
-import type { PopulatedLeagueMemberResponse } from "./leagueMembers.types";
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import type {
+  LEAGUE_MEMBER_INCLUDES,
+  PopulatedLeagueMemberResponse,
+} from "./leagueMembers.types";
+import { queryOptions } from "@tanstack/react-query";
 
-// todo in frontend refactor, the include should be parameterized
 export async function getLeagueMembers(
   leagueId: string,
+  includes: LEAGUE_MEMBER_INCLUDES[] = [],
 ): Promise<PopulatedLeagueMemberResponse[]> {
   return await authenticatedFetch<PopulatedLeagueMemberResponse[]>(
-    `${API_BASE}/v1/leagues/${leagueId}/members?include=profile`,
+    `${API_BASE}/v1/leagues/${leagueId}/members${
+      includes.length > 0 ? `?include=${includes.join(",")}` : ""
+    }`,
   );
 }
 
-export const GetLeagueMembersQueryKey = (leagueId: string) => [
-  "leagues",
-  leagueId,
-  "members",
-];
+export const GetLeagueMembersQueryKey = (
+  leagueId: string,
+  includes: LEAGUE_MEMBER_INCLUDES[] = [],
+) => ["leagues", leagueId, "members", ...includes];
 
-export const GetLeagueMembersQueryOptions = (leagueId: string) =>
+export const GetLeagueMembersQueryOptions = (
+  leagueId: string,
+  includes: LEAGUE_MEMBER_INCLUDES[] = [],
+) =>
   queryOptions({
-    queryKey: GetLeagueMembersQueryKey(leagueId),
-    queryFn: () => getLeagueMembers(leagueId),
+    queryKey: GetLeagueMembersQueryKey(leagueId, includes),
+    queryFn: () => getLeagueMembers(leagueId, includes),
   });
-
-export const useGetLeagueMembers = (leagueId: string, enabled: boolean) => {
-  return useQuery({
-    queryKey: GetLeagueMembersQueryKey(leagueId),
-    queryFn: () => getLeagueMembers(leagueId),
-    enabled: enabled,
-  });
-};

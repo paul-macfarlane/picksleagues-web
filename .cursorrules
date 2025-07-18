@@ -9,3 +9,7 @@ npx shadcn@canary add button
 # Tanstack Router instructions
 
 See .cursor/rules for tanstack router guides
+
+# Standards
+
+See [Standards](./STANDARDS.md) for a detailed guide on how to write code in this project.

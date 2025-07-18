@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useAppForm } from "@/components/form";
 import { useState } from "react";
@@ -7,10 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Trophy } from "lucide-react";
 import type { PhaseTemplateResponse } from "@/features/phaseTemplates/phaseTemplates.types";
 import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
-import {
-  GetMyLeaguesForLeagueTypeQueryKey,
-  useCreateLeague,
-} from "@/features/leagues/leagues.api";
+import { useCreateLeague } from "@/features/leagues/leagues.api";
 import type z from "zod";
 import {
   LEAGUE_VISIBILITIES,
@@ -22,22 +18,15 @@ import {
 } from "@/features/leagues/leagues.types";
 
 type CreateLeagueFormProps = {
-  phaseTemplates: PhaseTemplateResponse[] | undefined;
-  isLoadingPhaseTemplates: boolean;
-  phaseTemplatesError: Error | null;
+  phaseTemplates: PhaseTemplateResponse[];
 };
 
-// todo right now, this is only for pick em leagues and tightly coupled to the pick em league type
-export function CreateLeagueForm({
-  phaseTemplates,
-  isLoadingPhaseTemplates,
-  phaseTemplatesError,
-}: CreateLeagueFormProps) {
+// TODO right now, this is only for pick em leagues and tightly coupled to the pick em league type
+export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
   const { mutateAsync: createLeague } =
     useCreateLeague<z.infer<typeof CreatePickEmLeagueSchema>>();
-  const queryClient = useQueryClient();
 
   const form = useAppForm({
     defaultValues: {
@@ -75,11 +64,6 @@ export function CreateLeagueForm({
       try {
         const league = await createLeague(values.value);
         toast.success("League created successfully!");
-        queryClient.invalidateQueries({
-          queryKey: GetMyLeaguesForLeagueTypeQueryKey(
-            LEAGUE_TYPE_SLUGS.PICK_EM,
-          ),
-        });
         navigate({
           to: "/football/pick-em/$leagueId",
           params: { leagueId: league.id },
@@ -169,11 +153,7 @@ export function CreateLeagueForm({
           name="startPhaseTemplateId"
           children={(field) => (
             <field.SelectField
-              externalError={
-                phaseTemplatesError ? phaseTemplatesError?.message : undefined
-              }
               selectProps={{
-                disabled: isLoadingPhaseTemplates,
                 name: "endPhaseTemplateId",
               }}
               selectTriggerProps={{
@@ -199,11 +179,7 @@ export function CreateLeagueForm({
           name="endPhaseTemplateId"
           children={(field) => (
             <field.SelectField
-              externalError={
-                phaseTemplatesError ? phaseTemplatesError?.message : undefined
-              }
               selectProps={{
-                disabled: isLoadingPhaseTemplates,
                 name: "startPhaseTemplateId",
               }}
               selectTriggerProps={{

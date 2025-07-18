@@ -8,9 +8,10 @@
     "build": "vite build && tsc",
     "serve": "vite preview",
     "test": "vitest run",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "lint": "eslint \"src/**/*.{js,ts,jsx,tsx}\"",
+    "lint:fix": "eslint \"src/**/*.{js,ts,jsx,tsx}\" --fix",
+    "format": "prettier --check \"src/**/*.{js,ts,jsx,tsx,json,css,md}\"",
+    "format:fix": "prettier --write \"src/**/*.{js,ts,jsx,tsx,json,css,md}\""
   },
   "dependencies": {
     "@lucide/lab": "^0.1.2",

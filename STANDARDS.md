@@ -32,46 +32,86 @@ All server state, including data fetching, caching, and mutations, will be manag
 
 - **Location of Hooks**: Query and mutation hooks (`queryOptions`, `useMutation`) are co-located with their API functions inside their respective feature slice (e.g., `src/features/leagues/leagues.api.ts`).
 - **Query Keys**: Query keys must be structured hierarchically by feature to ensure consistency and prevent collisions. The convention is `['featureName', 'resource', { id: '...' }]` (e.g., `['leagues', 'list']`, `['leagues', 'detail', { leagueId: '123' }]`).
+- **Query Options**: For each query, a `queryOptions` object should be created in the feature's `.api.ts` file. This object centralizes the query key and the query function, making it reusable and the single source of truth for that query.
 
-#### Data Fetching Strategy: Route Loaders vs. Component-Level Fetching
+#### Data Fetching Strategy: Unified `loader` and `useSuspenseQuery`
 
-We will use a hybrid approach that leverages the strengths of both TanStack Router's loaders and TanStack Query's component-level hooks. The choice depends on whether the data is critical for the initial render.
-
-**A. Use Route Loaders for CRITICAL Data**
-
-Fetch data in a route's `loader` function when the page or view cannot be meaningfully rendered without it. This provides instant navigation feedback for the user while the critical data loads in the background.
-
-- **When to Use**:
-
-  - The primary resource for a detail page (e.g., the league data for `/leagues/$leagueId`).
-  - The list of items for an index page (e.g., the list of leagues for `/leagues`).
-  - Core user data required for a profile page.
+We will use a unified approach that leverages TanStack Router's `loader` function to orchestrate all server-state fetching with TanStack Query. This ensures data is loaded and cached before a component renders, preventing loading waterfalls and providing a better user experience.
 
 - **Implementation**:
-  1.  Define a `loader` function on the route that calls `queryClient.ensureQueryData`. This pre-fetches the data and populates the TanStack Query cache.
-  2.  Set a `pendingMs` delay on the route (e.g., `300`). The router will wait this long before showing a fallback. This prevents flashing a loading UI on fast connections.
-  3.  Define a `pendingComponent`. This component will be rendered if the `loader` takes longer than `pendingMs`. It should render the basic page layout with skeleton components where the data will appear.
-  4.  The final route component will access the data using `useQuery`. Because the `loader` populates the cache, the query will either be instant (if the loader finished) or suspended until the data is ready, which works seamlessly with the `pendingComponent`.
 
-**B. Use Component-Level `useQuery` for NON-CRITICAL Data**
+  1.  **Define `queryOptions`**: In the feature's `.api.ts` file, create and export a `queryOptions` object for each query. This includes the `queryKey` and the `queryFn`, making it the reusable single source of truth for that query.
+  2.  **Use `loader` for Orchestration**: In the route definition, use the `loader` function to call `queryClient.ensureQueryData(queryOptions)`. For critical data required for the initial paint, `await` this call. For non-critical data, you can call `queryClient.ensureQueryData(queryOptions)` without `await` to load it in the background.
+  3.  **Access Data with `useSuspenseQuery`**: In the route component, use `useSuspenseQuery(queryOptions)` to access the data. Since the `loader` has already populated the cache with critical data, this hook will read from the cache and will not trigger a suspense fallback on the initial render. For non-critical data, this hook can be used within a `<React.Suspense>` boundary.
+  4.  **Set `pendingMs` for Better UX**: Set a `pendingMs` delay on the route (e.g., `300`). This prevents a "flash" of a loading skeleton on fast connections by only showing the `pendingComponent` if the load takes longer than the specified delay.
+  5.  **Create a `pendingComponent`**: This component will be rendered if the `loader` exceeds the `pendingMs` threshold. It should contain the page's structural shell with skeleton elements in place of the data.
+  6.  **Create an `errorComponent`**: Each route fetching data should have a dedicated `errorComponent`. To ensure consistency, we will use a standardized `RouteErrorBoundary` component located at `src/components/route-error-boundary.tsx`. This component handles the UI and the "try again" logic.
 
-Fetch data directly within a component using the `useQuery` hook when the data is not essential for the initial meaningful paint of the page. This improves perceived performance by allowing the primary content to render immediately.
+- **Example `errorComponent`**:
 
-- **When to Use**:
+  ```tsx
+  // src/routes/some-route.tsx
+  import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
-  - Secondary content, such as a "related items" sidebar.
-  - Data that is loaded in response to a user interaction (e.g., opening a modal or a dropdown).
-  - Content that is "below the fold" or less important.
+  export const Route = createFileRoute("/some-route")({
+    // ...
+    errorComponent: () => <RouteErrorBoundary />,
+  });
+  ```
+
+- **Example Flow**:
+  - A user navigates to `/leagues/$leagueId`.
+  - The route's `loader` calls `await queryClient.ensureQueryData(getLeagueQueryOptions(leagueId))`.
+  - If the data isn't in the cache, TanStack Query fetches it. The router shows the `pendingComponent`.
+  - Once the data is fetched, the `LeagueDetail` component renders.
+  - `useSuspenseQuery(getLeagueQueryOptions(leagueId))` reads the data from the cache and displays it instantly.
+
+This approach combines the strengths of both libraries: TanStack Router handles the orchestration and initial load, while TanStack Query manages the cache and provides reactive, suspense-ready data access in the components.
+
+#### Mutation and Cache Invalidation
+
+To ensure data consistency across the application, all data mutations must handle their own cache invalidation. This logic should be centralized within the `useMutation` hook in the feature's `.api.ts` file, not in the component that calls the mutation.
 
 - **Implementation**:
-  1.  Call the `useQuery` hook directly within the component that needs the data.
-  2.  The component must handle its own loading and error states, typically by displaying a skeleton loader or a placeholder. This prevents layout shifts when the data loads.
 
-By following this hybrid model, we get the best of both worlds: fast perceived performance for non-critical content and a stable, flicker-free initial render for the essential data of any given route.
+  1.  **Use `onSuccess`**: In the `useMutation` options, use the `onSuccess` callback to invalidate relevant queries after a mutation succeeds.
+  2.  **Invalidate Queries**: Use `queryClient.invalidateQueries` with the appropriate `queryKey`. Use partial query keys to invalidate groups of related queries (e.g., `['leagues', leagueId, 'invites']` to invalidate all invite queries for a specific league).
+  3.  **Pass Necessary Data**: If the `queryKey` for invalidation requires data from the component (like a `leagueId`), update the mutation function to accept that data alongside the mutation payload.
+
+- **Example**:
+  ```ts
+  // src/features/some-feature/some-feature.api.ts
+  export const useUpdateItem = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: updateItem, // (payload: { id: string; data: any }) => Promise<void>
+      onSuccess: (_, variables) => {
+        // Invalidate the query for the specific item
+        queryClient.invalidateQueries({
+          queryKey: GetItemQueryOptions(variables.id).queryKey,
+        });
+        // Invalidate the list query
+        queryClient.invalidateQueries({
+          queryKey: GetItemsQueryOptions().queryKey,
+        });
+      },
+    });
+  };
+  ```
+
+#### Exceptions to Route-Level Fetching
+
+While route-level data fetching is the standard, there are valid exceptions where fetching within a component is appropriate:
+
+- **Highly Interactive Components**: For components where data fetching is driven by real-time user input that doesn't map to a URL change (e.g., a search-as-you-type combobox), fetching directly within the component is more direct and makes sense.
+- **Truly Non-Essential, User-Triggered Data**: If data is only loaded based on a specific user action _after_ the initial page load (e.g., clicking a "Show More Details" button), it can be fetched within the component that handles that action.
+- **Self-Contained Widgets**: A reusable, standalone widget (like a stock ticker or weather widget) that can be placed on any page may manage its own data fetching to remain decoupled from the routes it's used in.
+
+**Rule of Thumb:** If the data is required to render the page based on the **URL**, fetch it in the route `loader`. If the data is required based on a user **interaction** that happens _within_ the page, it is a candidate for component-level fetching.
 
 ### 4. API Client
 
-- All API interactions will adhere strictly to the **API Design Guide**.
+- All API interactions will adhere strictly to the [API Design Guide](https://github.com/paul-macfarlane/picksleagues-api/blob/main/STANDARDS.md#part-3-api-design-guide).
 - **Base Client**: The base fetch logic, including authentication handling and custom error classes, will reside in `src/lib/api.ts`.
 - **Error Handling**: The client must correctly parse the structured error response: `{ error: { message: string, code: string } }`.
 
@@ -129,29 +169,3 @@ export const useDelayedLoader = (isLoading: boolean, delay: number = 300) => {
   return showLoader;
 };
 ```
-
-### 9. Explicit Return Types
-
-To improve code clarity, maintainability, and prevent accidental data leaks across boundaries, we favor explicit return types for functions. This is especially critical at architectural boundaries.
-
-#### ALWAYS Use Explicit Return Types For:
-
-1.  **Functions at Architectural Boundaries:**
-
-    - **API Layer Functions**: All functions in `[feature-name].api.ts` files that fetch data must have an explicit `Promise<T>` return type, where `T` is a defined type from `[feature-name].types.ts`.
-    - **TanStack Router `loader` Functions**: The `loader` function for each route must have an explicit return type defining the data it provides to the component.
-    - **React Components**: Component functions should have an explicit return type, typically `JSX.Element` or `React.ReactNode`.
-    - **Custom Hooks**: Any custom hook (e.g., `useDelayedLoader`) must have an explicit return type.
-
-2.  **All Other Exported Functions (`export function ...`)**:
-    - If a function is exported from any file, it is part of that module's public API and its contract must be made explicit with a return type.
-
-#### It's OK to Use Inferred Return Types For:
-
-1.  **Short, Inline Arrow Functions**:
-
-    - Especially inside methods like `Array.prototype.map` or `Array.prototype.filter`, where the local context makes the return type obvious.
-    - _Example_: `const names = leagues.map(league => league.name); // Implicit is fine here`
-
-2.  **Private, Internal Helper Functions**:
-    - If a function is not exported and is only used as a simple helper within the same file, type inference is acceptable.
