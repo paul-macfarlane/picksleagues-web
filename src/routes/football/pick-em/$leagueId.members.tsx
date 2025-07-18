@@ -5,6 +5,9 @@ import { LEAGUE_MEMBER_ROLES } from "@/features/leagueMembers/leagueMembers.type
 import { GetLeagueMembersQueryOptions } from "@/features/leagueMembers/leagueMembers.api";
 import { MembersList } from "@/features/leagueMembers/components/members-list";
 import { InviteManagement } from "@/features/leagueInvites/components/invite-management";
+import { GetLeagueInvitesQueryOptions } from "@/features/leagueInvites/leagueInvites.api";
+import { MembersPageSkeleton } from "@/features/leagueMembers/components/members-page-states";
+import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
 export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
   component: MembersComponent,
@@ -13,9 +16,15 @@ export const Route = createFileRoute("/football/pick-em/$leagueId/members")({
       throw redirect({ to: "/login" });
     }
   },
-  loader: ({ context: { queryClient }, params: { leagueId } }) => {
-    queryClient.ensureQueryData(GetLeagueMembersQueryOptions(leagueId));
+  loader: async ({ context: { queryClient }, params: { leagueId } }) => {
+    await Promise.all([
+      queryClient.ensureQueryData(GetLeagueMembersQueryOptions(leagueId)),
+      queryClient.ensureQueryData(GetLeagueInvitesQueryOptions({ leagueId })),
+    ]);
   },
+  pendingComponent: MembersPageSkeleton,
+  errorComponent: () => <RouteErrorBoundary />,
+  pendingMs: 300,
 });
 
 function MembersComponent() {
@@ -25,6 +34,9 @@ function MembersComponent() {
   const { session } = Route.useRouteContext();
   const { data: members } = useSuspenseQuery(
     GetLeagueMembersQueryOptions(leagueId),
+  );
+  const { data: invites } = useSuspenseQuery(
+    GetLeagueInvitesQueryOptions({ leagueId }),
   );
 
   const currentUserMemberInfo = members.find(
@@ -50,7 +62,9 @@ function MembersComponent() {
         </CardContent>
       </Card>
 
-      {isCommissioner && <InviteManagement currentMembers={members} />}
+      {isCommissioner && (
+        <InviteManagement currentMembers={members} invites={invites} />
+      )}
     </div>
   );
 }

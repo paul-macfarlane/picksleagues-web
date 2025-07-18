@@ -1,8 +1,11 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useGetPhaseTemplatesForLeagueType } from "@/features/phaseTemplates/phaseTemplates.api";
+import { GetPhaseTemplatesByLeagueTypeQueryOptions } from "@/features/phaseTemplates/phaseTemplates.api";
 import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
 import { CreateLeagueForm } from "@/features/leagues/components/create-league-form";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { CreateLeaguePageSkeleton } from "@/features/leagues/components/create-league-page-states";
+import { RouteErrorBoundary } from "@/components/route-error-boundary";
 
 export const Route = createFileRoute("/football/pick-em/create")({
   component: RouteComponent,
@@ -11,14 +14,20 @@ export const Route = createFileRoute("/football/pick-em/create")({
       throw redirect({ to: "/login" });
     }
   },
+  loader: async ({ context: { queryClient } }) => {
+    await queryClient.ensureQueryData(
+      GetPhaseTemplatesByLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
+    );
+  },
+  pendingComponent: CreateLeaguePageSkeleton,
+  errorComponent: () => <RouteErrorBoundary />,
+  pendingMs: 300,
 });
 
 function RouteComponent() {
-  const {
-    data: phaseTemplates,
-    isLoading: isLoadingPhaseTemplates,
-    error: phaseTemplatesError,
-  } = useGetPhaseTemplatesForLeagueType(LEAGUE_TYPE_SLUGS.PICK_EM);
+  const { data: phaseTemplates } = useSuspenseQuery(
+    GetPhaseTemplatesByLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
+  );
 
   return (
     <div className="flex justify-center items-center p-4">
@@ -27,11 +36,7 @@ function RouteComponent() {
           <CardTitle>Create Pick'em League</CardTitle>
         </CardHeader>
         <CardContent>
-          <CreateLeagueForm
-            phaseTemplates={phaseTemplates}
-            isLoadingPhaseTemplates={isLoadingPhaseTemplates}
-            phaseTemplatesError={phaseTemplatesError}
-          />
+          <CreateLeagueForm phaseTemplates={phaseTemplates} />
         </CardContent>
       </Card>
     </div>

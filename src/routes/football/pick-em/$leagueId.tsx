@@ -11,7 +11,7 @@ export const Route = createFileRoute("/football/pick-em/$leagueId")({
   component: LeagueLayout,
   errorComponent: ErrorComponent,
   pendingComponent: LeagueLayoutPendingComponent,
-  pendingMs: 200, // make sure page doesn't completlely block for longer requests
+  pendingMs: 300,
   beforeLoad: async ({ context }) => {
     if (!context.session) {
       throw redirect({ to: "/login" });

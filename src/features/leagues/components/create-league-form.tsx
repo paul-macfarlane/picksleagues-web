@@ -22,17 +22,11 @@ import {
 } from "@/features/leagues/leagues.types";
 
 type CreateLeagueFormProps = {
-  phaseTemplates: PhaseTemplateResponse[] | undefined;
-  isLoadingPhaseTemplates: boolean;
-  phaseTemplatesError: Error | null;
+  phaseTemplates: PhaseTemplateResponse[];
 };
 
 // todo right now, this is only for pick em leagues and tightly coupled to the pick em league type
-export function CreateLeagueForm({
-  phaseTemplates,
-  isLoadingPhaseTemplates,
-  phaseTemplatesError,
-}: CreateLeagueFormProps) {
+export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
   const { mutateAsync: createLeague } =
@@ -169,11 +163,7 @@ export function CreateLeagueForm({
           name="startPhaseTemplateId"
           children={(field) => (
             <field.SelectField
-              externalError={
-                phaseTemplatesError ? phaseTemplatesError?.message : undefined
-              }
               selectProps={{
-                disabled: isLoadingPhaseTemplates,
                 name: "endPhaseTemplateId",
               }}
               selectTriggerProps={{
@@ -199,11 +189,7 @@ export function CreateLeagueForm({
           name="endPhaseTemplateId"
           children={(field) => (
             <field.SelectField
-              externalError={
-                phaseTemplatesError ? phaseTemplatesError?.message : undefined
-              }
               selectProps={{
-                disabled: isLoadingPhaseTemplates,
                 name: "startPhaseTemplateId",
               }}
               selectTriggerProps={{
