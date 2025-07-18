@@ -25,7 +25,7 @@ function SettingsComponent() {
     GetLeagueMembersQueryOptions(leagueId),
   );
 
-  // todo could add an endpoint to get a user's role in a league, as opposed to fetching all members
+  // TODO could add an endpoint to get a user's role in a league, as opposed to fetching all members
   const currentUserMemberInfo = members.find(
     (member) => member.userId === session?.userId,
   );
