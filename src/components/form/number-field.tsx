@@ -8,15 +8,18 @@ export type NumberFieldProps = {
 };
 
 export function NumberField({ labelProps, inputProps }: NumberFieldProps) {
-  const field = useFieldContext<number>();
+  const field = useFieldContext<number | null>();
   return (
     <div className="flex flex-col gap-2">
       <Label {...labelProps} />
       <Input
         type="number"
         {...inputProps}
-        value={field.state.value}
-        onChange={(e) => field.handleChange(Number(e.target.value))}
+        value={field.state.value == null ? "" : field.state.value}
+        onChange={(e) => {
+          const value = e.target.value;
+          field.handleChange(value === "" ? null : Number(value));
+        }}
       />
       {field.state.meta.errors.length > 0 && (
         <div className="text-destructive text-sm">

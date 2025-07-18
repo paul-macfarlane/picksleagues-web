@@ -267,9 +267,10 @@ export function DirectInviteFormComponent({
     <div>
       <h3 className="text-lg font-medium">Invite a User Directly</h3>
       <form
-        className="mt-2 flex items-end gap-2"
+        className="mt-2 flex flex-col items-stretch gap-2 sm:flex-row sm:items-end"
         onSubmit={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           form.handleSubmit();
         }}
       >
@@ -290,7 +291,7 @@ export function DirectInviteFormComponent({
             )}
           />
         </div>
-        <div className="w-32">
+        <div className="flex flex-col gap-2 sm:w-40">
           <form.AppField
             name="expiresInDays"
             children={(field) => (
@@ -303,7 +304,7 @@ export function DirectInviteFormComponent({
           />
         </div>
         <form.AppForm>
-          <form.SubmitButton disabled={isPending}>
+          <form.SubmitButton className="w-full sm:w-auto" disabled={isPending}>
             Send Invite
           </form.SubmitButton>
         </form.AppForm>

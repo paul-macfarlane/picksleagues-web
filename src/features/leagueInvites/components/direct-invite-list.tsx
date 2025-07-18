@@ -36,7 +36,10 @@ function DirectInviteRow({
           </span>
         </div>
       </TableCell>
-      <TableCell>{new Date(invite.expiresAt).toLocaleString()}</TableCell>
+      <TableCell>{invite.invitee?.username}</TableCell>
+      <TableCell className="hidden sm:table-cell">
+        {new Date(invite.expiresAt).toLocaleString()}
+      </TableCell>
       <TableCell className="text-right">
         <Button
           variant="ghost"
@@ -68,7 +71,7 @@ export function DirectInviteList({
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
-              <TableHead>Expires</TableHead>
+              <TableHead className="hidden sm:table-cell">Expires</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>

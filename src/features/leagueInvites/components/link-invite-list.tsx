@@ -31,7 +31,7 @@ export function LinkInviteList({ invites, onDeactivate }: LinkInviteListProps) {
             <TableRow>
               <TableHead>Role</TableHead>
               <TableHead>Expires</TableHead>
-              <TableHead>Link</TableHead>
+              <TableHead className="hidden sm:table-cell">Link</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -49,7 +49,7 @@ export function LinkInviteList({ invites, onDeactivate }: LinkInviteListProps) {
                 <TableCell>
                   {new Date(invite.expiresAt).toLocaleString()}
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -67,6 +67,14 @@ export function LinkInviteList({ invites, onDeactivate }: LinkInviteListProps) {
                     onClick={() => onDeactivate(invite.id)}
                   >
                     <X className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="sm:hidden"
+                    onClick={() => handleCopy(invite.token)}
+                  >
+                    <Copy className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>

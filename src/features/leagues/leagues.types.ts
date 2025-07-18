@@ -23,6 +23,7 @@ export const MIN_LEAGUE_NAME_LENGTH = 3;
 export const MAX_LEAGUE_NAME_LENGTH = 50;
 
 export const MIN_LEAGUE_SIZE = 2;
+export const DEFAULT_LEAGUE_SIZE = 10;
 export const MAX_LEAGUE_SIZE = 20;
 
 export enum LEAGUE_VISIBILITIES {
@@ -58,13 +59,18 @@ export type PopulatedLeagueResponse = LeagueResponse & {
 
 export const PickEmLeagueSettingsSchema = z.object({
   picksPerPhase: z
-    .number()
-    .int()
+    .number({
+      required_error: "Required",
+      invalid_type_error: "Required", // better aligns with when field is empty
+    })
+    .int({
+      message: "Must be an integer",
+    })
     .min(MIN_PICKS_PER_PHASE, {
-      message: `Picks per week must be at least ${MIN_PICKS_PER_PHASE}`,
+      message: `Must be at least ${MIN_PICKS_PER_PHASE}`,
     })
     .max(MAX_PICKS_PER_PHASE, {
-      message: `Picks per week must be at most ${MAX_PICKS_PER_PHASE}`,
+      message: `Must be at most ${MAX_PICKS_PER_PHASE}`,
     }),
   pickType: z.enum([PICK_EM_PICK_TYPES.STRAIGHT_UP, PICK_EM_PICK_TYPES.SPREAD]),
 });
@@ -73,10 +79,10 @@ export const CreateLeagueSchema = z.object({
   name: z
     .string()
     .min(MIN_LEAGUE_NAME_LENGTH, {
-      message: `Name must be at least ${MIN_LEAGUE_NAME_LENGTH} characters`,
+      message: `Must be at least ${MIN_LEAGUE_NAME_LENGTH} characters`,
     })
     .max(MAX_LEAGUE_NAME_LENGTH, {
-      message: `Name must be at most ${MAX_LEAGUE_NAME_LENGTH} characters`,
+      message: `Must be at most ${MAX_LEAGUE_NAME_LENGTH} characters`,
     })
     .trim(),
   image: z.union([z.string().trim().url().optional(), z.literal(""), z.null()]),
@@ -86,13 +92,18 @@ export const CreateLeagueSchema = z.object({
   endPhaseTemplateId: z.string().trim().uuid(),
   visibility: z.enum([LEAGUE_VISIBILITIES.PRIVATE]),
   size: z
-    .number()
-    .int()
+    .number({
+      required_error: "Required",
+      invalid_type_error: "Required", // better aligns with when field is empty
+    })
+    .int({
+      message: "Must be an integer",
+    })
     .min(MIN_LEAGUE_SIZE, {
-      message: `Size must be at least ${MIN_LEAGUE_SIZE}`,
+      message: `Must be at least ${MIN_LEAGUE_SIZE}`,
     })
     .max(MAX_LEAGUE_SIZE, {
-      message: `Size must be at most ${MAX_LEAGUE_SIZE}`,
+      message: `Must be at most ${MAX_LEAGUE_SIZE}`,
     }),
 });
 

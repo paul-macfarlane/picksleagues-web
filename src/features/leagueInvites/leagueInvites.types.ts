@@ -55,13 +55,18 @@ export const CreateLeagueInviteObjectSchema = z.object({
   role: z.enum([LEAGUE_MEMBER_ROLES.COMMISSIONER, LEAGUE_MEMBER_ROLES.MEMBER]),
   type: z.enum([LEAGUE_INVITE_TYPES.DIRECT, LEAGUE_INVITE_TYPES.LINK]),
   expiresInDays: z
-    .number()
-    .int()
+    .number({
+      required_error: "Required",
+      invalid_type_error: "Required", // better aligns with when field is empty
+    })
+    .int({
+      message: "Must be an integer",
+    })
     .min(MIN_LEAGUE_INVITE_EXPIRATION_DAYS, {
-      message: `Expires in days must be at least ${MIN_LEAGUE_INVITE_EXPIRATION_DAYS}`,
+      message: `Must be at least ${MIN_LEAGUE_INVITE_EXPIRATION_DAYS}`,
     })
     .max(MAX_LEAGUE_INVITE_EXPIRATION_DAYS, {
-      message: `Expires in days must be at most ${MAX_LEAGUE_INVITE_EXPIRATION_DAYS}`,
+      message: `Must be at most ${MAX_LEAGUE_INVITE_EXPIRATION_DAYS}`,
     }),
 
   // Direct invite only

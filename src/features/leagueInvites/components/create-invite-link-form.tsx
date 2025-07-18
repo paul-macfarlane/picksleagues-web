@@ -50,7 +50,7 @@ export function CreateInviteLinkFormComponent() {
     <div>
       <h3 className="text-lg font-medium">Create Invite Link</h3>
       <form
-        className="mt-2 flex items-end gap-2"
+        className="mt-2 flex flex-col items-stretch gap-2 sm:flex-row sm:items-end"
         onSubmit={(e) => {
           e.preventDefault();
           form.handleSubmit();
@@ -74,7 +74,7 @@ export function CreateInviteLinkFormComponent() {
           />
         </div>
         <form.AppForm>
-          <form.SubmitButton disabled={isPending}>
+          <form.SubmitButton className="w-full sm:w-auto" disabled={isPending}>
             Create Link
           </form.SubmitButton>
         </form.AppForm>

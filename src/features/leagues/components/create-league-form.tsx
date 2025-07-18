@@ -15,6 +15,7 @@ import {
   PICK_EM_PICK_TYPES,
   CreatePickEmLeagueSchema,
   PICK_EM_PICK_TYPE_LABELS,
+  DEFAULT_LEAGUE_SIZE,
 } from "@/features/leagues/leagues.types";
 
 type CreateLeagueFormProps = {
@@ -36,7 +37,7 @@ export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
       startPhaseTemplateId: phaseTemplates?.[0]?.id ?? "",
       endPhaseTemplateId: phaseTemplates?.at(-1)?.id ?? "",
       visibility: LEAGUE_VISIBILITIES.PRIVATE,
-      size: MIN_LEAGUE_SIZE,
+      size: DEFAULT_LEAGUE_SIZE,
       settings: {
         picksPerPhase: Number(MIN_PICKS_PER_PHASE),
         pickType: PICK_EM_PICK_TYPES.SPREAD,
