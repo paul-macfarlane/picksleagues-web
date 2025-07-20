@@ -1,9 +1,10 @@
 ---
 id: task-006
 title: Refactor useSoleCommissionerCheck to use a single API call
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2025-07-20'
+updated_date: '2025-07-20'
 labels: []
 dependencies: []
 ---
