@@ -10,7 +10,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import type z from "zod";
+import z from "zod";
 import { GetMyLeaguesQueryKey } from "../leagues/leagues.api";
 import { LEAGUE_INCLUDES } from "../leagues/leagues.types";
 

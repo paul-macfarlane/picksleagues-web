@@ -10,7 +10,7 @@ import type {
   PickEmLeagueResponse,
   PopulatedLeagueResponse,
 } from "./leagues.types";
-import type z from "zod";
+import z from "zod";
 import { LEAGUE_INCLUDES } from "./leagues.types";
 
 export async function getMyLeagues<T extends PopulatedLeagueResponse>(

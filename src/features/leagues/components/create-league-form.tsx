@@ -7,7 +7,7 @@ import { Trophy } from "lucide-react";
 import type { PhaseTemplateResponse } from "@/features/phaseTemplates/phaseTemplates.types";
 import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
 import { useCreateLeague } from "@/features/leagues/leagues.api";
-import type z from "zod";
+import z from "zod";
 import {
   LEAGUE_VISIBILITIES,
   MIN_PICKS_PER_PHASE,
