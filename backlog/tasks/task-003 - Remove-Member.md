@@ -1,7 +1,7 @@
 ---
 id: task-003
 title: Remove Member
-status: In Progress
+status: Done
 assignee:
   - AI
 created_date: '2025-07-20'
