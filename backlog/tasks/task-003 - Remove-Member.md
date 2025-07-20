@@ -4,8 +4,8 @@ title: Remove Member
 status: Done
 assignee:
   - AI
-created_date: '2025-07-20'
-updated_date: '2025-07-20'
+created_date: "2025-07-20"
+updated_date: "2025-07-20"
 labels: []
 dependencies: []
 ---
@@ -32,4 +32,4 @@ As a league commissioner, I can use the UI to remove a league member. The UI wil
 
 ## Implementation Notes
 
-Implemented the ability for commissioners to remove members from a league. Added a new API function and a  mutation hook to handle the removal. The UI now features a confirmation dialog to prevent accidental removals. Logic has been added to prevent a commissioner from removing themselves and to disable the option during an active season. User feedback is provided via success and error notifications.
+Implemented the ability for commissioners to remove members from a league. Added a new API function and a mutation hook to handle the removal. The UI now features a confirmation dialog to prevent accidental removals. Logic has been added to prevent a commissioner from removing themselves and to disable the option during an active season. User feedback is provided via success and error notifications.

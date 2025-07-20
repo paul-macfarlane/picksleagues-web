@@ -76,3 +76,30 @@ export const useUpdateLeagueMember = () => {
     },
   });
 };
+
+export async function removeMember(
+  leagueId: string,
+  userId: string,
+): Promise<void> {
+  await authenticatedFetch<void>(
+    `${API_BASE}/v1/leagues/${leagueId}/members/${userId}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
+export const useRemoveMember = (leagueId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => removeMember(leagueId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: GetLeagueMembersQueryKey(leagueId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesQueryKey([LEAGUE_INCLUDES.MEMBERS]),
+      });
+    },
+  });
+};
