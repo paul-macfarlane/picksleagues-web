@@ -29,11 +29,12 @@ export function ProfileForm({
       try {
         setSubmitError(undefined);
         await onSubmit(value);
-      } catch (e) {
-        if (e instanceof Error) {
-          setSubmitError(e.message);
+      } catch (error) {
+        const errorMessage = "Failed to update profile";
+        if (error instanceof Error) {
+          setSubmitError(`${errorMessage}: ${error.message}`);
         } else {
-          setSubmitError("An unexpected error occurred");
+          setSubmitError(errorMessage);
         }
       }
     },

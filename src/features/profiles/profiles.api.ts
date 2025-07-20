@@ -10,7 +10,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import type z from "zod";
+import z from "zod";
 
 export async function getProfileByUserId(
   userId: string,

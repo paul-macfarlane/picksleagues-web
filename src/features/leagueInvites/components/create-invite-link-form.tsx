@@ -8,7 +8,7 @@ import {
   LEAGUE_INVITE_TYPES,
 } from "@/features/leagueInvites/leagueInvites.types";
 import { useCreateLeagueInvite } from "@/features/leagueInvites/leagueInvites.api";
-import type z from "zod";
+import z from "zod";
 import { LEAGUE_MEMBER_ROLES } from "@/features/leagueMembers/leagueMembers.types";
 
 export function CreateInviteLinkFormComponent() {

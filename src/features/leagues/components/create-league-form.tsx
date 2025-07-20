@@ -7,7 +7,7 @@ import { Trophy } from "lucide-react";
 import type { PhaseTemplateResponse } from "@/features/phaseTemplates/phaseTemplates.types";
 import { LEAGUE_TYPE_SLUGS } from "@/features/leagueTypes/leagueTypes.types";
 import { useCreateLeague } from "@/features/leagues/leagues.api";
-import type z from "zod";
+import z from "zod";
 import {
   LEAGUE_VISIBILITIES,
   MIN_PICKS_PER_PHASE,
@@ -68,9 +68,10 @@ export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
           to: "/football/pick-em/$leagueId",
           params: { leagueId: league.id },
         });
-      } catch (error: unknown) {
+      } catch (error) {
+        const errorMessage = "Failed to create league";
         if (error instanceof Error) {
-          setSubmitError(error.message);
+          setSubmitError(`${errorMessage}: ${error.message}`);
         } else {
           setSubmitError("Failed to create league");
         }

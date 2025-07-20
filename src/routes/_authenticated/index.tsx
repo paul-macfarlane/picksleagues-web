@@ -21,7 +21,7 @@ import {
   type RespondToLeagueInviteSchema,
   LEAGUE_INVITE_INCLUDES,
 } from "@/features/leagueInvites/leagueInvites.types";
-import type z from "zod";
+import z from "zod";
 import { HomePageSkeleton } from "@/features/leagues/components/home-page-states";
 import { RouteErrorBoundary } from "@/components/route-error-boundary";
 

@@ -90,6 +90,7 @@ function MembersComponent() {
             members={members}
             canManageMembers={userCanManageMembers}
             userId={session!.userId}
+            leagueId={leagueId}
           />
         </CardContent>
       </Card>
