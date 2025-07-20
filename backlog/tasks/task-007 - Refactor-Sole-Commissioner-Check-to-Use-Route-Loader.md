@@ -1,9 +1,10 @@
 ---
 id: task-007
 title: Refactor Sole Commissioner Check to Use Route Loader
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2025-07-20'
+updated_date: '2025-07-20'
 labels: []
 dependencies: []
 ---
