@@ -50,7 +50,6 @@ export const Route = createFileRoute(
     context: { queryClient, session },
     params: { leagueId },
   }) => {
-    // todo - this is fine, but may be a better way to get the league that was already fetched in the layout
     const league = await queryClient.ensureQueryData(
       GetLeagueQueryOptions(leagueId),
     );
@@ -99,7 +98,6 @@ function MembersComponent() {
     GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
   );
 
-  // todo - this works, but might be a better way to avoid re-doing work done in the loader
   const userCanManageInvites = canManageInvites(
     session!.userId,
     league,
