@@ -14,10 +14,10 @@ dependencies: []
 As a user, I can delete my account through the UI. The UI will call the API to perform the deletion and handle any client-side validation and feedback.
 ## Acceptance Criteria
 
-- [ ] UI presents a confirmation dialog before deleting
-- [ ] UI calls the delete account API endpoint upon confirmation
+- [ ] UI presents a confirmation dialog before deleting an account.
+- [ ] UI calls the delete account API endpoint upon confirmation.
 - [ ] On successful deletion
-- [ ] the user is logged out and redirected
-- [ ] UI displays an error message if the API call fails
+- [ ] the user is logged out and redirected.
+- [ ] UI displays an error message if the API call fails.
 - [ ] If the user is the sole commissioner of a league with other members
-- [ ] the UI prompts them to designate a new commissioner before deletion is allowed
+- [ ] the UI prompts them to designate a new commissioner before deletion is allowed.
