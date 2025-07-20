@@ -15,11 +15,11 @@ As a user, I can delete my account through the UI. The UI will call the API to p
 
 ## Acceptance Criteria
 
-- [ ] UI presents a confirmation dialog before deleting an account.
-- [ ] UI calls the delete account API endpoint upon confirmation.
-- [ ] On successful deletion, the user is logged out and redirected.
-- [ ] UI displays an error message if the API call fails.
-- [ ] If the user is the sole commissioner of a league with other members, the UI prompts them to designate a new commissioner before deletion is allowed.
+- [x] UI presents a confirmation dialog before deleting an account.
+- [x] UI calls the delete account API endpoint upon confirmation.
+- [x] On successful deletion, the user is logged out and redirected.
+- [x] UI displays an error message if the API call fails.
+- [x] If the user is the sole commissioner of a league with other members, the UI prompts them to designate a new commissioner before deletion is allowed.
 
 ## Implementation Plan
 
@@ -29,3 +29,7 @@ As a user, I can delete my account through the UI. The UI will call the API to p
 4. Handle successful deletion. If the API call is successful, the user will be logged out and redirected to the homepage.
 5. Handle API errors. If the API call fails, an error message will be displayed to the user.
 6. Handle the sole commissioner case. Before showing the confirmation dialog, check if the user is the sole commissioner of a league with other members. If so, display a message instructing them to designate a new commissioner and disable the delete button.
+
+## Implementation Notes
+
+Created the UI for the 'Delete Account' section on the user's profile page. Implemented a confirmation dialog to warn users before account deletion. Added an API call to the delete account endpoint. On successful deletion, the user is logged out and redirected to the homepage. Implemented error handling for the API call. Added a check to prevent a user from deleting their account if they are the sole commissioner of a league with other members.
