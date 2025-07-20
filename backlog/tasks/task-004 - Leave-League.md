@@ -11,15 +11,15 @@ dependencies: []
 
 ## Description
 
-As a league member, I can leave a league. If I am a commissioner in a league with other people, I have to designate at least 1 other commissioner before I leave. If I am in a league by myself, the league will be deleted and I am warned of the consequences.
-
-I can only leave a league when its not in-season.
-
+As a league member, I can use the UI to leave a league. The UI will call the API to handle this action and will manage any required pre-conditions and user feedback.
 ## Acceptance Criteria
 
-- [ ] A league member can leave a league
-- [ ] A commissioner in a league with other members must designate at least one other commissioner before leaving
-- [ ] If a member is the only person in a league
-- [ ] the league is deleted when they leave
-- [ ] A member is warned of the consequences of the league being deleted
-- [ ] A member can only leave a league when it is not in-season
+- [ ] UI provides a 'Leave League' button
+- [ ] UI presents a confirmation dialog before leaving
+- [ ] UI calls the leave league API endpoint upon confirmation
+- [ ] If the user is the sole member
+- [ ] the UI warns that the league will be deleted
+- [ ] If the user is the sole commissioner
+- [ ] the UI prompts them to designate a new one before allowing them to leave
+- [ ] UI displays an error message if the API call fails
+- [ ] UI prevents a member from leaving during an active season by disabling the option or showing a validation message
