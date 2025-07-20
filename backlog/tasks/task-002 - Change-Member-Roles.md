@@ -1,7 +1,7 @@
 ---
 id: task-002
 title: Change Member Roles
-status: In Progress
+status: Done
 assignee:
   - AI
 created_date: '2025-07-20'
