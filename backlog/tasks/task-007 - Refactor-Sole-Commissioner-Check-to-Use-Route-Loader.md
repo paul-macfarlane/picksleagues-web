@@ -15,10 +15,10 @@ Refactor the sole commissioner check to fetch data in the '/account' route loade
 
 ## Acceptance Criteria
 
-- [ ] A utility function is created to determine if a user is a sole commissioner.
-- [ ] The '/account' route loader fetches the user's leagues with members.
-- [ ] The AccountManagement component uses the loader's data and the utility function.
-- [ ] The old 'useSoleCommissionerCheck' hook is removed.
+- [x] A utility function is created to determine if a user is a sole commissioner.
+- [x] The '/account' route loader fetches the user's leagues with members.
+- [x] The AccountManagement component uses the loader's data and the utility function.
+- [x] The old 'useSoleCommissionerCheck' hook is removed.
 
 ## Implementation Plan
 
@@ -26,3 +26,7 @@ Refactor the sole commissioner check to fetch data in the '/account' route loade
 2. Update the '/account' route loader to pre-fetch the user's leagues with members.
 3. Update the 'AccountManagement' component to use the data from the loader and the new utility function.
 4. Delete the 'useSoleCommissionerCheck' hook.
+
+## Implementation Notes
+
+Refactored the sole commissioner check to fetch data in the '/account' route loader. Moved the business logic to a utility function. The AccountManagement component now uses the pre-fetched data and the utility function. The old 'useSoleCommissionerCheck' hook has been removed.
