@@ -54,17 +54,19 @@ export async function updateLeagueMember(
   );
 }
 
-export const useUpdateLeagueMember = (leagueId: string) => {
+export const useUpdateLeagueMember = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
+      leagueId,
       userId,
       update,
     }: {
       userId: string;
+      leagueId: string;
       update: z.infer<typeof UpdateLeagueMemberSchema>;
     }) => updateLeagueMember(leagueId, userId, update),
-    onSuccess: () => {
+    onSuccess: ({ leagueId }) => {
       queryClient.invalidateQueries({
         queryKey: GetLeagueMembersQueryKey(leagueId),
       });

@@ -36,14 +36,14 @@ export function MembersList({
   userId,
   leagueId,
 }: MembersListProps) {
-  const { mutateAsync: updateMember } = useUpdateLeagueMember(leagueId);
+  const { mutateAsync: updateMember } = useUpdateLeagueMember();
 
   const handleChangeRole = async (
     userId: string,
     role: LEAGUE_MEMBER_ROLES,
   ) => {
     try {
-      await updateMember({ userId, update: { role } });
+      await updateMember({ userId, leagueId, update: { role } });
       toast.success("Member role updated successfully.");
     } catch (error) {
       const errorMessage = "Failed to update member role.";
