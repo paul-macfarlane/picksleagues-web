@@ -14,20 +14,17 @@ import {
   LEAGUE_MEMBER_ROLES,
   type PopulatedLeagueMemberResponse,
 } from "@/features/leagueMembers/leagueMembers.types";
-import type { Session } from "better-auth";
 
 type MembersListProps = {
   members: PopulatedLeagueMemberResponse[];
-  session: Session | null | undefined;
-  isCommissioner: boolean;
-  isOffSeason: boolean;
+  canManageMembers: boolean;
+  userId: string;
 };
 
 export function MembersList({
   members,
-  session,
-  isCommissioner,
-  isOffSeason,
+  canManageMembers,
+  userId,
 }: MembersListProps) {
   return (
     <Table>
@@ -63,18 +60,15 @@ export function MembersList({
               )}
             </TableCell>
             <TableCell className="text-right">
-              {isOffSeason &&
-                isCommissioner &&
-                member.userId !== session?.userId &&
-                member.role !== LEAGUE_MEMBER_ROLES.COMMISSIONER && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
+              {canManageMembers && member.userId !== userId && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive hover:text-destructive"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </TableCell>
           </TableRow>
         ))}

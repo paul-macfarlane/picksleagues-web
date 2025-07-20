@@ -200,8 +200,12 @@ export const AppLayout: React.FC = () => {
       await authClient.signOut();
       navigate({ to: "/login", reloadDocument: true });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error(`Failed to sign out: ${message}`);
+      const errorMessage = "Failed to sign out";
+      if (error instanceof Error) {
+        toast.error(`${errorMessage}: ${error.message}`);
+      } else {
+        toast.error(errorMessage);
+      }
     }
   }
 

@@ -37,10 +37,11 @@ export function CreateInviteLinkFormComponent() {
         toast.success("Invite link created");
         form.reset();
       } catch (error) {
+        const errorMessage = "Failed to create invite link";
         if (error instanceof Error) {
-          toast.error(error.message);
+          toast.error(`${errorMessage}: ${error.message}`);
         } else {
-          toast.error("Failed to create invite link");
+          toast.error(errorMessage);
         }
       }
     },

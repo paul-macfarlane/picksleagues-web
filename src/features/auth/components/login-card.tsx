@@ -6,6 +6,7 @@ import appleWhite from "@/assets/apple-white.svg";
 import { authClient } from "@/lib/auth-client";
 import { useTheme } from "@/components/theme-provider";
 import { Trophy } from "lucide-react";
+import { toast } from "sonner";
 
 export function LoginCard() {
   const { theme } = useTheme();
@@ -22,7 +23,12 @@ export function LoginCard() {
         callbackURL: "/api/v1/profiles/onboard",
       });
     } catch (error) {
-      console.error(error);
+      const errorMessage = "Error signing in with Google";
+      if (error instanceof Error) {
+        toast.error(`${errorMessage}: ${error.message}`);
+      } else {
+        toast.error(errorMessage);
+      }
     }
   }
 
@@ -33,7 +39,12 @@ export function LoginCard() {
         callbackURL: "/api/v1/profiles/onboard",
       });
     } catch (error) {
-      console.error(error);
+      const errorMessage = "Error signing in with Apple";
+      if (error instanceof Error) {
+        toast.error(`${errorMessage}: ${error.message}`);
+      } else {
+        toast.error(errorMessage);
+      }
     }
   }
 

@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Check, X, Icon } from "lucide-react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { football } from "@lucide/lab";
 import { LeagueCard } from "@/features/leagues/components/league-card";
 import {
+  GetLeagueInvitesForUserQueryKey,
   GetLeagueInvitesForUserQueryOptions,
   useRespondToLeagueInvite,
 } from "@/features/leagueInvites/leagueInvites.api";
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function RouteComponent() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data: pickEmLeagues } = useSuspenseQuery(
     GetMyLeaguesForLeagueTypeQueryOptions<PickEmLeagueResponse>(
@@ -80,8 +82,19 @@ function RouteComponent() {
         toast.success("Invite declined");
       }
     } catch (error) {
-      toast.error("Error responding to invite");
-      console.error(error);
+      const errorMessage = "Error responding to invite";
+      if (error instanceof Error) {
+        toast.error(`${errorMessage}: ${error.message}`);
+      } else {
+        toast.error(errorMessage);
+      }
+
+      // in most cases, we don't want to invalidate queries after an error
+      // but in this special case, the bad invites get cleaned by in the backend
+      // so we do want to invalidate the query
+      await queryClient.invalidateQueries({
+        queryKey: GetLeagueInvitesForUserQueryKey(),
+      });
     }
   };
 

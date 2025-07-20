@@ -10,7 +10,6 @@ import { useCreateLeague } from "@/features/leagues/leagues.api";
 import type z from "zod";
 import {
   LEAGUE_VISIBILITIES,
-  MIN_LEAGUE_SIZE,
   MIN_PICKS_PER_PHASE,
   PICK_EM_PICK_TYPES,
   CreatePickEmLeagueSchema,
@@ -237,7 +236,6 @@ export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
               inputProps={{
                 id: "size",
                 name: "size",
-                min: MIN_LEAGUE_SIZE,
               }}
             />
           )}
@@ -255,7 +253,6 @@ export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
               inputProps={{
                 id: "settings.picksPerPhase",
                 name: "settings.picksPerPhase",
-                min: MIN_PICKS_PER_PHASE,
               }}
             />
           )}

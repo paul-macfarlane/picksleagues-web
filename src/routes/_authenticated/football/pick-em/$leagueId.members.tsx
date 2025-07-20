@@ -15,6 +15,32 @@ import { LEAGUE_INVITE_INCLUDES } from "@/features/leagueInvites/leagueInvites.t
 import { Suspense } from "react";
 import { InviteManagementSkeleton } from "@/features/leagueInvites/components/invite-management-skeleton";
 import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/leagueMembers.types";
+import type { LeagueResponse } from "@/features/leagues/leagues.types";
+import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
+
+function canManageMembers(
+  userId: string,
+  members: PopulatedLeagueMemberResponse[],
+) {
+  const currentUserMemberInfo = members.find(
+    (member) => member.userId === userId,
+  );
+  return currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
+}
+
+function canManageInvites(
+  userId: string,
+  league: LeagueResponse,
+  members: PopulatedLeagueMemberResponse[],
+) {
+  const currentUserMemberInfo = members.find(
+    (member) => member.userId === userId,
+  );
+  return (
+    currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER &&
+    members.length < league.size
+  );
+}
 
 export const Route = createFileRoute(
   "/_authenticated/football/pick-em/$leagueId/members",
@@ -24,17 +50,16 @@ export const Route = createFileRoute(
     context: { queryClient, session },
     params: { leagueId },
   }) => {
+    // todo - this is fine, but may be a better way to get the league that was already fetched in the layout
+    const league = await queryClient.ensureQueryData(
+      GetLeagueQueryOptions(leagueId),
+    );
+
     const members = await queryClient.ensureQueryData(
       GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
     );
 
-    const currentUserMemberInfo = members.find(
-      (member) => member.userId === session?.userId,
-    );
-    const isCommissioner =
-      currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
-
-    if (isCommissioner) {
+    if (canManageInvites(session!.userId, league, members)) {
       await queryClient.ensureQueryData(
         GetLeagueInvitesQueryOptions({
           leagueId,
@@ -69,16 +94,18 @@ function MembersComponent() {
     from: "/_authenticated/football/pick-em/$leagueId/members",
   });
   const { session } = Route.useRouteContext();
+  const { data: league } = useSuspenseQuery(GetLeagueQueryOptions(leagueId));
   const { data: members } = useSuspenseQuery(
     GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
   );
 
-  const currentUserMemberInfo = members.find(
-    (member) => member.userId === session?.userId,
+  // todo - this works, but might be a better way to avoid re-doing work done in the loader
+  const userCanManageInvites = canManageInvites(
+    session!.userId,
+    league,
+    members,
   );
-  const isCommissioner =
-    currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
-  const isOffSeason = true; // TODO: get from league season state
+  const userCanManageMembers = canManageMembers(session!.userId, members);
 
   return (
     <div className="space-y-6">
@@ -89,14 +116,13 @@ function MembersComponent() {
         <CardContent>
           <MembersList
             members={members}
-            session={session}
-            isCommissioner={isCommissioner}
-            isOffSeason={isOffSeason}
+            canManageMembers={userCanManageMembers}
+            userId={session!.userId}
           />
         </CardContent>
       </Card>
 
-      {isCommissioner && (
+      {userCanManageInvites && (
         <Suspense fallback={<InviteManagementSkeleton />}>
           <CommissionerInviteManagement
             leagueId={leagueId}
