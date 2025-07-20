@@ -80,7 +80,8 @@ export function JoinLeagueCard({
         <CardTitle className="text-2xl pt-2">Join League</CardTitle>
         <CardDescription>
           You've been invited to join{" "}
-          <strong>{leagueInvite.league?.name ?? "Unknown League"}</strong>.
+          <strong>{leagueInvite.league?.name ?? "Unknown League"} </strong>(
+          {leagueInvite.league?.leagueType?.name ?? "Unknown League Type"}).
         </CardDescription>
       </CardHeader>
       <CardContent className="text-center">

@@ -32,10 +32,11 @@ export function InviteManagement({
       await deactivateInvite({ inviteId, leagueId });
       toast.success("Invite link deactivated");
     } catch (error) {
+      const errorMessage = "Failed to deactivate invite link";
       if (error instanceof Error) {
-        toast.error(error.message);
+        toast.error(`${errorMessage}: ${error.message}`);
       } else {
-        toast.error("Failed to deactivate invite link");
+        toast.error(errorMessage);
       }
     }
   }

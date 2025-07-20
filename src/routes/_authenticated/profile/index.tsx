@@ -63,10 +63,12 @@ function RouteComponent() {
         navigate({ to: "/" });
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update profile",
-      );
-      throw error;
+      const errorMessage = "Failed to update profile";
+      if (error instanceof Error) {
+        toast.error(`${errorMessage}: ${error.message}`);
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 

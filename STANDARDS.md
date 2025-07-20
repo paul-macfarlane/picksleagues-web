@@ -19,6 +19,7 @@ We will use a hybrid architecture that combines the benefits of feature-sliced d
   - `components/`: React components specific to this feature.
   - `[feature-name].types.ts`: TypeScript types, interfaces, enums, and Zod validation schemas.
   - `hooks/`: React hooks specific to this feature.
+  - `[feature-name].utils.ts`: Pure functions containing business logic that can be shared across the feature or other parts of the application. For example, a function that checks permissions based on user role and feature-specific data.
 - `src/routes/`: File-based routes. These files should import from `src/features` and compose the page.
 - `src/components/`:
   - `ui/`: Generic, reusable, unstyled or lightly styled UI components (e.g., from `shadcn/ui`).

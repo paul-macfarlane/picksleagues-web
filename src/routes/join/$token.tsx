@@ -9,11 +9,18 @@ import { JoinLeagueCard } from "@/features/leagueInvites/components/join-league-
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { JoinLeagueSkeleton } from "@/features/leagueInvites/components/join-league-states";
 import { RouteErrorBoundary } from "@/components/route-error-boundary";
+import { LEAGUE_INVITE_INCLUDES } from "@/features/leagueInvites/leagueInvites.types";
 
 export const Route = createFileRoute("/join/$token")({
   loader: async ({ context: { queryClient }, params: { token } }) => {
     await queryClient.ensureQueryData(
-      GetLeagueInviteByTokenQueryOptions({ token }),
+      GetLeagueInviteByTokenQueryOptions({
+        token,
+        includes: [
+          LEAGUE_INVITE_INCLUDES.LEAGUE,
+          LEAGUE_INVITE_INCLUDES.LEAGUE_TYPE,
+        ],
+      }),
     );
   },
   pendingMs: 300,
@@ -33,7 +40,13 @@ function RouteComponent() {
   const router = useRouter();
 
   const { data: leagueInvite } = useSuspenseQuery(
-    GetLeagueInviteByTokenQueryOptions({ token }),
+    GetLeagueInviteByTokenQueryOptions({
+      token,
+      includes: [
+        LEAGUE_INVITE_INCLUDES.LEAGUE,
+        LEAGUE_INVITE_INCLUDES.LEAGUE_TYPE,
+      ],
+    }),
   );
 
   const {
@@ -50,8 +63,16 @@ function RouteComponent() {
         params: { leagueId: leagueInvite!.leagueId! },
       });
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to join the league.");
+      const errorMessage = "Failed to join the league.";
+      if (error instanceof Error) {
+        toast.error(`${errorMessage} ${error.message}`);
+      } else {
+        toast.error(errorMessage);
+      }
+
+      // in the case where there is an error, the invite is invalid and will be cleaned up, so refresh the page
+
+      window.location.reload();
     }
   }
 

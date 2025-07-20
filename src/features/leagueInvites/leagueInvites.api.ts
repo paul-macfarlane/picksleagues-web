@@ -194,13 +194,8 @@ export async function joinLeagueByInviteToken(token: string): Promise<void> {
 }
 
 export function useJoinLeagueByInviteToken() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (token: string) => joinLeagueByInviteToken(token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: GetLeagueInvitesForUserQueryKey(),
-      });
-    },
+    // no need to invalidate on success as the user will be redirected to the league
   });
 }

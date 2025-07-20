@@ -254,10 +254,11 @@ export function DirectInviteFormComponent({
         toast.success("Invite sent");
         form.reset();
       } catch (error) {
+        const errorMessage = "Failed to send invite";
         if (error instanceof Error) {
-          toast.error(error.message);
+          toast.error(`${errorMessage}: ${error.message}`);
         } else {
-          toast.error("Failed to send invite");
+          toast.error(errorMessage);
         }
       }
     },

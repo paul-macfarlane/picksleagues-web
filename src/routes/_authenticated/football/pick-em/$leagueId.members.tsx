@@ -1,10 +1,7 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import {
-  LEAGUE_MEMBER_INCLUDES,
-  LEAGUE_MEMBER_ROLES,
-} from "@/features/leagueMembers/leagueMembers.types";
+import { LEAGUE_MEMBER_INCLUDES } from "@/features/leagueMembers/leagueMembers.types";
 import { GetLeagueMembersQueryOptions } from "@/features/leagueMembers/leagueMembers.api";
 import { MembersList } from "@/features/leagueMembers/components/members-list";
 import { InviteManagement } from "@/features/leagueInvites/components/invite-management";
@@ -15,6 +12,9 @@ import { LEAGUE_INVITE_INCLUDES } from "@/features/leagueInvites/leagueInvites.t
 import { Suspense } from "react";
 import { InviteManagementSkeleton } from "@/features/leagueInvites/components/invite-management-skeleton";
 import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/leagueMembers.types";
+import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
+import { canManageMembers } from "@/features/leagueMembers/leagueMembers.utils";
+import { canManageInvites } from "@/features/leagueInvites/leagueInvites.utils";
 
 export const Route = createFileRoute(
   "/_authenticated/football/pick-em/$leagueId/members",
@@ -24,17 +24,15 @@ export const Route = createFileRoute(
     context: { queryClient, session },
     params: { leagueId },
   }) => {
+    const league = await queryClient.ensureQueryData(
+      GetLeagueQueryOptions(leagueId),
+    );
+
     const members = await queryClient.ensureQueryData(
       GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
     );
 
-    const currentUserMemberInfo = members.find(
-      (member) => member.userId === session?.userId,
-    );
-    const isCommissioner =
-      currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
-
-    if (isCommissioner) {
+    if (canManageInvites(session!.userId, league, members)) {
       await queryClient.ensureQueryData(
         GetLeagueInvitesQueryOptions({
           leagueId,
@@ -69,16 +67,17 @@ function MembersComponent() {
     from: "/_authenticated/football/pick-em/$leagueId/members",
   });
   const { session } = Route.useRouteContext();
+  const { data: league } = useSuspenseQuery(GetLeagueQueryOptions(leagueId));
   const { data: members } = useSuspenseQuery(
     GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
   );
 
-  const currentUserMemberInfo = members.find(
-    (member) => member.userId === session?.userId,
+  const userCanManageInvites = canManageInvites(
+    session!.userId,
+    league,
+    members,
   );
-  const isCommissioner =
-    currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
-  const isOffSeason = true; // TODO: get from league season state
+  const userCanManageMembers = canManageMembers(session!.userId, members);
 
   return (
     <div className="space-y-6">
@@ -89,14 +88,13 @@ function MembersComponent() {
         <CardContent>
           <MembersList
             members={members}
-            session={session}
-            isCommissioner={isCommissioner}
-            isOffSeason={isOffSeason}
+            canManageMembers={userCanManageMembers}
+            userId={session!.userId}
           />
         </CardContent>
       </Card>
 
-      {isCommissioner && (
+      {userCanManageInvites && (
         <Suspense fallback={<InviteManagementSkeleton />}>
           <CommissionerInviteManagement
             leagueId={leagueId}
