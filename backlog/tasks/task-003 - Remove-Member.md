@@ -11,18 +11,12 @@ dependencies: []
 
 ## Description
 
-As a league commissioner, I can remove a league member. I am warned of the consequences before committing the action.
-
-When a league member is removed, their old pick and standings data is retained.
-
-Members can only be removed when a league is not in season.
-
-A commissioner cannot remove themselves
-
+As a league commissioner, I can use the UI to remove a league member. The UI will call the API to perform the removal and provide necessary warnings and feedback.
 ## Acceptance Criteria
 
-- [ ] A league commissioner is warned before removing a league member
-- [ ] When a league member is removed
-- [ ] their pick and standings data is retained
-- [ ] A league member can only be removed when a league is not in season
-- [ ] A commissioner cannot remove themselves from the league
+- [ ] UI presents a confirmation dialog before removing a member
+- [ ] UI calls the remove member API endpoint upon confirmation
+- [ ] UI displays a success message upon successful removal
+- [ ] UI displays an error message if the API call fails
+- [ ] The UI prevents a member from being removed during an active season by disabling the option or showing a validation message
+- [ ] The UI prevents a commissioner from removing themselves
