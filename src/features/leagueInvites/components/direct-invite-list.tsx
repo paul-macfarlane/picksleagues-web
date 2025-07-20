@@ -31,15 +31,20 @@ function DirectInviteRow({
               <UserRound className="h-4 w-4 text-primary" />
             </AvatarFallback>
           </Avatar>
-          <span>
-            {invite.invitee?.firstName} {invite.invitee?.lastName}
-          </span>
+          <div>
+            <span>
+              {invite.invitee?.firstName} {invite.invitee?.lastName}
+            </span>
+            <div className="text-sm text-muted-foreground">
+              @{invite.invitee?.username}
+            </div>
+          </div>
         </div>
       </TableCell>
-      <TableCell>{invite.invitee?.username}</TableCell>
-      <TableCell className="hidden sm:table-cell">
-        {new Date(invite.expiresAt).toLocaleString()}
+      <TableCell>
+        {invite.role.charAt(0).toUpperCase() + invite.role.slice(1)}
       </TableCell>
+      <TableCell>{new Date(invite.expiresAt).toLocaleString()}</TableCell>
       <TableCell className="text-right">
         <Button
           variant="ghost"
@@ -71,14 +76,15 @@ export function DirectInviteList({
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
-              <TableHead className="hidden sm:table-cell">Expires</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Expires</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {invites.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} className="text-center">
+                <TableCell colSpan={4} className="text-center">
                   No active direct invites
                 </TableCell>
               </TableRow>

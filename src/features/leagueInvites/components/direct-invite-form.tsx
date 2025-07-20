@@ -29,6 +29,7 @@ import z from "zod";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { useDelayedLoader } from "@/hooks/useDelayedLoader";
+import { LEAGUE_MEMBER_ROLES } from "@/features/leagueMembers/leagueMembers.types";
 
 const DirectInviteFormSchema = CreateLeagueInviteObjectSchema.extend({
   inviteeId: z.string().min(1, "Please select a user to invite."),
@@ -292,7 +293,30 @@ export function DirectInviteFormComponent({
             )}
           />
         </div>
-        <div className="flex flex-col gap-2 sm:w-40">
+        <div className="sm:w-40">
+          <form.AppField
+            name="role"
+            children={(field) => (
+              <field.SelectField
+                labelProps={{
+                  children: "Role",
+                  htmlFor: "role",
+                }}
+                selectProps={{
+                  name: "role",
+                }}
+                selectTriggerProps={{
+                  id: "role",
+                }}
+                options={Object.values(LEAGUE_MEMBER_ROLES).map((role) => ({
+                  value: role,
+                  label: role.charAt(0).toUpperCase() + role.slice(1),
+                }))}
+              />
+            )}
+          />
+        </div>
+        <div className="sm:w-40">
           <form.AppField
             name="expiresInDays"
             children={(field) => (

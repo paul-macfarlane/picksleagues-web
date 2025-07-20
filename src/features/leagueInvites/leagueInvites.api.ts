@@ -5,6 +5,7 @@ import {
   type PopulatedLeagueInviteResponse,
   type RespondToLeagueInviteSchema,
   LEAGUE_INVITE_INCLUDES,
+  LEAGUE_INVITE_STATUSES,
 } from "./leagueInvites.types";
 import {
   queryOptions,
@@ -12,6 +13,11 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import z from "zod";
+import {
+  GetMyLeaguesForLeagueTypeQueryKey,
+  GetMyLeaguesQueryKey,
+} from "../leagues/leagues.api";
+import type { LEAGUE_TYPE_SLUGS } from "../leagueTypes/leagueTypes.types";
 
 export async function getLeagueInvites(
   leagueId: string,
@@ -149,12 +155,20 @@ export const useRespondToLeagueInvite = () => {
     }: {
       inviteId: string;
       response: z.infer<typeof RespondToLeagueInviteSchema>;
-      leagueId: string;
+      leagueType: LEAGUE_TYPE_SLUGS;
     }) => respondToLeagueInvite(inviteId, response),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: GetLeagueInvitesForUserQueryKey(),
       });
+      if (variables.response.response === LEAGUE_INVITE_STATUSES.ACCEPTED) {
+        queryClient.invalidateQueries({
+          queryKey: GetMyLeaguesQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: GetMyLeaguesForLeagueTypeQueryKey(variables.leagueType),
+        });
+      }
     },
   });
 };
@@ -194,8 +208,17 @@ export async function joinLeagueByInviteToken(token: string): Promise<void> {
 }
 
 export function useJoinLeagueByInviteToken() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (token: string) => joinLeagueByInviteToken(token),
-    // no need to invalidate on success as the user will be redirected to the league
+    mutationFn: ({ token }: { token: string; leagueType: LEAGUE_TYPE_SLUGS }) =>
+      joinLeagueByInviteToken(token),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesForLeagueTypeQueryKey(variables.leagueType),
+      });
+    },
   });
 }

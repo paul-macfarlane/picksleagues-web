@@ -4,11 +4,12 @@ import { toast } from "sonner";
 import {
   CreateLeagueInviteObjectSchema,
   CreateLeagueInviteSchema,
+  DEFAULT_LEAGUE_INVITE_EXPIRATION_DAYS,
   LEAGUE_INVITE_TYPES,
-  MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
 } from "@/features/leagueInvites/leagueInvites.types";
 import { useCreateLeagueInvite } from "@/features/leagueInvites/leagueInvites.api";
 import type z from "zod";
+import { LEAGUE_MEMBER_ROLES } from "@/features/leagueMembers/leagueMembers.types";
 
 export function CreateInviteLinkFormComponent() {
   const { leagueId } = useParams({
@@ -21,7 +22,7 @@ export function CreateInviteLinkFormComponent() {
       leagueId,
       role: "member",
       type: LEAGUE_INVITE_TYPES.LINK,
-      expiresInDays: MIN_LEAGUE_INVITE_EXPIRATION_DAYS,
+      expiresInDays: DEFAULT_LEAGUE_INVITE_EXPIRATION_DAYS,
     },
     validators: {
       onSubmit: CreateLeagueInviteObjectSchema.pick({
@@ -58,6 +59,29 @@ export function CreateInviteLinkFormComponent() {
         }}
       >
         <div className="flex-1">
+          <form.AppField
+            name="role"
+            children={(field) => (
+              <field.SelectField
+                selectProps={{
+                  name: "role",
+                }}
+                selectTriggerProps={{
+                  id: "role",
+                }}
+                labelProps={{
+                  htmlFor: "role",
+                  children: "Role",
+                }}
+                options={Object.values(LEAGUE_MEMBER_ROLES).map((role) => ({
+                  value: role,
+                  label: role.charAt(0).toUpperCase() + role.slice(1),
+                }))}
+              />
+            )}
+          />
+        </div>
+        <div className="sm:w-40">
           <form.AppField
             name="expiresInDays"
             children={(field) => (

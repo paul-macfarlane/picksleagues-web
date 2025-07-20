@@ -240,6 +240,9 @@ export const AppLayout: React.FC = () => {
           <DropdownMenuItem asChild>
             <Link to="/profile">View Profile</Link>
           </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/account">Manage Account</Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Theme</DropdownMenuLabel>
           <DropdownMenuRadioGroup

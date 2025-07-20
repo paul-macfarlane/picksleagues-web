@@ -3,8 +3,14 @@ import {
   LEAGUE_TYPE_SLUGS,
   type LeagueTypeResponse,
 } from "../leagueTypes/leagueTypes.types";
+import type { LeagueMemberResponse } from "../leagueMembers/leagueMembers.types";
 
 // constants
+
+export enum LEAGUE_INCLUDES {
+  LEAGUE_TYPE = "leagueType",
+  MEMBERS = "members",
+}
 
 export const MIN_PICKS_PER_PHASE = 1;
 export const MAX_PICKS_PER_PHASE = 16;
@@ -53,6 +59,7 @@ export type PickEmLeagueResponse = LeagueResponse & {
 
 export type PopulatedLeagueResponse = LeagueResponse & {
   leagueType?: LeagueTypeResponse;
+  members?: LeagueMemberResponse[];
 };
 
 // schemas

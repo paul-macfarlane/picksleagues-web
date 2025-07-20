@@ -8,8 +8,33 @@ import type {
   CreateLeagueSchema,
   LeagueResponse,
   PickEmLeagueResponse,
+  PopulatedLeagueResponse,
 } from "./leagues.types";
 import type z from "zod";
+import { LEAGUE_INCLUDES } from "./leagues.types";
+
+export async function getMyLeagues<T extends PopulatedLeagueResponse>(
+  includes: LEAGUE_INCLUDES[] = [],
+): Promise<T[]> {
+  return await authenticatedFetch<T[]>(
+    `${API_BASE}/v1/users/me/leagues${
+      includes.length > 0 ? `?include=${includes.join(",")}` : ""
+    }`,
+  );
+}
+
+export const GetMyLeaguesQueryKey = (includes: LEAGUE_INCLUDES[] = []) => [
+  "my-leagues",
+  ...includes,
+];
+
+export const GetMyLeaguesQueryOptions = <T extends PopulatedLeagueResponse>(
+  includes: LEAGUE_INCLUDES[] = [],
+) =>
+  queryOptions({
+    queryKey: GetMyLeaguesQueryKey(includes),
+    queryFn: () => getMyLeagues<T>(includes),
+  });
 
 export async function getMyLeaguesForLeagueType<T extends LeagueResponse>(
   typeIdOrSlug: string,
@@ -79,6 +104,9 @@ export function useCreateLeague<
     onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: GetMyLeaguesForLeagueTypeQueryKey(data.leagueTypeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesQueryKey(),
       });
     },
   });

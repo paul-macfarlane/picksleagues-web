@@ -14,6 +14,7 @@ import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as JoinTokenRouteImport } from './routes/join/$token'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
+import { Route as AuthenticatedAccountIndexRouteImport } from './routes/_authenticated/account/index'
 import { Route as AuthenticatedFootballPickEmIndexRouteImport } from './routes/_authenticated/football/pick-em/index'
 import { Route as AuthenticatedFootballPickEmCreateRouteImport } from './routes/_authenticated/football/pick-em/create'
 import { Route as AuthenticatedFootballPickEmLeagueIdRouteImport } from './routes/_authenticated/football/pick-em/$leagueId'
@@ -46,6 +47,12 @@ const AuthenticatedProfileIndexRoute =
   AuthenticatedProfileIndexRouteImport.update({
     id: '/profile/',
     path: '/profile/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAccountIndexRoute =
+  AuthenticatedAccountIndexRouteImport.update({
+    id: '/account/',
+    path: '/account/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedFootballPickEmIndexRoute =
@@ -101,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/join/$token': typeof JoinTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginIndexRoute
+  '/account': typeof AuthenticatedAccountIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/football/pick-em/$leagueId': typeof AuthenticatedFootballPickEmLeagueIdRouteWithChildren
   '/football/pick-em/create': typeof AuthenticatedFootballPickEmCreateRoute
@@ -115,6 +123,7 @@ export interface FileRoutesByTo {
   '/join/$token': typeof JoinTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginIndexRoute
+  '/account': typeof AuthenticatedAccountIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/football/pick-em/create': typeof AuthenticatedFootballPickEmCreateRoute
   '/football/pick-em': typeof AuthenticatedFootballPickEmIndexRoute
@@ -130,6 +139,7 @@ export interface FileRoutesById {
   '/join/$token': typeof JoinTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/login/': typeof LoginIndexRoute
+  '/_authenticated/account/': typeof AuthenticatedAccountIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/football/pick-em/$leagueId': typeof AuthenticatedFootballPickEmLeagueIdRouteWithChildren
   '/_authenticated/football/pick-em/create': typeof AuthenticatedFootballPickEmCreateRoute
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/'
     | '/login'
+    | '/account'
     | '/profile'
     | '/football/pick-em/$leagueId'
     | '/football/pick-em/create'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/'
     | '/login'
+    | '/account'
     | '/profile'
     | '/football/pick-em/create'
     | '/football/pick-em'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/_authenticated/'
     | '/login/'
+    | '/_authenticated/account/'
     | '/_authenticated/profile/'
     | '/_authenticated/football/pick-em/$leagueId'
     | '/_authenticated/football/pick-em/create'
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/account/': {
+      id: '/_authenticated/account/'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/football/pick-em/': {
@@ -316,6 +336,7 @@ const AuthenticatedFootballPickEmLeagueIdRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedAccountIndexRoute: typeof AuthenticatedAccountIndexRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
   AuthenticatedFootballPickEmLeagueIdRoute: typeof AuthenticatedFootballPickEmLeagueIdRouteWithChildren
   AuthenticatedFootballPickEmCreateRoute: typeof AuthenticatedFootballPickEmCreateRoute
@@ -324,6 +345,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedAccountIndexRoute: AuthenticatedAccountIndexRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
   AuthenticatedFootballPickEmLeagueIdRoute:
     AuthenticatedFootballPickEmLeagueIdRouteWithChildren,

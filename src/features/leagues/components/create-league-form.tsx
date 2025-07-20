@@ -154,7 +154,7 @@ export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
           children={(field) => (
             <field.SelectField
               selectProps={{
-                name: "endPhaseTemplateId",
+                name: "startPhaseTemplateId",
               }}
               selectTriggerProps={{
                 id: "startPhaseTemplateId",
@@ -180,7 +180,7 @@ export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
           children={(field) => (
             <field.SelectField
               selectProps={{
-                name: "startPhaseTemplateId",
+                name: "endPhaseTemplateId",
               }}
               selectTriggerProps={{
                 id: "endPhaseTemplateId",
