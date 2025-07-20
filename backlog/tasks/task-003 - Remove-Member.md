@@ -1,8 +1,9 @@
 ---
 id: task-003
 title: Remove Member
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - AI
 created_date: '2025-07-20'
 updated_date: '2025-07-20'
 labels: []
