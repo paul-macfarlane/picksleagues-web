@@ -1,7 +1,7 @@
 ---
 id: task-001
 title: Delete Account
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2025-07-20'
 updated_date: '2025-07-20'
