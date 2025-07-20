@@ -1,10 +1,7 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import {
-  LEAGUE_MEMBER_INCLUDES,
-  LEAGUE_MEMBER_ROLES,
-} from "@/features/leagueMembers/leagueMembers.types";
+import { LEAGUE_MEMBER_INCLUDES } from "@/features/leagueMembers/leagueMembers.types";
 import { GetLeagueMembersQueryOptions } from "@/features/leagueMembers/leagueMembers.api";
 import { MembersList } from "@/features/leagueMembers/components/members-list";
 import { InviteManagement } from "@/features/leagueInvites/components/invite-management";
@@ -15,32 +12,9 @@ import { LEAGUE_INVITE_INCLUDES } from "@/features/leagueInvites/leagueInvites.t
 import { Suspense } from "react";
 import { InviteManagementSkeleton } from "@/features/leagueInvites/components/invite-management-skeleton";
 import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/leagueMembers.types";
-import type { LeagueResponse } from "@/features/leagues/leagues.types";
 import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
-
-function canManageMembers(
-  userId: string,
-  members: PopulatedLeagueMemberResponse[],
-) {
-  const currentUserMemberInfo = members.find(
-    (member) => member.userId === userId,
-  );
-  return currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
-}
-
-function canManageInvites(
-  userId: string,
-  league: LeagueResponse,
-  members: PopulatedLeagueMemberResponse[],
-) {
-  const currentUserMemberInfo = members.find(
-    (member) => member.userId === userId,
-  );
-  return (
-    currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER &&
-    members.length < league.size
-  );
-}
+import { canManageMembers } from "@/features/leagueMembers/leagueMembers.utils";
+import { canManageInvites } from "@/features/leagueInvites/leagueInvites.utils";
 
 export const Route = createFileRoute(
   "/_authenticated/football/pick-em/$leagueId/members",
