@@ -1,7 +1,7 @@
-import { LEAGUE_MEMBER_ROLES } from "../leagueMembers/leagueMembers.types";
 import z from "zod";
 import type { ProfileResponse } from "../profiles/profiles.types";
 import type { PopulatedLeagueResponse } from "@/features/leagues/leagues.types";
+import { LEAGUE_MEMBER_ROLES } from "../leagueMembers/leagueMembers.types";
 
 // constants
 

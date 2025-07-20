@@ -37,11 +37,12 @@ export function AccountManagement() {
       await deleteAccount.mutateAsync();
       await authClient.signOut();
       navigate({ to: "/", reloadDocument: true });
-    } catch (e) {
-      if (e instanceof Error) {
-        setSubmitError(e.message);
+    } catch (error) {
+      const errorMessage = "Failed to delete account";
+      if (error instanceof Error) {
+        setSubmitError(`${errorMessage}: ${error.message}`);
       } else {
-        setSubmitError("An unexpected error occurred");
+        setSubmitError(errorMessage);
       }
     }
   };

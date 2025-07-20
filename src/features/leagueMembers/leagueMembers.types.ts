@@ -1,5 +1,6 @@
 // constants
 
+import { z } from "zod";
 import type { ProfileResponse } from "../profiles/profiles.types";
 
 export enum LEAGUE_MEMBER_ROLES {
@@ -26,3 +27,7 @@ export type PopulatedLeagueMemberResponse = LeagueMemberResponse & {
 };
 
 // schemas
+
+export const UpdateLeagueMemberSchema = z.object({
+  role: z.enum([LEAGUE_MEMBER_ROLES.COMMISSIONER, LEAGUE_MEMBER_ROLES.MEMBER]),
+});

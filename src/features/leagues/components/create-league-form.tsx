@@ -68,9 +68,10 @@ export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
           to: "/football/pick-em/$leagueId",
           params: { leagueId: league.id },
         });
-      } catch (error: unknown) {
+      } catch (error) {
+        const errorMessage = "Failed to create league";
         if (error instanceof Error) {
-          setSubmitError(error.message);
+          setSubmitError(`${errorMessage}: ${error.message}`);
         } else {
           setSubmitError("Failed to create league");
         }

@@ -4,8 +4,8 @@ title: Change Member Roles
 status: Done
 assignee:
   - AI
-created_date: '2025-07-20'
-updated_date: '2025-07-20'
+created_date: "2025-07-20"
+updated_date: "2025-07-20"
 labels: []
 dependencies: []
 ---
@@ -32,4 +32,4 @@ As a league commissioner, I can use the UI to edit other league member roles. Th
 
 ## Implementation Notes
 
-Implemented the ability for commissioners to change member roles directly from the members list. Added a new API function and a  mutation hook to handle the role change. The UI now features a dropdown menu for each member with options to change their role. To prevent a commissioner from accidentally locking themselves out, the option to change their own role is disabled if they are the sole commissioner. User feedback is provided via success and error notifications.
+Implemented the ability for commissioners to change member roles directly from the members list. Added a new API function and a mutation hook to handle the role change. The UI now features a dropdown menu for each member with options to change their role. To prevent a commissioner from accidentally locking themselves out, the option to change their own role is disabled if they are the sole commissioner. User feedback is provided via success and error notifications.
