@@ -20,8 +20,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUpdateLeagueMember } from "../leagueMembers.api";
+import { useUpdateLeagueMember, useRemoveMember } from "../leagueMembers.api";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type MembersListProps = {
   members: PopulatedLeagueMemberResponse[];
@@ -36,23 +47,42 @@ export function MembersList({
   userId,
   leagueId,
 }: MembersListProps) {
-  const { mutateAsync: updateMember } = useUpdateLeagueMember();
+  const { mutate: updateMember } = useUpdateLeagueMember();
+  const { mutate: removeMember } = useRemoveMember(leagueId);
 
-  const handleChangeRole = async (
-    userId: string,
-    role: LEAGUE_MEMBER_ROLES,
-  ) => {
-    try {
-      await updateMember({ userId, leagueId, update: { role } });
-      toast.success("Member role updated successfully.");
-    } catch (error) {
-      const errorMessage = "Failed to update member role.";
-      if (error instanceof Error) {
-        toast.error(`${errorMessage}: ${error.message}`);
-      } else {
-        toast.error(errorMessage);
-      }
-    }
+  const handleUpdateMember = (userId: string, role: LEAGUE_MEMBER_ROLES) => {
+    updateMember(
+      { leagueId, userId, update: { role } },
+      {
+        onSuccess: () => {
+          toast.success("Member role updated successfully.");
+        },
+        onError: (error: Error) => {
+          const errorMessage = "Failed to update member role.";
+          if (error instanceof Error) {
+            toast.error(`${errorMessage}: ${error.message}`);
+          } else {
+            toast.error(errorMessage);
+          }
+        },
+      },
+    );
+  };
+
+  const handleRemoveMember = (userId: string) => {
+    removeMember(userId, {
+      onSuccess: () => {
+        toast.success("Member removed successfully.");
+      },
+      onError: (error: Error) => {
+        const errorMessage = "Failed to remove member.";
+        if (error instanceof Error) {
+          toast.error(`${errorMessage}: ${error.message}`);
+        } else {
+          toast.error(errorMessage);
+        }
+      },
+    });
   };
 
   const isSoleCommissioner =
@@ -107,7 +137,7 @@ export function MembersList({
                           isSoleCommissioner && member.userId === userId
                         }
                         onClick={() =>
-                          handleChangeRole(
+                          handleUpdateMember(
                             member.userId,
                             LEAGUE_MEMBER_ROLES.MEMBER,
                           )
@@ -118,7 +148,7 @@ export function MembersList({
                     ) : (
                       <DropdownMenuItem
                         onClick={() =>
-                          handleChangeRole(
+                          handleUpdateMember(
                             member.userId,
                             LEAGUE_MEMBER_ROLES.COMMISSIONER,
                           )
@@ -128,9 +158,36 @@ export function MembersList({
                       </DropdownMenuItem>
                     )}
                     {member.userId !== userId && (
-                      <DropdownMenuItem className="text-destructive">
-                        Remove Member
-                      </DropdownMenuItem>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            Remove Member
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Are you sure you want to remove this member?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              The member will be removed from the league and an
+                              invite will be requested to be sent to them to
+                              re-join the league.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleRemoveMember(member.userId)}
+                            >
+                              Remove
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
