@@ -11,12 +11,12 @@ dependencies: []
 
 ## Description
 
-As a league commissioner, I can edit other league member roles to be either member or commissioner.
-
-I can only change my own role to member IF another member is assigned a commissioner role
-
+As a league commissioner, I can use the UI to edit other league member roles. The UI will call the appropriate API endpoint to change the role and provide feedback to the user.
 ## Acceptance Criteria
 
-- [ ] A league commissioner can change another league member's role to 'commissioner'
-- [ ] A league commissioner can change another league member's role to 'member'
-- [ ] A league commissioner can only change their own role to 'member' if another member is a 'commissioner'
+- [ ] UI provides an interface for a commissioner to change another member's role
+- [ ] UI calls the change member role API endpoint with the correct member ID and new role
+- [ ] UI displays a success message upon successful role change
+- [ ] UI displays an error message if the API call fails
+- [ ] The UI prevents a commissioner from changing their own role to 'member' unless another commissioner exists
+- [ ] by disabling the option or showing a validation message
