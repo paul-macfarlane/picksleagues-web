@@ -21,3 +21,10 @@ The useSoleCommissionerCheck hook currently makes a large number of API calls to
 - [ ] The hook correctly determines if the user is a sole commissioner based on the new data structure.
 - [ ] The old
 - [ ] inefficient data fetching logic is removed.
+
+## Implementation Plan
+
+1. Create a new function in 'src/features/leagues/leagues.api.ts' called 'getMyLeagues' that fetches from '/api/v1/users/me/leagues' and accepts an 'include' parameter.
+2. Update the 'LeagueResponse' type in 'src/features/leagues/leagues.types.ts' to optionally include 'members'.
+3. Update the 'useSoleCommissionerCheck' hook in 'src/features/profiles/hooks/useSoleCommissionerCheck.ts' to use the new 'getMyLeagues' function.
+4. Remove the old data fetching logic from 'useSoleCommissionerCheck'.
