@@ -56,7 +56,11 @@ function RouteComponent() {
 
   async function handleJoinLeague() {
     try {
-      await joinLeagueByInviteToken(token);
+      await joinLeagueByInviteToken({
+        token,
+        leagueId: leagueInvite!.leagueId!,
+        leagueType: leagueInvite!.league!.leagueType!.slug,
+      });
       toast.success("You have joined the league.");
       router.navigate({
         to: "/football/pick-em/$leagueId",

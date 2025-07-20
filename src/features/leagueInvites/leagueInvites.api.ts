@@ -155,11 +155,15 @@ export const useRespondToLeagueInvite = () => {
     }: {
       inviteId: string;
       response: z.infer<typeof RespondToLeagueInviteSchema>;
+      leagueId: string;
       leagueType: LEAGUE_TYPE_SLUGS;
     }) => respondToLeagueInvite(inviteId, response),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: GetLeagueInvitesForUserQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetLeagueInvitesQueryKey(variables.leagueId),
       });
       if (variables.response.response === LEAGUE_INVITE_STATUSES.ACCEPTED) {
         queryClient.invalidateQueries({
@@ -210,11 +214,19 @@ export async function joinLeagueByInviteToken(token: string): Promise<void> {
 export function useJoinLeagueByInviteToken() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ token }: { token: string; leagueType: LEAGUE_TYPE_SLUGS }) =>
-      joinLeagueByInviteToken(token),
+    mutationFn: ({
+      token,
+    }: {
+      token: string;
+      leagueId: string;
+      leagueType: LEAGUE_TYPE_SLUGS;
+    }) => joinLeagueByInviteToken(token),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: GetMyLeaguesQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetLeagueInvitesQueryKey(variables.leagueId),
       });
       queryClient.invalidateQueries({
         queryKey: GetMyLeaguesForLeagueTypeQueryKey(variables.leagueType),

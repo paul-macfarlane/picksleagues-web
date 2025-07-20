@@ -69,10 +69,11 @@ function RouteComponent() {
   const handleRespondToLeagueInvite = async (
     inviteId: string,
     leagueId: string,
+    leagueType: LEAGUE_TYPE_SLUGS,
     response: z.infer<typeof RespondToLeagueInviteSchema>,
   ) => {
     try {
-      await respondToLeagueInvite({ inviteId, response, leagueId });
+      await respondToLeagueInvite({ inviteId, response, leagueId, leagueType });
       if (response.response === LEAGUE_INVITE_STATUSES.ACCEPTED) {
         router.navigate({
           to: "/football/pick-em/$leagueId",
@@ -134,6 +135,7 @@ function RouteComponent() {
                         handleRespondToLeagueInvite(
                           invite.id,
                           invite.leagueId,
+                          invite.league!.leagueType!.slug,
                           {
                             response: LEAGUE_INVITE_STATUSES.DECLINED,
                           },
@@ -148,6 +150,7 @@ function RouteComponent() {
                         handleRespondToLeagueInvite(
                           invite.id,
                           invite.leagueId,
+                          invite.league!.leagueType!.slug,
                           {
                             response: LEAGUE_INVITE_STATUSES.ACCEPTED,
                           },
