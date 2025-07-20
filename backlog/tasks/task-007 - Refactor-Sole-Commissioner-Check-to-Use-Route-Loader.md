@@ -19,3 +19,10 @@ Refactor the sole commissioner check to fetch data in the '/account' route loade
 - [ ] The '/account' route loader fetches the user's leagues with members.
 - [ ] The AccountManagement component uses the loader's data and the utility function.
 - [ ] The old 'useSoleCommissionerCheck' hook is removed.
+
+## Implementation Plan
+
+1. Create a new utility function 'isSoleCommissioner' in a new file at 'src/features/profiles/profiles.utils.ts'.
+2. Update the '/account' route loader to pre-fetch the user's leagues with members.
+3. Update the 'AccountManagement' component to use the data from the loader and the new utility function.
+4. Delete the 'useSoleCommissionerCheck' hook.
