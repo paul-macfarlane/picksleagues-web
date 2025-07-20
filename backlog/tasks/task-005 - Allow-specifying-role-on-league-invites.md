@@ -1,7 +1,7 @@
 ---
 id: task-005
 title: Allow specifying role on league invites
-status: In Progress
+status: Done
 assignee: []
 created_date: '2025-07-20'
 updated_date: '2025-07-20'
