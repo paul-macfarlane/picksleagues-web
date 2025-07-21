@@ -18,3 +18,7 @@ As a commissioner I can edit league settings like name and profile picture. If t
 - [ ] A commissioner can edit league settings (name, profile picture).
 - [ ] If the league is not in season, a commissioner can edit start week, end week, picks per week, league size, and pick type.
 - [ ] League size cannot be reduced below the current number of members.
+
+## Implementation Plan
+
+1. Create the API endpoint and query options for updating league settings in `src/features/leagues/leagues.api.ts`.\n2. Add the necessary types for the update payload in `src/features/leagues/leagues.types.ts`.\n3. Update the existing `league-settings-form.tsx` component to use the new mutation and handle the form logic for editing the league settings. This will include conditionally showing fields based on whether the season has started.\n4. Update the route loader for the settings page to fetch any necessary data for the form, such as the current league settings.\n5. Ensure cache invalidation is handled correctly after a successful update, as per the standards.
