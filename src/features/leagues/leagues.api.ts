@@ -57,20 +57,29 @@ export const GetMyLeaguesForLeagueTypeQueryOptions = <T extends LeagueResponse>(
     queryFn: () => getMyLeaguesForLeagueType<T>(typeIdOrSlug),
   });
 
-export async function getLeague(
+export async function getLeague<T extends PopulatedLeagueResponse>(
   leagueId: string,
-): Promise<PickEmLeagueResponse> {
-  return await authenticatedFetch<PickEmLeagueResponse>(
-    `${API_BASE}/v1/leagues/${leagueId}`,
+  includes: LEAGUE_INCLUDES[] = [],
+): Promise<T> {
+  return await authenticatedFetch<T>(
+    `${API_BASE}/v1/leagues/${leagueId}${
+      includes.length > 0 ? `?include=${includes.join(",")}` : ""
+    }`,
   );
 }
 
-export const GetLeagueQueryKey = (leagueId: string) => ["leagues", leagueId];
+export const GetLeagueQueryKey = (
+  leagueId: string,
+  includes: LEAGUE_INCLUDES[] = [],
+) => ["leagues", leagueId, ...includes];
 
-export const GetLeagueQueryOptions = (leagueId: string) =>
+export const GetLeagueQueryOptions = <T extends PopulatedLeagueResponse>(
+  leagueId: string,
+  includes: LEAGUE_INCLUDES[] = [],
+) =>
   queryOptions({
-    queryKey: GetLeagueQueryKey(leagueId),
-    queryFn: () => getLeague(leagueId),
+    queryKey: GetLeagueQueryKey(leagueId, includes),
+    queryFn: () => getLeague<T>(leagueId, includes),
   });
 
 export async function createLeague<

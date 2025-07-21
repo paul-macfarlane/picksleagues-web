@@ -13,8 +13,12 @@ import { Suspense } from "react";
 import { InviteManagementSkeleton } from "@/features/leagueInvites/components/invite-management-skeleton";
 import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/leagueMembers.types";
 import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
-import { canManageMembers } from "@/features/leagueMembers/leagueMembers.utils";
+import {
+  canLeaveLeagueAndIsSoleMember,
+  canManageMembers,
+} from "@/features/leagueMembers/leagueMembers.utils";
 import { canManageInvites } from "@/features/leagueInvites/leagueInvites.utils";
+import { Route as LeagueLayoutRoute } from "./$leagueId";
 
 export const Route = createFileRoute(
   "/_authenticated/football/pick-em/$leagueId/members",
@@ -67,7 +71,8 @@ function MembersComponent() {
     from: "/_authenticated/football/pick-em/$leagueId/members",
   });
   const { session } = Route.useRouteContext();
-  const { data: league } = useSuspenseQuery(GetLeagueQueryOptions(leagueId));
+  const league = LeagueLayoutRoute.useLoaderData();
+
   const { data: members } = useSuspenseQuery(
     GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
   );
@@ -77,7 +82,9 @@ function MembersComponent() {
     league,
     members,
   );
-  const userCanManageMembers = canManageMembers(session!.userId, members);
+  const userCanManageMembers = canManageMembers(session!.userId, league);
+  const { canLeave: userCanLeaveLeague, isSoleMember } =
+    canLeaveLeagueAndIsSoleMember(session!.userId, league);
 
   return (
     <div className="space-y-6">
@@ -89,6 +96,8 @@ function MembersComponent() {
           <MembersList
             members={members}
             canManageMembers={userCanManageMembers}
+            canLeaveLeague={userCanLeaveLeague}
+            isSoleMember={isSoleMember}
             userId={session!.userId}
             leagueId={leagueId}
           />

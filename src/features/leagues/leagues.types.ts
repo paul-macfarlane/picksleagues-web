@@ -8,6 +8,7 @@ import type { LeagueMemberResponse } from "../leagueMembers/leagueMembers.types"
 // constants
 
 export enum LEAGUE_INCLUDES {
+  IS_IN_SEASON = "is_in_season",
   LEAGUE_TYPE = "leagueType",
   MEMBERS = "members",
 }
@@ -58,9 +59,13 @@ export type PickEmLeagueResponse = LeagueResponse & {
 };
 
 export type PopulatedLeagueResponse = LeagueResponse & {
+  isInSeason?: boolean;
   leagueType?: LeagueTypeResponse;
   members?: LeagueMemberResponse[];
 };
+
+export type PopulatedPickEmLeagueResponse = PopulatedLeagueResponse &
+  PickEmLeagueResponse;
 
 // schemas
 

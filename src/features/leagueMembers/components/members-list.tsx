@@ -33,10 +33,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useLeaveLeague } from "@/features/leagueMembers/leagueMembers.api";
+import { useRouter } from "@tanstack/react-router";
 
 type MembersListProps = {
   members: PopulatedLeagueMemberResponse[];
   canManageMembers: boolean;
+  canLeaveLeague: boolean;
+  isSoleMember: boolean;
   userId: string;
   leagueId: string;
 };
@@ -44,11 +48,15 @@ type MembersListProps = {
 export function MembersList({
   members,
   canManageMembers,
+  canLeaveLeague,
+  isSoleMember,
   userId,
   leagueId,
 }: MembersListProps) {
   const { mutate: updateMember } = useUpdateLeagueMember();
   const { mutate: removeMember } = useRemoveMember(leagueId);
+  const { mutate: leaveLeague } = useLeaveLeague();
+  const router = useRouter();
 
   const handleUpdateMember = (userId: string, role: LEAGUE_MEMBER_ROLES) => {
     updateMember(
@@ -57,13 +65,8 @@ export function MembersList({
         onSuccess: () => {
           toast.success("Member role updated successfully.");
         },
-        onError: (error: Error) => {
-          const errorMessage = "Failed to update member role.";
-          if (error instanceof Error) {
-            toast.error(`${errorMessage}: ${error.message}`);
-          } else {
-            toast.error(errorMessage);
-          }
+        onError: (error) => {
+          toast.error(`Failed to update member role: ${error.message}`);
         },
       },
     );
@@ -74,13 +77,20 @@ export function MembersList({
       onSuccess: () => {
         toast.success("Member removed successfully.");
       },
+      onError: (error) => {
+        toast.error(`Failed to remove member: ${error.message}`);
+      },
+    });
+  };
+
+  const handleLeaveLeague = () => {
+    leaveLeague(leagueId, {
+      onSuccess: () => {
+        router.navigate({ to: "/" });
+        toast.success("You have left the league.");
+      },
       onError: (error: Error) => {
-        const errorMessage = "Failed to remove member.";
-        if (error instanceof Error) {
-          toast.error(`${errorMessage}: ${error.message}`);
-        } else {
-          toast.error(errorMessage);
-        }
+        toast.error(`Failed to leave the league: ${error.message}`);
       },
     });
   };
@@ -123,7 +133,8 @@ export function MembersList({
               )}
             </TableCell>
             <TableCell className="text-right">
-              {canManageMembers && (
+              {(canManageMembers ||
+                (member.userId === userId && canLeaveLeague)) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -131,59 +142,95 @@ export function MembersList({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    {member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER ? (
-                      <DropdownMenuItem
-                        disabled={
-                          isSoleCommissioner && member.userId === userId
-                        }
-                        onClick={() =>
-                          handleUpdateMember(
-                            member.userId,
-                            LEAGUE_MEMBER_ROLES.MEMBER,
-                          )
-                        }
-                      >
-                        Make Member
-                      </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleUpdateMember(
-                            member.userId,
-                            LEAGUE_MEMBER_ROLES.COMMISSIONER,
-                          )
-                        }
-                      >
-                        Make Commissioner
-                      </DropdownMenuItem>
+                    {canManageMembers && (
+                      <>
+                        {member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER ? (
+                          <DropdownMenuItem
+                            disabled={
+                              isSoleCommissioner && member.userId === userId
+                            }
+                            onClick={() =>
+                              handleUpdateMember(
+                                member.userId,
+                                LEAGUE_MEMBER_ROLES.MEMBER,
+                              )
+                            }
+                          >
+                            Make Member
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleUpdateMember(
+                                member.userId,
+                                LEAGUE_MEMBER_ROLES.COMMISSIONER,
+                              )
+                            }
+                          >
+                            Make Commissioner
+                          </DropdownMenuItem>
+                        )}
+                        {member.userId !== userId && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onSelect={(e) => e.preventDefault()}
+                              >
+                                Remove Member
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you sure you want to remove this member?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  The member will be removed from the league and
+                                  an invite will be requested to be sent to them
+                                  to re-join the league.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    handleRemoveMember(member.userId)
+                                  }
+                                >
+                                  Remove
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </>
                     )}
-                    {member.userId !== userId && (
+                    {member.userId === userId && canLeaveLeague && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem
                             className="text-destructive"
                             onSelect={(e) => e.preventDefault()}
                           >
-                            Remove Member
+                            Leave League
                           </DropdownMenuItem>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
-                              Are you sure you want to remove this member?
+                              Are you sure you want to leave this league?{" "}
+                              {isSoleMember &&
+                                "This will delete the league and all associated data."}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                              The member will be removed from the league and an
-                              invite will be requested to be sent to them to
-                              re-join the league.
+                              This action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleRemoveMember(member.userId)}
-                            >
-                              Remove
+                            <AlertDialogAction onClick={handleLeaveLeague}>
+                              Leave
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>

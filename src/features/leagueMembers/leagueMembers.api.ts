@@ -11,7 +11,10 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import z from "zod";
-import { GetMyLeaguesQueryKey } from "../leagues/leagues.api";
+import {
+  GetLeagueQueryKey,
+  GetMyLeaguesQueryKey,
+} from "../leagues/leagues.api";
 import { LEAGUE_INCLUDES } from "../leagues/leagues.types";
 
 export async function getLeagueMembers(
@@ -99,6 +102,30 @@ export const useRemoveMember = (leagueId: string) => {
       });
       queryClient.invalidateQueries({
         queryKey: GetMyLeaguesQueryKey([LEAGUE_INCLUDES.MEMBERS]),
+      });
+    },
+  });
+};
+
+export async function leaveLeague(leagueId: string): Promise<void> {
+  await authenticatedFetch<void>(
+    `${API_BASE}/v1/leagues/${leagueId}/members/me`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
+export const useLeaveLeague = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: leaveLeague,
+    onSuccess: (_, leagueId: string) => {
+      queryClient.invalidateQueries({
+        queryKey: GetLeagueQueryKey(leagueId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesQueryKey(),
       });
     },
   });
