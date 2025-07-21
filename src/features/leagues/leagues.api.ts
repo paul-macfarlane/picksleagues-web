@@ -12,6 +12,7 @@ import type {
 } from "./leagues.types";
 import z from "zod";
 import { LEAGUE_INCLUDES } from "./leagues.types";
+import type { LEAGUE_TYPE_SLUGS } from "../leagueTypes/leagueTypes.types";
 
 export async function getMyLeagues<T extends PopulatedLeagueResponse>(
   includes: LEAGUE_INCLUDES[] = [],
@@ -110,12 +111,38 @@ export function useCreateLeague<
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createLeague<T>,
-    onSuccess: (data) => {
+    onSuccess: (_, { leagueTypeSlug }) => {
       queryClient.invalidateQueries({
-        queryKey: GetMyLeaguesForLeagueTypeQueryKey(data.leagueTypeId),
+        queryKey: GetMyLeaguesForLeagueTypeQueryKey(leagueTypeSlug),
       });
       queryClient.invalidateQueries({
         queryKey: GetMyLeaguesQueryKey(),
+      });
+    },
+  });
+}
+
+export async function deleteLeague(leagueId: string): Promise<void> {
+  await authenticatedFetch(`${API_BASE}/v1/leagues/${leagueId}`, {
+    method: "DELETE",
+  });
+}
+
+export function useDeleteLeague() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      leagueId,
+    }: {
+      leagueId: string;
+      leagueTypeSlug: LEAGUE_TYPE_SLUGS;
+    }) => deleteLeague(leagueId),
+    onSuccess: (_, { leagueTypeSlug }) => {
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesForLeagueTypeQueryKey(leagueTypeSlug),
       });
     },
   });

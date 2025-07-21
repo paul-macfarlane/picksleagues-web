@@ -5,12 +5,29 @@ import { Trophy } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
 import { PendingCard } from "@/features/leagues/components/league-layout-skeleton";
+import { LEAGUE_INCLUDES } from "../leagues.types";
+import { LEAGUE_MEMBER_ROLES } from "@/features/leagueMembers/leagueMembers.types";
+import { Badge } from "@/components/ui/badge";
+import { authClient } from "@/lib/auth-client";
 
 export function LeagueLayout() {
   const { leagueId } = useParams({
     from: "/_authenticated/football/pick-em/$leagueId",
   });
-  const { data: league } = useSuspenseQuery(GetLeagueQueryOptions(leagueId));
+  const { data: session } = authClient.useSession();
+  const { data: league } = useSuspenseQuery(
+    GetLeagueQueryOptions(leagueId, [
+      LEAGUE_INCLUDES.LEAGUE_TYPE,
+      LEAGUE_INCLUDES.MEMBERS,
+      LEAGUE_INCLUDES.IS_IN_SEASON,
+    ]),
+  );
+
+  const isCommissioner = league.members?.some(
+    (member) =>
+      member.userId === session!.user.id &&
+      member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER,
+  );
 
   const tabs = [
     { name: "Standings", to: "/football/pick-em/$leagueId", exact: true },
@@ -33,8 +50,7 @@ export function LeagueLayout() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
             {league.name}
           </h1>
-          {/* TODO: Add back isCommissioner check when API provides it */}
-          {/* {league.isCommissioner && <Badge>Commissioner</Badge>} */}
+          {isCommissioner && <Badge>Commissioner</Badge>}
         </div>
       </div>
       <nav className="flex border-b overflow-x-auto">
