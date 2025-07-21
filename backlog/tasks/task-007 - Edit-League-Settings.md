@@ -3,7 +3,7 @@ id: task-007
 title: Edit League Settings
 status: To Do
 assignee: []
-created_date: '2025-07-21'
+created_date: "2025-07-21"
 labels: []
 dependencies: []
 ---
@@ -14,12 +14,6 @@ As a commissioner I can edit league settings like name and profile picture. If t
 
 ## Acceptance Criteria
 
-- [ ] A commissioner can edit league settings (name
-- [ ] profile picture).
-- [ ] If the league is not in season
-- [ ] a commissioner can edit start week
-- [ ] end week
-- [ ] picks per week
-- [ ] league size
-- [ ] and pick type.
+- [ ] A commissioner can edit league settings (name, profile picture).
+- [ ] If the league is not in season, a commissioner can edit start week, end week, picks per week, league size, and pick type.
 - [ ] League size cannot be reduced below the current number of members.

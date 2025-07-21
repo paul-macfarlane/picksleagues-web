@@ -3,7 +3,7 @@ id: task-006
 title: Delete League
 status: To Do
 assignee: []
-created_date: '2025-07-21'
+created_date: "2025-07-21"
 labels: []
 dependencies: []
 ---
@@ -15,9 +15,5 @@ As a league commissioner, I can delete a picks league. This removes all data ass
 ## Acceptance Criteria
 
 - [ ] A league commissioner can delete a league.
-- [ ] Deleting a league removes all associated data (members
-- [ ] picks
-- [ ] standings
-- [ ] seasons
-- [ ] etc).
+- [ ] Deleting a league removes all associated data (members, picks, standings, seasons, etc).
 - [ ] The commissioner is warned before deleting the league.
