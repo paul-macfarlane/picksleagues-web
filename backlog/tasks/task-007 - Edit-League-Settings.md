@@ -1,7 +1,7 @@
 ---
 id: task-007
 title: Edit League Settings
-status: In Progress
+status: Done
 assignee: []
 created_date: '2025-07-21'
 updated_date: '2025-07-21'
