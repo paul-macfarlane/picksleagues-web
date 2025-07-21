@@ -1,9 +1,10 @@
 ---
 id: task-007
 title: Edit League Settings
-status: To Do
+status: In Progress
 assignee: []
-created_date: "2025-07-21"
+created_date: '2025-07-21'
+updated_date: '2025-07-21'
 labels: []
 dependencies: []
 ---
