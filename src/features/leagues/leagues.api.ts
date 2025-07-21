@@ -9,6 +9,7 @@ import type {
   LeagueResponse,
   PickEmLeagueResponse,
   PopulatedLeagueResponse,
+  UpdateLeagueSchema,
 } from "./leagues.types";
 import z from "zod";
 import { LEAGUE_INCLUDES } from "./leagues.types";
@@ -114,6 +115,45 @@ export function useCreateLeague<
     onSuccess: (_, { leagueTypeSlug }) => {
       queryClient.invalidateQueries({
         queryKey: GetMyLeaguesForLeagueTypeQueryKey(leagueTypeSlug),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesQueryKey(),
+      });
+    },
+  });
+}
+
+export async function updateLeague<
+  T extends z.infer<typeof UpdateLeagueSchema>,
+>(leagueId: string, league: T): Promise<T> {
+  return await authenticatedFetch<T>(`${API_BASE}/v1/leagues/${leagueId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(league),
+  });
+}
+
+export function useUpdateLeague<
+  T extends z.infer<typeof UpdateLeagueSchema>,
+>() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      leagueId,
+      league,
+    }: {
+      leagueId: string;
+      league: T;
+      leagueTypeSlug: LEAGUE_TYPE_SLUGS;
+    }) => updateLeague(leagueId, league),
+    onSuccess: (_, { leagueId, leagueTypeSlug }) => {
+      queryClient.invalidateQueries({
+        queryKey: GetMyLeaguesForLeagueTypeQueryKey(leagueTypeSlug),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetLeagueQueryKey(leagueId),
       });
       queryClient.invalidateQueries({
         queryKey: GetMyLeaguesQueryKey(),

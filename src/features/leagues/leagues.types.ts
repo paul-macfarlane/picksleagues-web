@@ -122,3 +122,16 @@ export const CreateLeagueSchema = z.object({
 export const CreatePickEmLeagueSchema = CreateLeagueSchema.extend({
   settings: PickEmLeagueSettingsSchema,
 });
+
+export const UpdateLeagueSchema = CreateLeagueSchema.pick({
+  name: true,
+  image: true,
+  startPhaseTemplateId: true,
+  endPhaseTemplateId: true,
+  visibility: true,
+  size: true,
+}).partial();
+
+export const UpdatePickEmLeagueSchema = UpdateLeagueSchema.extend({
+  settings: PickEmLeagueSettingsSchema,
+});
