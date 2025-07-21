@@ -9,7 +9,7 @@ import type { LeagueMemberResponse } from "../leagueMembers/leagueMembers.types"
 
 export enum LEAGUE_INCLUDES {
   IS_IN_SEASON = "is_in_season",
-  LEAGUE_TYPE = "leagueType",
+  LEAGUE_TYPE = "league_type",
   MEMBERS = "members",
 }
 

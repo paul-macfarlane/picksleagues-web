@@ -17,6 +17,7 @@ export const Route = createFileRoute(
       GetLeagueQueryOptions(leagueId, [
         LEAGUE_INCLUDES.MEMBERS,
         LEAGUE_INCLUDES.IS_IN_SEASON,
+        LEAGUE_INCLUDES.LEAGUE_TYPE,
       ]),
     ),
 });
