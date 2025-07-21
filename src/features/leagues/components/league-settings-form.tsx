@@ -8,18 +8,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { PickEmLeagueResponse } from "@/features/leagues/leagues.types";
+import type { PopulatedPickEmLeagueResponse } from "@/features/leagues/leagues.types";
 
 type LeagueSettingsFormProps = {
-  league: PickEmLeagueResponse;
-  isCommissioner: boolean;
-  isOffSeason: boolean;
+  league: PopulatedPickEmLeagueResponse;
+  canEdit: boolean;
+  canEditAllSettings: boolean;
 };
 
+// TODO: right now this is only functional for pick'em leagues,
+// which is probably fine for now but will need to be updated to support other league types
+// (e.g. elimination, etc.)
+// the other option is to just have different forms depending on league type
 export function LeagueSettingsForm({
   league,
-  isCommissioner,
-  isOffSeason,
+  canEdit,
+  canEditAllSettings,
 }: LeagueSettingsFormProps) {
   return (
     <Card>
@@ -32,7 +36,7 @@ export function LeagueSettingsForm({
           <Input
             id="leagueName"
             defaultValue={league.name}
-            disabled={!isCommissioner}
+            disabled={!canEdit}
           />
         </div>
         <div className="space-y-2">
@@ -40,7 +44,7 @@ export function LeagueSettingsForm({
           <Input
             id="logoUrl"
             defaultValue={league.image ?? ""}
-            disabled={!isCommissioner}
+            disabled={!canEdit}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -50,7 +54,7 @@ export function LeagueSettingsForm({
               id="leagueSize"
               type="number"
               defaultValue={league.size}
-              disabled={!isCommissioner || !isOffSeason}
+              disabled={!canEditAllSettings}
             />
           </div>
           <div className="space-y-2">
@@ -59,16 +63,17 @@ export function LeagueSettingsForm({
               id="picksPerPhase"
               type="number"
               defaultValue={league.settings.picksPerPhase}
-              disabled={!isCommissioner || !isOffSeason}
+              disabled={!canEditAllSettings}
             />
           </div>
         </div>
       </CardContent>
-      {isCommissioner && (
+      {canEdit && (
         <CardFooter className="flex justify-between">
-          <Button variant="destructive" disabled={!isOffSeason}>
+          <Button variant="destructive" disabled={!canEdit}>
             Delete League
           </Button>
+
           <Button>Save Changes</Button>
         </CardFooter>
       )}

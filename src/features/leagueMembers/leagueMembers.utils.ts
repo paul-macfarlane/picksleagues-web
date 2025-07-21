@@ -1,14 +1,44 @@
-import {
-  LEAGUE_MEMBER_ROLES,
-  type PopulatedLeagueMemberResponse,
-} from "./leagueMembers.types";
+import type { PopulatedLeagueResponse } from "../leagues/leagues.types";
+import { LEAGUE_MEMBER_ROLES } from "./leagueMembers.types";
 
 export function canManageMembers(
   userId: string,
-  members: PopulatedLeagueMemberResponse[],
+  league: PopulatedLeagueResponse,
 ) {
-  const currentUserMemberInfo = members.find(
+  const currentUserMemberInfo = league.members?.find(
     (member) => member.userId === userId,
   );
-  return currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
+  return (
+    currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER &&
+    !league.isInSeason
+  );
+}
+
+export function canLeaveLeagueAndIsSoleMember(
+  userId: string,
+  league: PopulatedLeagueResponse,
+): {
+  canLeave: boolean;
+  isSoleMember: boolean;
+} {
+  const currentUserMemberInfo = league.members?.find(
+    (member) => member.userId === userId,
+  );
+  const otherCommissioners = league.members?.filter(
+    (member) =>
+      member.userId !== userId &&
+      member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER,
+  );
+
+  const isSoleMember = !!(
+    currentUserMemberInfo && league.members?.length === 1
+  );
+  const isSoleCommissioner =
+    currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER &&
+    otherCommissioners?.length === 0;
+
+  return {
+    canLeave: !league.isInSeason && (isSoleMember || !isSoleCommissioner),
+    isSoleMember,
+  };
 }
