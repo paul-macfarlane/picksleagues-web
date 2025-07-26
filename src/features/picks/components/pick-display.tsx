@@ -1,23 +1,4 @@
-import React from "react";
-
-export type PickTeam = {
-  abbr: string;
-  logoUrl: string;
-  score: number | null;
-  odds?: string; // e.g. '+8' or '-8', only for ATS
-};
-
-export type PickDisplayProps = {
-  matchup: string;
-  home: PickTeam;
-  away: PickTeam;
-  pick: string;
-  result: "WIN" | "LOSS" | "TIE" | null;
-  status: string;
-  badge?: React.ReactNode;
-  isATS?: boolean;
-  sportsbook?: string;
-};
+import type { PickDisplayProps, PickTeam } from "../picks.types";
 
 export function PickDisplay({
   matchup,
@@ -64,19 +45,19 @@ export function PickDisplay({
         <PickTeamBox
           team={away}
           picked={pick === away.abbr}
+          result={result}
           score={away.score}
           side="left"
           isATS={isATS}
-          result={result}
         />
         {/* Home Team */}
         <PickTeamBox
           team={home}
           picked={pick === home.abbr}
+          result={result}
           score={home.score}
           side="right"
           isATS={isATS}
-          result={result}
         />
       </div>
       {isATS && sportsbook && (

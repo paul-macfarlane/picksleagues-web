@@ -1,136 +1,42 @@
 import { useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { PickDisplay } from "./pick-display";
-
-// Mock data
-const mockMembers = [
-  {
-    id: 1,
-    username: "pmac1234",
-    displayName: "pauly mac",
-    avatarUrl: "",
-    weekRank: 2,
-    seasonRank: 5,
-    weekPoints: 2,
-    seasonPoints: 7,
-    picks: [
-      // 1) Scheduled, not yet started (ATS)
-      {
-        id: 1,
-        matchup: "ARI @ PIT",
-        home: {
-          abbr: "PIT",
-          logoUrl: "/assets/pit.svg",
-          score: null,
-          odds: "-8",
-        },
-        away: {
-          abbr: "ARI",
-          logoUrl: "/assets/ari.svg",
-          score: null,
-          odds: "+8",
-        },
-        pick: "ARI",
-        result: null,
-        status: "SCHEDULED",
-        isATS: true,
-        sportsbook: "FAKE ESPN BET",
-      },
-      // 2) In progress (ATS)
-      {
-        id: 2,
-        matchup: "ARI @ PIT",
-        home: {
-          abbr: "PIT",
-          logoUrl: "/assets/pit.svg",
-          score: 30,
-          odds: "-8",
-        },
-        away: { abbr: "ARI", logoUrl: "/assets/ari.svg", score: 3, odds: "+8" },
-        pick: "ARI",
-        result: null,
-        status: "IN_PROGRESS",
-        isATS: true,
-        sportsbook: "FAKE ESPN BET",
-      },
-      // 3) Completed, picked correctly (ATS)
-      {
-        id: 3,
-        matchup: "HOU @ MIA",
-        home: {
-          abbr: "MIA",
-          logoUrl: "/assets/mia.svg",
-          score: 15,
-          odds: "-3",
-        },
-        away: {
-          abbr: "HOU",
-          logoUrl: "/assets/hou.svg",
-          score: 20,
-          odds: "+3",
-        },
-        pick: "HOU",
-        result: "WIN",
-        status: "FINAL",
-        isATS: true,
-        sportsbook: "FAKE ESPN BET",
-      },
-      // 4) Completed, picked incorrectly (ATS)
-      {
-        id: 4,
-        matchup: "ARI @ PIT",
-        home: {
-          abbr: "PIT",
-          logoUrl: "/assets/pit.svg",
-          score: 30,
-          odds: "-8",
-        },
-        away: { abbr: "ARI", logoUrl: "/assets/ari.svg", score: 3, odds: "+8" },
-        pick: "ARI",
-        result: "LOSS",
-        status: "FINAL",
-        isATS: true,
-        sportsbook: "FAKE ESPN BET",
-      },
-      // 5) Completed, tied (straight up)
-      {
-        id: 5,
-        matchup: "GB @ MIN",
-        home: { abbr: "GB", logoUrl: "/assets/gb.svg", score: 20 },
-        away: { abbr: "MIN", logoUrl: "/assets/min.svg", score: 20 },
-        pick: "GB",
-        result: "TIE",
-        status: "FINAL",
-        isATS: false,
-        sportsbook: undefined,
-      },
-    ],
-  },
-  {
-    id: 2,
-    username: "testuser15",
-    displayName: "Test15 User15",
-    avatarUrl: "",
-    weekRank: 1,
-    seasonRank: 3,
-    weekPoints: 3,
-    seasonPoints: 9,
-    picks: [],
-  },
-];
+import { WeekSwitcher } from "./week-switcher";
+import { Route } from "@/routes/_authenticated/football/pick-em/$leagueId.league-picks";
+import { getValidWeek, weeks, currentWeekId } from "../picks.utils";
+import { mockMembers } from "../picks.api";
+import type { Member } from "../picks.types";
 
 export function LeaguePicks() {
+  const { week } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const selectedWeekId = getValidWeek(week);
+
+  // For demo, assign all picks to week 5, and no picks to other weeks
+  const members: Member[] = selectedWeekId === currentWeekId ? mockMembers : [];
+
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <h2 className="text-2xl font-bold mb-2">League Picks</h2>
-      {mockMembers.map((member) => (
+      <WeekSwitcher
+        weeks={weeks}
+        selectedWeekId={selectedWeekId}
+        onSelect={(id) => navigate({ search: { week: id } })}
+        disableFuture={false}
+      />
+      {members.map((member) => (
         <MemberPicksCard key={member.id} member={member} />
       ))}
+      {members.length === 0 && (
+        <div className="text-muted-foreground text-center py-8">
+          No picks for this week.
+        </div>
+      )}
     </div>
   );
 }
 
-function MemberPicksCard({ member }: { member: (typeof mockMembers)[0] }) {
+function MemberPicksCard({ member }: { member: Member }) {
   const [showPicks, setShowPicks] = useState(false);
   return (
     <Card className="mb-4">
@@ -162,7 +68,7 @@ function MemberPicksCard({ member }: { member: (typeof mockMembers)[0] }) {
                 matchup={pick.matchup}
                 home={pick.home}
                 away={pick.away}
-                pick={pick.pick}
+                pick={pick.pick ?? ""}
                 result={pick.result as "WIN" | "LOSS" | "TIE" | null}
                 status={pick.status}
                 isATS={pick.isATS}
