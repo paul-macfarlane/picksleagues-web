@@ -1,72 +1,149 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Lock } from "lucide-react";
+import { useState } from "react";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { PickDisplay } from "./pick-display";
 
 // Mock data
-const mockWeek = {
-  name: "Week 12",
-  isLocked: false,
-};
-const mockPicks = [
-  { member: "Alice", game: "Team A @ Team B", pick: "Team A", status: "WIN" },
-  { member: "Bob", game: "Team A @ Team B", pick: "Team B", status: "LOSS" },
-  { member: "Alice", game: "Team C @ Team D", pick: "Team D", status: "WIN" },
-  { member: "Bob", game: "Team C @ Team D", pick: "Team D", status: "WIN" },
+const mockMembers = [
+  {
+    id: 1,
+    username: "pmac1234",
+    displayName: "pauly mac",
+    avatarUrl: "",
+    weekRank: 2,
+    seasonRank: 5,
+    weekPoints: 2,
+    seasonPoints: 7,
+    picks: [
+      {
+        id: 1,
+        matchup: "IND @ CIN",
+        home: {
+          abbr: "CIN",
+          logoUrl: "/assets/cin.svg",
+          score: 27,
+        },
+        away: {
+          abbr: "IND",
+          logoUrl: "/assets/ind.svg",
+          score: 4,
+        },
+        pick: "CIN",
+        result: "WIN",
+        status: "Final",
+      },
+      {
+        id: 2,
+        matchup: "PHI @ NO",
+        home: {
+          abbr: "NO",
+          logoUrl: "/assets/no.svg",
+          score: 0,
+        },
+        away: {
+          abbr: "PHI",
+          logoUrl: "/assets/phi.svg",
+          score: 16,
+        },
+        pick: "PHI",
+        result: "WIN",
+        status: "Final",
+      },
+      {
+        id: 3,
+        matchup: "HOU @ MIA",
+        home: {
+          abbr: "MIA",
+          logoUrl: "/assets/mia.svg",
+          score: 15,
+        },
+        away: {
+          abbr: "HOU",
+          logoUrl: "/assets/hou.svg",
+          score: 12,
+        },
+        pick: "HOU",
+        result: "LOSS",
+        status: "Final",
+      },
+    ],
+  },
+  {
+    id: 2,
+    username: "testuser15",
+    displayName: "Test15 User15",
+    avatarUrl: "",
+    weekRank: 1,
+    seasonRank: 3,
+    weekPoints: 3,
+    seasonPoints: 9,
+    picks: [],
+  },
 ];
 
 export function LeaguePicks() {
-  if (!mockWeek.isLocked) {
-    return (
-      <div className="text-center text-muted-foreground py-12 flex flex-col items-center gap-4">
-        <Lock className="h-12 w-12" />
-        <h3 className="text-xl font-semibold">Picks are Locked</h3>
-        <p>
-          Picks for {mockWeek.name} will be revealed after the pick lock time.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>League Picks for {mockWeek.name}</CardTitle>
+    <div className="max-w-2xl mx-auto space-y-8">
+      <h2 className="text-2xl font-bold mb-2">League Picks</h2>
+      {mockMembers.map((member) => (
+        <MemberPicksCard key={member.id} member={member} />
+      ))}
+    </div>
+  );
+}
+
+function MemberPicksCard({ member }: { member: (typeof mockMembers)[0] }) {
+  const [showPicks, setShowPicks] = useState(true);
+  return (
+    <Card className="mb-4">
+      <CardHeader className="flex flex-row items-center gap-4 pb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-bold text-lg">
+            {member.username[0].toUpperCase()}
+          </div>
+          <div>
+            <div className="font-semibold leading-tight">{member.username}</div>
+            <div className="text-xs text-muted-foreground leading-tight">
+              {member.displayName}
+            </div>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Member</TableHead>
-              <TableHead>Game</TableHead>
-              <TableHead>Pick</TableHead>
-              <TableHead className="text-right">Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mockPicks.map((pick, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">{pick.member}</TableCell>
-                <TableCell>{pick.game}</TableCell>
-                <TableCell>{pick.pick}</TableCell>
-                <TableCell className="text-right">
-                  <Badge
-                    variant={pick.status === "WIN" ? "default" : "destructive"}
-                  >
-                    {pick.status}
-                  </Badge>
-                </TableCell>
-              </TableRow>
+        <button
+          className="text-sm text-muted-foreground hover:underline mb-3"
+          onClick={() => setShowPicks((v) => !v)}
+        >
+          {showPicks ? "Hide Picks" : "Show Picks"}
+        </button>
+        {showPicks && member.picks.length > 0 && (
+          <div className="space-y-4">
+            {member.picks.map((pick) => (
+              <PickDisplay
+                key={pick.id}
+                matchup={pick.matchup}
+                home={pick.home}
+                away={pick.away}
+                pick={pick.pick}
+                result={pick.result as "WIN" | "LOSS" | null}
+                status={pick.status}
+                badge={
+                  pick.result ? (
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-bold ${pick.result === "WIN" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}
+                    >
+                      {pick.result === "WIN" ? "Win" : "Loss"}
+                    </span>
+                  ) : null
+                }
+              />
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        )}
+        {showPicks && member.picks.length === 0 && (
+          <div className="text-muted-foreground text-sm py-4 text-center">
+            No picks for this week.
+          </div>
+        )}
       </CardContent>
     </Card>
   );
