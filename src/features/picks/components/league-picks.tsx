@@ -131,7 +131,7 @@ export function LeaguePicks() {
 }
 
 function MemberPicksCard({ member }: { member: (typeof mockMembers)[0] }) {
-  const [showPicks, setShowPicks] = useState(true);
+  const [showPicks, setShowPicks] = useState(false);
   return (
     <Card className="mb-4">
       <CardHeader className="flex flex-row items-center gap-4 pb-2">
