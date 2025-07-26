@@ -3,7 +3,8 @@ import React from "react";
 export type PickTeam = {
   abbr: string;
   logoUrl: string;
-  score: number;
+  score: number | null;
+  odds?: string; // e.g. '+8' or '-8', only for ATS
 };
 
 export type PickDisplayProps = {
@@ -11,9 +12,11 @@ export type PickDisplayProps = {
   home: PickTeam;
   away: PickTeam;
   pick: string;
-  result: "WIN" | "LOSS" | null;
+  result: "WIN" | "LOSS" | "TIE" | null;
   status: string;
   badge?: React.ReactNode;
+  isATS?: boolean;
+  sportsbook?: string;
 };
 
 export function PickDisplay({
@@ -24,14 +27,20 @@ export function PickDisplay({
   result,
   status,
   badge,
+  isATS,
+  sportsbook,
 }: PickDisplayProps) {
-  // Render badge in top left if present, otherwise render win/loss badge if result exists
+  // Badge logic
   const showBadge =
     badge !== undefined ? (
       badge
+    ) : result === "TIE" ? (
+      <span className="px-2 py-1 rounded-full text-xs font-bold bg-yellow-400 text-black">
+        Push
+      </span>
     ) : result ? (
       <span
-        className={`px-2 py-1 rounded-full text-xs font-bold ${result === "WIN" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}
+        className={`px-2 py-1 rounded-full text-xs font-bold ${result === "WIN" ? "bg-green-600 text-white" : result === "LOSS" ? "bg-red-600 text-white" : ""}`}
       >
         {result === "WIN" ? "Win" : "Loss"}
       </span>
@@ -57,6 +66,8 @@ export function PickDisplay({
           picked={pick === away.abbr}
           score={away.score}
           side="left"
+          isATS={isATS}
+          result={result}
         />
         {/* Home Team */}
         <PickTeamBox
@@ -64,8 +75,15 @@ export function PickDisplay({
           picked={pick === home.abbr}
           score={home.score}
           side="right"
+          isATS={isATS}
+          result={result}
         />
       </div>
+      {isATS && sportsbook && (
+        <div className="text-xs italic text-muted-foreground text-right mt-2">
+          Odds presented by <span className="font-semibold">{sportsbook}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -75,14 +93,20 @@ export function PickTeamBox({
   picked,
   score,
   side,
+  isATS,
+  result,
 }: {
   team: PickTeam;
   picked: boolean;
-  score: number;
+  score: number | null;
   side: "left" | "right";
+  isATS?: boolean;
+  result?: "WIN" | "LOSS" | "TIE" | null;
 }) {
   let borderColor = "border-border";
-  if (picked) borderColor = "border-green-500"; // Only highlight, not win/loss color
+  if (picked && result === "WIN") borderColor = "border-green-500";
+  if (picked && result === "LOSS") borderColor = "border-red-500";
+  if (picked && result === "TIE") borderColor = "border-yellow-400";
   return (
     <div
       className={`flex-1 flex items-center rounded-lg border ${borderColor} bg-muted px-4 py-3 min-w-0`}
@@ -91,7 +115,7 @@ export function PickTeamBox({
       {side === "left" && (
         <>
           <span className="hidden md:block text-lg font-bold text-white min-w-[2ch] text-left">
-            {score}
+            {score !== null ? score : ""}
           </span>
           <div className="hidden md:flex flex-1 items-center justify-between w-full">
             <span></span>
@@ -100,6 +124,7 @@ export function PickTeamBox({
                 className={`font-bold text-lg ${picked ? "text-white" : "text-muted-foreground"}`}
               >
                 {team.abbr}
+                {isATS && team.odds ? ` ${team.odds}` : ""}
               </span>
               <img
                 src={team.logoUrl}
@@ -119,10 +144,11 @@ export function PickTeamBox({
                 className={`font-bold text-lg ${picked ? "text-white" : "text-muted-foreground"}`}
               >
                 {team.abbr}
+                {isATS && team.odds ? ` ${team.odds}` : ""}
               </span>
             </div>
             <span className="text-lg font-bold text-white min-w-[2ch] text-right ml-auto">
-              {score}
+              {score !== null ? score : ""}
             </span>
           </div>
         </>
@@ -140,13 +166,14 @@ export function PickTeamBox({
               className={`font-bold text-lg ${picked ? "text-white" : "text-muted-foreground"}`}
             >
               {team.abbr}
+              {isATS && team.odds ? ` ${team.odds}` : ""}
             </span>
           </div>
           <span className="hidden md:block text-lg font-bold text-white min-w-[2ch] text-right">
-            {score}
+            {score !== null ? score : ""}
           </span>
           <span className="block md:hidden text-lg font-bold text-white min-w-[2ch] text-right ml-auto">
-            {score}
+            {score !== null ? score : ""}
           </span>
         </>
       )}

@@ -14,40 +14,46 @@ const mockMembers = [
     weekPoints: 2,
     seasonPoints: 7,
     picks: [
+      // 1) Scheduled, not yet started (ATS)
       {
         id: 1,
-        matchup: "IND @ CIN",
+        matchup: "ARI @ PIT",
         home: {
-          abbr: "CIN",
-          logoUrl: "/assets/cin.svg",
-          score: 27,
+          abbr: "PIT",
+          logoUrl: "/assets/pit.svg",
+          score: null,
+          odds: "-8",
         },
         away: {
-          abbr: "IND",
-          logoUrl: "/assets/ind.svg",
-          score: 4,
+          abbr: "ARI",
+          logoUrl: "/assets/ari.svg",
+          score: null,
+          odds: "+8",
         },
-        pick: "CIN",
-        result: "WIN",
-        status: "Final",
+        pick: "ARI",
+        result: null,
+        status: "SCHEDULED",
+        isATS: true,
+        sportsbook: "FAKE ESPN BET",
       },
+      // 2) In progress (ATS)
       {
         id: 2,
-        matchup: "PHI @ NO",
+        matchup: "ARI @ PIT",
         home: {
-          abbr: "NO",
-          logoUrl: "/assets/no.svg",
-          score: 0,
+          abbr: "PIT",
+          logoUrl: "/assets/pit.svg",
+          score: 30,
+          odds: "-8",
         },
-        away: {
-          abbr: "PHI",
-          logoUrl: "/assets/phi.svg",
-          score: 16,
-        },
-        pick: "PHI",
-        result: "WIN",
-        status: "Final",
+        away: { abbr: "ARI", logoUrl: "/assets/ari.svg", score: 3, odds: "+8" },
+        pick: "ARI",
+        result: null,
+        status: "IN_PROGRESS",
+        isATS: true,
+        sportsbook: "FAKE ESPN BET",
       },
+      // 3) Completed, picked correctly (ATS)
       {
         id: 3,
         matchup: "HOU @ MIA",
@@ -55,15 +61,48 @@ const mockMembers = [
           abbr: "MIA",
           logoUrl: "/assets/mia.svg",
           score: 15,
+          odds: "-3",
         },
         away: {
           abbr: "HOU",
           logoUrl: "/assets/hou.svg",
-          score: 12,
+          score: 20,
+          odds: "+3",
         },
         pick: "HOU",
+        result: "WIN",
+        status: "FINAL",
+        isATS: true,
+        sportsbook: "FAKE ESPN BET",
+      },
+      // 4) Completed, picked incorrectly (ATS)
+      {
+        id: 4,
+        matchup: "ARI @ PIT",
+        home: {
+          abbr: "PIT",
+          logoUrl: "/assets/pit.svg",
+          score: 30,
+          odds: "-8",
+        },
+        away: { abbr: "ARI", logoUrl: "/assets/ari.svg", score: 3, odds: "+8" },
+        pick: "ARI",
         result: "LOSS",
-        status: "Final",
+        status: "FINAL",
+        isATS: true,
+        sportsbook: "FAKE ESPN BET",
+      },
+      // 5) Completed, tied (straight up)
+      {
+        id: 5,
+        matchup: "GB @ MIN",
+        home: { abbr: "GB", logoUrl: "/assets/gb.svg", score: 20 },
+        away: { abbr: "MIN", logoUrl: "/assets/min.svg", score: 20 },
+        pick: "GB",
+        result: "TIE",
+        status: "FINAL",
+        isATS: false,
+        sportsbook: undefined,
       },
     ],
   },
@@ -124,17 +163,10 @@ function MemberPicksCard({ member }: { member: (typeof mockMembers)[0] }) {
                 home={pick.home}
                 away={pick.away}
                 pick={pick.pick}
-                result={pick.result as "WIN" | "LOSS" | null}
+                result={pick.result as "WIN" | "LOSS" | "TIE" | null}
                 status={pick.status}
-                badge={
-                  pick.result ? (
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-bold ${pick.result === "WIN" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}
-                    >
-                      {pick.result === "WIN" ? "Win" : "Loss"}
-                    </span>
-                  ) : null
-                }
+                isATS={pick.isATS}
+                sportsbook={pick.sportsbook}
               />
             ))}
           </div>
