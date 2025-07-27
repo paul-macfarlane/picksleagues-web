@@ -25,6 +25,12 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
     {},
   );
 
+  // Determine if this is the current phase based on start/end dates
+  const now = new Date();
+  const phaseStart = new Date(phase.startDate);
+  const phaseEnd = new Date(phase.endDate);
+  const isCurrentPhase = now >= phaseStart && now <= phaseEnd;
+
   // Check if user has made picks for this phase
   const hasMadePicks = userPicks.length > 0;
 
@@ -48,6 +54,9 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
   });
 
   const requiredPicks = Math.min(pickableEvents.length, 5); // Assuming 5 picks per week
+
+  // Check if there are any events at all in this phase
+  const hasAnyEvents = currentEvents.length > 0;
 
   const handlePick = (eventId: string, teamId: string) => {
     setSelectedPicks((prev) => {
@@ -123,7 +132,14 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
         onSelect={handlePhaseSelect}
       />
 
-      {hasMadePicks ? (
+      {!hasAnyEvents ? (
+        // No events in this phase
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            This phase doesn't have any games yet.
+          </p>
+        </div>
+      ) : hasMadePicks ? (
         // Show existing picks
         <div className="space-y-4">
           {currentEvents.map((event) => {
@@ -138,8 +154,26 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
             );
           })}
         </div>
+      ) : !isCurrentPhase ? (
+        // Not current phase - show read-only view
+        <div className="space-y-4">
+          <div className="text-center py-4">
+            <p className="text-muted-foreground mb-4">
+              This phase hasn't started yet. Picks will be available when it
+              becomes the current phase.
+            </p>
+          </div>
+          {currentEvents.map((event) => (
+            <PickDisplay
+              key={event.id}
+              event={event}
+              userPick={undefined}
+              isATS={isATS}
+            />
+          ))}
+        </div>
       ) : (
-        // Show interactive pick making
+        // Show interactive pick making for current phase
         <>
           {/* Sticky submit button header */}
           {pickableEvents.length > 0 && (
@@ -159,15 +193,23 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
           )}
 
           <div className="space-y-4">
-            {pickableEvents.map((event) => (
-              <InteractivePickDisplay
-                key={event.id}
-                event={event}
-                isATS={isATS}
-                onPick={(teamId) => handlePick(event.id, teamId)}
-                selectedTeamId={selectedPicks[event.id]}
-              />
-            ))}
+            {pickableEvents.length > 0 ? (
+              pickableEvents.map((event) => (
+                <InteractivePickDisplay
+                  key={event.id}
+                  event={event}
+                  isATS={isATS}
+                  onPick={(teamId) => handlePick(event.id, teamId)}
+                  selectedTeamId={selectedPicks[event.id]}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  No games available for picks at this time.
+                </p>
+              </div>
+            )}
           </div>
         </>
       )}

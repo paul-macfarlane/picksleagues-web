@@ -124,6 +124,9 @@ export function LeaguePicks({
     }
   });
 
+  // Check if there are any events at all in this phase
+  const hasAnyEvents = (phase.events || []).length > 0;
+
   // Create member data for display
   const members = Array.from(picksByUser.entries()).map(([, picks]) => {
     const firstPick = picks[0];
@@ -154,15 +157,32 @@ export function LeaguePicks({
         onSelect={handlePhaseSelect}
       />
 
-      <div className="space-y-4">
-        {members.map((member) => (
-          <MemberPicksCard
-            key={member.profile.userId}
-            member={member}
-            isATS={isATS}
-          />
-        ))}
-      </div>
+      {!hasAnyEvents ? (
+        // No events in this phase
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            This phase doesn't have any games yet.
+          </p>
+        </div>
+      ) : members.length === 0 ? (
+        // No picks made yet
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            No picks have been made for this phase yet.
+          </p>
+        </div>
+      ) : (
+        // Show member picks
+        <div className="space-y-4">
+          {members.map((member) => (
+            <MemberPicksCard
+              key={member.profile.userId}
+              member={member}
+              isATS={isATS}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
