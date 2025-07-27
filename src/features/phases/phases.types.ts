@@ -27,6 +27,7 @@ export type PhaseResponse = {
   seasonId: string;
   sequence: number;
   phaseTemplateId: string;
+  pickLockTime: Date;
 };
 
 export type PopulatedPhaseResponse = PhaseResponse & {

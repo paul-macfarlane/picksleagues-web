@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, getRouteApi } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PickDisplay } from "./pick-display";
 import { InteractivePickDisplay } from "./interactive-pick-display";
 import { WeekSwitcher } from "./week-switcher";
@@ -9,6 +10,7 @@ import type { PopulatedPhaseResponse } from "../../phases/phases.types";
 import { LIVE_SCORE_STATUSES } from "../../events/events.type";
 import { useSubmitPicksMutation } from "../picks.api";
 import { toast } from "sonner";
+import { InfoIcon } from "lucide-react";
 
 interface MyPicksProps {
   phase: PopulatedPhaseResponse;
@@ -39,7 +41,9 @@ export function MyPicks({
   const now = new Date();
   const phaseStart = new Date(phase.startDate);
   const phaseEnd = new Date(phase.endDate);
+  const pickLockTime = new Date(phase.pickLockTime);
   const isCurrentPhase = now >= phaseStart && now <= phaseEnd;
+  const isPicksLocked = now >= pickLockTime;
 
   // Check if user has made picks for this phase
   const hasMadePicks = userPicks.length > 0;
@@ -204,8 +208,31 @@ export function MyPicks({
       ) : (
         // Show interactive pick making for current phase
         <>
+          {/* Pick lock time warning */}
+          <Alert
+            className="mb-6"
+            variant={isPicksLocked ? "destructive" : "default"}
+          >
+            <InfoIcon className="h-4 w-4" />
+            <AlertDescription>
+              {isPicksLocked ? (
+                <span className="font-semibold">
+                  Picks are now locked for this phase.
+                </span>
+              ) : (
+                <span>
+                  Picks will lock at{" "}
+                  <span className="font-semibold">
+                    {pickLockTime.toLocaleString()}
+                  </span>
+                  . Make sure to submit your picks before then!
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+
           {/* Sticky submit button header */}
-          {pickableEvents.length > 0 && (
+          {pickableEvents.length > 0 && !isPicksLocked && (
             <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border pb-4 mb-4">
               <div className="flex justify-center">
                 <Button
@@ -222,25 +249,41 @@ export function MyPicks({
             </div>
           )}
 
-          <div className="space-y-4">
-            {pickableEvents.length > 0 ? (
-              pickableEvents.map((event) => (
-                <InteractivePickDisplay
-                  key={event.id}
-                  event={event}
-                  isATS={isATS}
-                  onPick={(teamId) => handlePick(event.id, teamId)}
-                  selectedTeamId={selectedPicks[event.id]}
-                />
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  No games available for picks at this time.
+          {/* Interactive pick making - only show if picks aren't locked */}
+          {!isPicksLocked ? (
+            <div className="space-y-4">
+              {pickableEvents.length > 0 ? (
+                pickableEvents.map((event) => (
+                  <InteractivePickDisplay
+                    key={event.id}
+                    event={event}
+                    isATS={isATS}
+                    onPick={(teamId) => handlePick(event.id, teamId)}
+                    selectedTeamId={selectedPicks[event.id]}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    No games available for picks at this time.
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Show message if picks are locked */
+            <div className="text-center py-8">
+              <div className="text-muted-foreground">
+                <p className="text-lg font-medium mb-2">
+                  Picks are locked for this phase
+                </p>
+                <p>
+                  You can no longer make picks for this phase. Picks locked at{" "}
+                  {pickLockTime.toLocaleString()}.
                 </p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </>
       )}
     </div>

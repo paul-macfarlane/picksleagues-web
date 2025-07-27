@@ -160,14 +160,14 @@ export function PickTeamBox({
   let borderColor = "border-border";
   if (picked) {
     if (result === "WIN") {
-      borderColor = "border-green-500";
+      borderColor = "border-green-500"; // Keep green for win - no CSS variable available
     } else if (result === "LOSS") {
-      borderColor = "border-red-500";
+      borderColor = "border-destructive"; // Use destructive CSS variable for loss
     } else if (result === "TIE") {
-      borderColor = "border-yellow-400";
+      borderColor = "border-yellow-400"; // Keep yellow for tie - no CSS variable available
     } else {
-      // Game hasn't completed yet - show blue border for selected pick
-      borderColor = "border-blue-500";
+      // Game hasn't completed yet - show primary border for selected pick
+      borderColor = "border-primary"; // Use primary CSS variable for selected
     }
   }
 

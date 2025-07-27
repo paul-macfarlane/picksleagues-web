@@ -32,10 +32,10 @@ export function InteractivePickTeamBox({
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 flex items-center rounded-lg border bg-muted px-4 py-3 min-w-0 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-blue-500 ${
+      className={`flex-1 flex items-center rounded-lg border bg-muted px-4 py-3 min-w-0 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-primary ${
         selected
-          ? "border-blue-500 ring-2 ring-blue-500 bg-blue-900/50"
-          : "border-border hover:border-blue-400"
+          ? "border-primary ring-2 ring-primary bg-primary/10"
+          : "border-border hover:border-primary/60"
       }`}
       tabIndex={0}
     >

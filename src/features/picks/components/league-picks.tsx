@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate, getRouteApi } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ChevronDown, ChevronUp, InfoIcon } from "lucide-react";
 import { PickDisplay } from "./pick-display";
 import { WeekSwitcher } from "./week-switcher";
 import type { PopulatedPickResponse } from "../picks.types";
@@ -77,6 +78,11 @@ export function LeaguePicks({
 }: LeaguePicksProps) {
   const navigate = useNavigate();
   const { leagueId } = routeApi.useParams();
+
+  // Check if picks are locked for this phase
+  const now = new Date();
+  const pickLockTime = new Date(phase.pickLockTime);
+  const isPicksLocked = now >= pickLockTime;
 
   const handlePhaseSelect = (phaseId: string) => {
     // Navigate to the new phase
@@ -157,11 +163,33 @@ export function LeaguePicks({
         onSelect={handlePhaseSelect}
       />
 
+      {/* Pick lock time warning */}
+      {!isPicksLocked && (
+        <Alert>
+          <InfoIcon className="h-4 w-4" />
+          <AlertDescription>
+            <span>
+              League member picks will be visible after the pick lock time:{" "}
+              <span className="font-semibold">
+                {pickLockTime.toLocaleString()}
+              </span>
+            </span>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {!hasAnyEvents ? (
         // No events in this phase
         <div className="text-center py-8">
           <p className="text-muted-foreground">
             This phase doesn't have any games yet.
+          </p>
+        </div>
+      ) : !isPicksLocked ? (
+        // Picks are not yet visible
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            League member picks will be visible after the pick lock time.
           </p>
         </div>
       ) : members.length === 0 ? (
