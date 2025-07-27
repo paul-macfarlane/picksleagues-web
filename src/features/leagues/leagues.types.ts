@@ -64,8 +64,11 @@ export type PopulatedLeagueResponse = LeagueResponse & {
   members?: LeagueMemberResponse[];
 };
 
-export type PopulatedPickEmLeagueResponse = PopulatedLeagueResponse &
-  PickEmLeagueResponse;
+export type PopulatedPickEmLeagueResponse = PickEmLeagueResponse & {
+  isInSeason?: boolean;
+  leagueType?: LeagueTypeResponse;
+  members?: LeagueMemberResponse[];
+};
 
 // schemas
 

@@ -13,9 +13,12 @@ import {
 } from "@/features/picks/picks.api";
 import { PHASE_INCLUDES } from "@/features/phases/phases.types";
 import { PICK_INCLUDES } from "@/features/picks/picks.types";
-import { Route as LeagueLayoutRoute } from "./$leagueId";
-import type { PopulatedPickEmLeagueResponse } from "@/features/leagues/leagues.types";
-import { PICK_EM_PICK_TYPES } from "@/features/leagues/leagues.types";
+import {
+  LEAGUE_INCLUDES,
+  PICK_EM_PICK_TYPES,
+  type PopulatedPickEmLeagueResponse,
+} from "@/features/leagues/leagues.types";
+import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
 
 const searchSchema = z.object({
   phaseId: z.string().optional(),
@@ -29,6 +32,14 @@ export const Route = createFileRoute(
   loader: async ({ context: { queryClient }, params, deps }) => {
     const { leagueId } = params;
     const { phaseId } = deps;
+
+    await queryClient.ensureQueryData(
+      GetLeagueQueryOptions(leagueId, [
+        LEAGUE_INCLUDES.MEMBERS,
+        LEAGUE_INCLUDES.IS_IN_SEASON,
+        LEAGUE_INCLUDES.LEAGUE_TYPE,
+      ]),
+    );
 
     // If phaseId is specified, fetch that specific phase, otherwise fetch current phase
     if (phaseId) {
@@ -68,8 +79,14 @@ export const Route = createFileRoute(
 });
 
 function MyPicksPage() {
-  const league =
-    LeagueLayoutRoute.useLoaderData() as PopulatedPickEmLeagueResponse;
+  const { data: leagueData } = useSuspenseQuery(
+    GetLeagueQueryOptions(Route.useParams().leagueId, [
+      LEAGUE_INCLUDES.MEMBERS,
+      LEAGUE_INCLUDES.IS_IN_SEASON,
+      LEAGUE_INCLUDES.LEAGUE_TYPE,
+    ]),
+  );
+  const league = leagueData as PopulatedPickEmLeagueResponse;
   const { phaseId } = Route.useSearch();
 
   // Use the appropriate query based on whether phaseId is specified

@@ -47,6 +47,7 @@ export function LeagueSettingsForm({
     },
     defaultValues: {
       ...league,
+      image: league.image || undefined,
       settings: {
         ...league.settings,
       },
