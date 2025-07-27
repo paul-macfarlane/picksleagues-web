@@ -1,10 +1,12 @@
 import type { PopulatedEventResponse } from "../events/events.type";
+import type { PhaseTemplateResponse } from "../phaseTemplates/phaseTemplates.types";
 
 // constants
 
 export enum PHASE_INCLUDES {
   PREVIOUS_PHASE = "previousPhase",
   NEXT_PHASE = "nextPhase",
+  PHASE_TEMPLATE = "phaseTemplate",
   EVENTS = "events",
   EVENTS_LIVE_SCORES = "events.liveScores",
   EVENTS_OUTCOMES = "events.outcomes",
@@ -30,5 +32,6 @@ export type PhaseResponse = {
 export type PopulatedPhaseResponse = PhaseResponse & {
   previousPhase?: PhaseResponse;
   nextPhase?: PhaseResponse;
+  phaseTemplate?: PhaseTemplateResponse;
   events?: PopulatedEventResponse[];
 };

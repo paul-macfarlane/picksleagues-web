@@ -41,7 +41,7 @@ export function WeekSwitcher({
         <ChevronLeft className="h-4 w-4" />
       </Button>
       <span className="font-bold text-lg min-w-[8rem] text-center">
-        {selectedPhase ? `Week ${selectedPhase.sequence}` : "Select Week"}
+        {selectedPhase ? selectedPhase.phaseTemplate?.label : "Select Week"}
       </span>
       <Button
         variant="outline"
