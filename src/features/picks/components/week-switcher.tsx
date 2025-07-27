@@ -1,33 +1,33 @@
-import type { Week } from "../picks.types";
+import type { PopulatedPhaseResponse } from "../../phases/phases.types";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function WeekSwitcher({
-  weeks,
-  selectedWeekId,
+  phases,
+  selectedPhaseId,
   onSelect,
   disableFuture = false,
 }: {
-  weeks: Week[];
-  selectedWeekId: number;
-  onSelect: (id: number) => void;
+  phases: PopulatedPhaseResponse[];
+  selectedPhaseId: string;
+  onSelect: (id: string) => void;
   disableFuture?: boolean;
 }) {
-  const selectedIndex = weeks.findIndex((w) => w.id === selectedWeekId);
-  const selectedWeek = weeks[selectedIndex];
+  const selectedIndex = phases.findIndex((p) => p.id === selectedPhaseId);
+  const selectedPhase = phases[selectedIndex];
 
   const canGoBack = selectedIndex > 0;
-  const canGoForward = selectedIndex < weeks.length - 1;
+  const canGoForward = selectedIndex < phases.length - 1;
 
   const handlePrevious = () => {
     if (canGoBack) {
-      onSelect(weeks[selectedIndex - 1].id);
+      onSelect(phases[selectedIndex - 1].id);
     }
   };
 
   const handleNext = () => {
     if (canGoForward) {
-      onSelect(weeks[selectedIndex + 1].id);
+      onSelect(phases[selectedIndex + 1].id);
     }
   };
 
@@ -42,14 +42,17 @@ export function WeekSwitcher({
         <ChevronLeft className="h-4 w-4" />
       </Button>
       <span className="font-bold text-lg min-w-[8rem] text-center">
-        {selectedWeek?.label || "Select Week"}
+        {selectedPhase ? `Week ${selectedPhase.sequence}` : "Select Week"}
       </span>
       <Button
         variant="outline"
         size="icon"
         onClick={handleNext}
         disabled={
-          !canGoForward || (disableFuture && weeks[selectedIndex + 1]?.isFuture)
+          !canGoForward ||
+          (disableFuture &&
+            selectedPhase?.startDate &&
+            new Date(selectedPhase.startDate) > new Date())
         }
       >
         <ChevronRight className="h-4 w-4" />

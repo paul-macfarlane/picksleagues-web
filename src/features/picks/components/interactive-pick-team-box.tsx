@@ -1,4 +1,4 @@
-import type { PickTeam } from "../picks.types";
+import type { TeamResponse } from "../../teams/teams.types";
 
 export function InteractivePickTeamBox({
   team,
@@ -6,13 +6,18 @@ export function InteractivePickTeamBox({
   onClick,
   side,
   isATS,
+  odds,
 }: {
-  team: PickTeam;
+  team: TeamResponse;
   selected: boolean;
   onClick: () => void;
   side: "left" | "right";
   isATS?: boolean;
+  odds?: string;
 }) {
+  const displayText =
+    isATS && odds ? `${team.abbreviation} ${odds}` : team.abbreviation;
+
   return (
     <button
       type="button"
@@ -36,12 +41,11 @@ export function InteractivePickTeamBox({
                   selected ? "text-white" : "text-muted-foreground"
                 }`}
               >
-                {team.abbr}
-                {isATS && team.odds ? ` ${team.odds}` : ""}
+                {displayText}
               </span>
               <img
-                src={team.logoUrl}
-                alt={team.abbr}
+                src={team.imageLight || "/assets/placeholder.svg"}
+                alt={team.abbreviation}
                 className="w-8 h-8 object-contain"
               />
             </div>
@@ -49,8 +53,8 @@ export function InteractivePickTeamBox({
           <div className="flex md:hidden flex-1 items-center justify-between w-full">
             <div className="flex items-center gap-2">
               <img
-                src={team.logoUrl}
-                alt={team.abbr}
+                src={team.imageLight || "/assets/placeholder.svg"}
+                alt={team.abbreviation}
                 className="w-8 h-8 object-contain"
               />
               <span
@@ -58,8 +62,7 @@ export function InteractivePickTeamBox({
                   selected ? "text-white" : "text-muted-foreground"
                 }`}
               >
-                {team.abbr}
-                {isATS && team.odds ? ` ${team.odds}` : ""}
+                {displayText}
               </span>
             </div>
             <span className="text-lg font-bold text-white min-w-[2ch] text-right ml-auto"></span>
@@ -72,8 +75,8 @@ export function InteractivePickTeamBox({
         <>
           <div className="flex-1 flex flex-row items-center justify-start gap-2">
             <img
-              src={team.logoUrl}
-              alt={team.abbr}
+              src={team.imageLight || "/assets/placeholder.svg"}
+              alt={team.abbreviation}
               className="w-8 h-8 object-contain"
             />
             <span
@@ -81,8 +84,7 @@ export function InteractivePickTeamBox({
                 selected ? "text-white" : "text-muted-foreground"
               }`}
             >
-              {team.abbr}
-              {isATS && team.odds ? ` ${team.odds}` : ""}
+              {displayText}
             </span>
           </div>
           <span className="hidden md:block text-lg font-bold text-white min-w-[2ch] text-right"></span>

@@ -1,139 +1,140 @@
 import { useState } from "react";
+import { useNavigate, getRouteApi } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { PickDisplay } from "./pick-display";
-import { WeekSwitcher } from "./week-switcher";
-import { Route } from "@/routes/_authenticated/football/pick-em/$leagueId.my-picks";
-import { getValidWeek, weeks, currentWeekId } from "../picks.utils";
-import { mockApi } from "../picks.api";
 import { InteractivePickDisplay } from "./interactive-pick-display";
-import type { Game } from "../picks.types";
+import { WeekSwitcher } from "./week-switcher";
+import type { PopulatedPickResponse } from "../picks.types";
+import type { PopulatedPhaseResponse } from "../../phases/phases.types";
 
-export function MyPicks() {
-  const { week } = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const selectedWeekId = getValidWeek(week);
-  const isCurrentWeek = selectedWeekId === currentWeekId;
+interface MyPicksProps {
+  phase: PopulatedPhaseResponse;
+  userPicks: PopulatedPickResponse[];
+  isATS?: boolean;
+}
 
-  // For demo, assign all games to week 5, and no games to other weeks
-  const games: Game[] = selectedWeekId === 5 ? mockApi.games : [];
+const routeApi = getRouteApi(
+  "/_authenticated/football/pick-em/$leagueId/my-picks",
+);
 
-  // If user has made picks, show read-only
-  if (mockApi.hasMadePicksThisWeek) {
-    return (
-      <div>
-        <WeekSwitcher
-          weeks={weeks}
-          selectedWeekId={selectedWeekId}
-          onSelect={(id) => navigate({ search: { week: id } })}
-          disableFuture={false}
-        />
-        <div className="space-y-6">
-          {games
-            .filter((g) => g.pick)
-            .map((game) => (
-              <PickDisplay
-                key={game.id}
-                matchup={`${game.away.abbr} @ ${game.home.abbr}`}
-                home={game.home}
-                away={game.away}
-                pick={game.pick || ""}
-                result={game.result as "WIN" | "LOSS" | "TIE" | null}
-                status={game.status}
-                isATS={game.isATS}
-                sportsbook={game.sportsbook}
-              />
-            ))}
-        </div>
-      </div>
-    );
+export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
+  const navigate = useNavigate();
+  const { leagueId } = routeApi.useParams();
+  const [selectedPicks, setSelectedPicks] = useState<Record<string, string>>(
+    {},
+  );
+
+  // Check if user has made picks for this phase
+  const hasMadePicks = userPicks.length > 0;
+
+  // Create a map of event ID to user pick for easy lookup
+  const userPickMap = new Map(userPicks.map((pick) => [pick.eventId, pick]));
+
+  const handlePick = (eventId: string, teamId: string) => {
+    setSelectedPicks((prev) => ({
+      ...prev,
+      [eventId]: teamId,
+    }));
+  };
+
+  const handleSubmitPicks = () => {
+    // TODO: Implement submit picks logic
+    console.log("Submitting picks:", selectedPicks);
+  };
+
+  const handlePhaseSelect = (phaseId: string) => {
+    // Navigate to the new phase
+    navigate({
+      to: "/football/pick-em/$leagueId/my-picks",
+      params: { leagueId },
+      search: { phaseId },
+    });
+  };
+
+  // Build the phases array for the WeekSwitcher
+  // We'll include the current phase and any previous/next phases if available
+  const phases: PopulatedPhaseResponse[] = [];
+
+  if (phase.previousPhase) {
+    phases.push({
+      ...phase.previousPhase,
+      previousPhase: undefined,
+      nextPhase: phase,
+      events: [],
+    });
   }
 
-  // Else, allow user to make picks for scheduled games (only for current week)
-  const pickableGames = isCurrentWeek
-    ? games.filter((g) => g.status === "SCHEDULED")
-    : [];
-  const [userPicks, setUserPicks] = useState<{ [gameId: number]: string }>({});
-  const canSubmit =
-    Object.keys(userPicks).length ===
-    Math.min(mockApi.requiredPicks, pickableGames.length);
+  phases.push(phase);
 
-  if (!isCurrentWeek && games.length === 0) {
-    return (
-      <div>
-        <WeekSwitcher
-          weeks={weeks}
-          selectedWeekId={selectedWeekId}
-          onSelect={(id) => navigate({ search: { week: id } })}
-          disableFuture={false}
-        />
-        <div className="text-muted-foreground text-center py-8">
-          No games available for this week.
-        </div>
-      </div>
-    );
+  if (phase.nextPhase) {
+    phases.push({
+      ...phase.nextPhase,
+      previousPhase: phase,
+      nextPhase: undefined,
+      events: [],
+    });
   }
 
-  if (pickableGames.length === 0) {
-    return (
-      <div>
-        <WeekSwitcher
-          weeks={weeks}
-          selectedWeekId={selectedWeekId}
-          onSelect={(id) => navigate({ search: { week: id } })}
-          disableFuture={false}
-        />
-        <div className="text-muted-foreground text-center py-8">
-          No games available to pick this week.
-        </div>
-      </div>
-    );
-  }
+  // Filter events that haven't started yet for pick making
+  const currentEvents = phase.events || [];
+  const pickableEvents = currentEvents.filter(
+    (event) => !event.liveScore && !event.outcome,
+  );
+
+  const requiredPicks = Math.min(pickableEvents.length, 5); // Assuming 5 picks per week
+  const hasEnoughPicks = Object.keys(selectedPicks).length >= requiredPicks;
 
   return (
-    <div>
+    <div className="space-y-6">
       <WeekSwitcher
-        weeks={weeks}
-        selectedWeekId={selectedWeekId}
-        onSelect={(id) => navigate({ search: { week: id } })}
-        disableFuture={false}
+        phases={phases}
+        selectedPhaseId={phase.id}
+        onSelect={handlePhaseSelect}
+        disableFuture={true}
       />
-      <form
-        className="space-y-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          // Submit picks logic here
-          alert(`Submitted picks: ${JSON.stringify(userPicks, null, 2)}`);
-        }}
-      >
-        {pickableGames.map((game) => (
-          <InteractivePickDisplay
-            key={game.id}
-            matchup={`${game.away.abbr} @ ${game.home.abbr}`}
-            home={game.home}
-            away={game.away}
-            pick={
-              typeof userPicks[game.id] === "string" ? userPicks[game.id] : ""
-            }
-            status={game.status}
-            isATS={game.isATS}
-            sportsbook={game.sportsbook}
-            onPick={(abbr) =>
-              setUserPicks((prev) => ({
-                ...prev,
-                [game.id]: typeof abbr === "string" ? abbr : "",
-              }))
-            }
-          />
-        ))}
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="px-4 py-2 rounded bg-blue-600 text-white font-bold disabled:opacity-50"
-            disabled={!canSubmit}
-          >
-            Submit Picks
-          </button>
+
+      {hasMadePicks ? (
+        // Show existing picks
+        <div className="space-y-4">
+          {currentEvents.map((event) => {
+            const userPick = userPickMap.get(event.id);
+            return (
+              <PickDisplay
+                key={event.id}
+                event={event}
+                userPick={userPick}
+                isATS={isATS}
+              />
+            );
+          })}
         </div>
-      </form>
+      ) : (
+        // Show interactive pick making
+        <div className="space-y-4">
+          {pickableEvents.map((event) => (
+            <InteractivePickDisplay
+              key={event.id}
+              event={event}
+              userPick={userPickMap.get(event.id)}
+              isATS={isATS}
+              onPick={(teamId) => handlePick(event.id, teamId)}
+            />
+          ))}
+
+          {pickableEvents.length > 0 && (
+            <div className="flex justify-center pt-4">
+              <Button
+                onClick={handleSubmitPicks}
+                disabled={!hasEnoughPicks}
+                className="px-8"
+              >
+                Submit Picks ({Object.keys(selectedPicks).length}/
+                {requiredPicks})
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

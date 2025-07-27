@@ -1,21 +1,73 @@
-import type { PickDisplayProps, PickTeam } from "../picks.types";
+import type { PopulatedEventResponse } from "../../events/events.type";
+import type { PopulatedPickResponse } from "../picks.types";
+import type { TeamResponse } from "../../teams/teams.types";
 
 export function PickDisplay({
-  matchup,
-  home,
-  away,
-  pick,
-  result,
-  status,
-  badge,
-  isATS,
-  sportsbook,
-}: PickDisplayProps) {
+  event,
+  userPick,
+  isATS = false,
+}: {
+  event: PopulatedEventResponse;
+  userPick?: PopulatedPickResponse;
+  isATS?: boolean;
+}) {
+  // Use actual team data from the event, with fallbacks for missing data
+  const homeTeam: TeamResponse = event.homeTeam || {
+    id: event.homeTeamId,
+    name: "Home Team",
+    abbreviation: "HOME",
+    imageLight: "/assets/placeholder.svg",
+    imageDark: "/assets/placeholder.svg",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    sportLeagueId: "",
+    location: "",
+  };
+
+  const awayTeam: TeamResponse = event.awayTeam || {
+    id: event.awayTeamId,
+    name: "Away Team",
+    abbreviation: "AWAY",
+    imageLight: "/assets/placeholder.svg",
+    imageDark: "/assets/placeholder.svg",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    sportLeagueId: "",
+    location: "",
+  };
+
+  // Determine matchup string
+  const matchup = `${awayTeam.abbreviation} @ ${homeTeam.abbreviation}`;
+
+  // Determine status
+  const status = event.liveScore
+    ? "LIVE"
+    : event.outcome
+      ? "FINAL"
+      : "SCHEDULED";
+
+  // Determine result based on user pick and event outcome
+  let result: "WIN" | "LOSS" | "TIE" | null = null;
+  if (userPick && event.outcome) {
+    // For now, we'll determine result based on scores - this logic needs to be refined
+    // based on the actual business logic for determining wins/losses
+    const homeScore = event.outcome.homeScore;
+    const awayScore = event.outcome.awayScore;
+
+    if (homeScore === awayScore) {
+      result = "TIE";
+    } else if (userPick.teamId === event.homeTeamId && homeScore > awayScore) {
+      result = "WIN";
+    } else if (userPick.teamId === event.awayTeamId && awayScore > homeScore) {
+      result = "WIN";
+    } else {
+      result = "LOSS";
+    }
+  }
+
   // Badge logic
   const showBadge =
-    badge !== undefined ? (
-      badge
-    ) : result === "TIE" ? (
+    result === "TIE" ? (
       <span className="px-2 py-1 rounded-full text-xs font-bold bg-yellow-400 text-black">
         Push
       </span>
@@ -26,6 +78,7 @@ export function PickDisplay({
         {result === "WIN" ? "Win" : "Loss"}
       </span>
     ) : null;
+
   return (
     <div className="rounded-xl bg-card p-3 border border-border shadow-sm relative">
       <div className="relative flex items-center justify-between mb-2 min-h-[28px]">
@@ -43,26 +96,29 @@ export function PickDisplay({
       <div className="flex flex-col md:flex-row gap-2">
         {/* Away Team */}
         <PickTeamBox
-          team={away}
-          picked={pick === away.abbr}
+          team={awayTeam}
+          picked={userPick?.teamId === awayTeam.id}
           result={result}
-          score={away.score}
+          score={event.liveScore?.awayScore || null}
           side="left"
           isATS={isATS}
+          odds={event.odds?.spreadAway || undefined}
         />
         {/* Home Team */}
         <PickTeamBox
-          team={home}
-          picked={pick === home.abbr}
+          team={homeTeam}
+          picked={userPick?.teamId === homeTeam.id}
           result={result}
-          score={home.score}
+          score={event.liveScore?.homeScore || null}
           side="right"
           isATS={isATS}
+          odds={event.odds?.spreadHome || undefined}
         />
       </div>
-      {isATS && sportsbook && (
+      {isATS && event.odds?.sportsbook && (
         <div className="text-xs italic text-muted-foreground text-right mt-2">
-          Odds presented by <span className="font-semibold">{sportsbook}</span>
+          Odds presented by{" "}
+          <span className="font-semibold">{event.odds.sportsbook.name}</span>
         </div>
       )}
     </div>
@@ -76,18 +132,24 @@ export function PickTeamBox({
   side,
   isATS,
   result,
+  odds,
 }: {
-  team: PickTeam;
+  team: TeamResponse;
   picked: boolean;
   score: number | null;
   side: "left" | "right";
   isATS?: boolean;
   result?: "WIN" | "LOSS" | "TIE" | null;
+  odds?: string;
 }) {
   let borderColor = "border-border";
   if (picked && result === "WIN") borderColor = "border-green-500";
   if (picked && result === "LOSS") borderColor = "border-red-500";
   if (picked && result === "TIE") borderColor = "border-yellow-400";
+
+  const displayText =
+    isATS && odds ? `${team.abbreviation} ${odds}` : team.abbreviation;
+
   return (
     <div
       className={`flex-1 flex items-center rounded-lg border ${borderColor} bg-muted px-4 py-3 min-w-0`}
@@ -104,12 +166,11 @@ export function PickTeamBox({
               <span
                 className={`font-bold text-lg ${picked ? "text-white" : "text-muted-foreground"}`}
               >
-                {team.abbr}
-                {isATS && team.odds ? ` ${team.odds}` : ""}
+                {displayText}
               </span>
               <img
-                src={team.logoUrl}
-                alt={team.abbr}
+                src={team.imageLight || "/assets/placeholder.svg"}
+                alt={team.abbreviation}
                 className="w-8 h-8 object-contain"
               />
             </div>
@@ -117,15 +178,14 @@ export function PickTeamBox({
           <div className="flex md:hidden flex-1 items-center justify-between w-full">
             <div className="flex items-center gap-2">
               <img
-                src={team.logoUrl}
-                alt={team.abbr}
+                src={team.imageLight || "/assets/placeholder.svg"}
+                alt={team.abbreviation}
                 className="w-8 h-8 object-contain"
               />
               <span
                 className={`font-bold text-lg ${picked ? "text-white" : "text-muted-foreground"}`}
               >
-                {team.abbr}
-                {isATS && team.odds ? ` ${team.odds}` : ""}
+                {displayText}
               </span>
             </div>
             <span className="text-lg font-bold text-white min-w-[2ch] text-right ml-auto">
@@ -139,15 +199,14 @@ export function PickTeamBox({
         <>
           <div className="flex-1 flex flex-row items-center justify-start gap-2">
             <img
-              src={team.logoUrl}
-              alt={team.abbr}
+              src={team.imageLight || "/assets/placeholder.svg"}
+              alt={team.abbreviation}
               className="w-8 h-8 object-contain"
             />
             <span
               className={`font-bold text-lg ${picked ? "text-white" : "text-muted-foreground"}`}
             >
-              {team.abbr}
-              {isATS && team.odds ? ` ${team.odds}` : ""}
+              {displayText}
             </span>
           </div>
           <span className="hidden md:block text-lg font-bold text-white min-w-[2ch] text-right">
