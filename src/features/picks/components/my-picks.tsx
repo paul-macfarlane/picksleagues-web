@@ -11,6 +11,7 @@ import { LIVE_SCORE_STATUSES } from "../../events/events.type";
 interface MyPicksProps {
   phase: PopulatedPhaseResponse;
   userPicks: PopulatedPickResponse[];
+  picksPerPhase: number;
   isATS?: boolean;
 }
 
@@ -18,7 +19,12 @@ const routeApi = getRouteApi(
   "/_authenticated/football/pick-em/$leagueId/my-picks",
 );
 
-export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
+export function MyPicks({
+  phase,
+  userPicks,
+  picksPerPhase,
+  isATS = false,
+}: MyPicksProps) {
   const navigate = useNavigate();
   const { leagueId } = routeApi.useParams();
   const [selectedPicks, setSelectedPicks] = useState<Record<string, string>>(
@@ -53,7 +59,7 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
     return true;
   });
 
-  const requiredPicks = Math.min(pickableEvents.length, 5); // Assuming 5 picks per week
+  const requiredPicks = Math.min(pickableEvents.length, picksPerPhase);
 
   // Check if there are any events at all in this phase
   const hasAnyEvents = currentEvents.length > 0;

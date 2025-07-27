@@ -101,5 +101,12 @@ function MyPicksPage() {
 
   const isATS = league.settings.pickType === PICK_EM_PICK_TYPES.SPREAD;
 
-  return <MyPicks phase={phase} userPicks={userPicks || []} isATS={isATS} />;
+  return (
+    <MyPicks
+      phase={phase}
+      userPicks={userPicks || []}
+      picksPerPhase={league.settings.picksPerPhase}
+      isATS={isATS}
+    />
+  );
 }
