@@ -303,17 +303,14 @@ export function LeagueSettingsForm({
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            {canEditAllSettings ? (
-              <Button
-                variant="destructive"
-                onClick={() => setIsDeleteDialogOpen(true)}
-                type="button"
-              >
-                Delete League
-              </Button>
-            ) : (
-              <div />
-            )}
+            <Button
+              variant="destructive"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              type="button"
+            >
+              Delete League
+            </Button>
+
             <form.AppForm>
               <form.SubmitButton submiterror={submitError}>
                 Save Changes
