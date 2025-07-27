@@ -1,18 +1,18 @@
 import { InteractivePickTeamBox } from "./interactive-pick-team-box";
 import type { PopulatedEventResponse } from "../../events/events.type";
-import type { PopulatedPickResponse } from "../picks.types";
 import type { TeamResponse } from "../../teams/teams.types";
+import { LIVE_SCORE_STATUSES } from "../../events/events.type";
 
 export function InteractivePickDisplay({
   event,
-  userPick,
   isATS = false,
   onPick,
+  selectedTeamId,
 }: {
   event: PopulatedEventResponse;
-  userPick?: PopulatedPickResponse;
   isATS?: boolean;
   onPick: (teamId: string) => void;
+  selectedTeamId?: string;
 }) {
   // Use actual team data from the event, with fallbacks for missing data
   const homeTeam: TeamResponse = event.homeTeam || {
@@ -44,10 +44,24 @@ export function InteractivePickDisplay({
 
   // Determine status
   const status = event.liveScore
-    ? "LIVE"
+    ? event.liveScore.status === LIVE_SCORE_STATUSES.IN_PROGRESS
+      ? "LIVE"
+      : event.liveScore.status === LIVE_SCORE_STATUSES.NOT_STARTED
+        ? new Date(event.startTime).toLocaleString([], {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "PRE-GAME"
     : event.outcome
       ? "FINAL"
-      : "SCHEDULED";
+      : new Date(event.startTime).toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
 
   return (
     <div className="rounded-xl bg-card p-3 border border-border shadow-sm">
@@ -60,9 +74,9 @@ export function InteractivePickDisplay({
       <div className="flex flex-col md:flex-row gap-2">
         <InteractivePickTeamBox
           team={awayTeam}
-          selected={userPick?.teamId === awayTeam.id}
+          selected={selectedTeamId === awayTeam.id}
           onClick={() =>
-            onPick(userPick?.teamId === awayTeam.id ? "" : awayTeam.id)
+            onPick(selectedTeamId === awayTeam.id ? "" : awayTeam.id)
           }
           side="left"
           isATS={isATS}
@@ -70,9 +84,9 @@ export function InteractivePickDisplay({
         />
         <InteractivePickTeamBox
           team={homeTeam}
-          selected={userPick?.teamId === homeTeam.id}
+          selected={selectedTeamId === homeTeam.id}
           onClick={() =>
-            onPick(userPick?.teamId === homeTeam.id ? "" : homeTeam.id)
+            onPick(selectedTeamId === homeTeam.id ? "" : homeTeam.id)
           }
           side="right"
           isATS={isATS}

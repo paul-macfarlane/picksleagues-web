@@ -15,8 +15,18 @@ export function InteractivePickTeamBox({
   isATS?: boolean;
   odds?: string;
 }) {
+  // Format odds to add + for positive spreads and trim extra 0s
+  const formatOdds = (odds: string) => {
+    const num = parseFloat(odds);
+    if (isNaN(num)) return odds;
+    const trimmedOdds = num.toString(); // This removes trailing 0s
+    return num > 0 ? `+${trimmedOdds}` : trimmedOdds;
+  };
+
   const displayText =
-    isATS && odds ? `${team.abbreviation} ${odds}` : team.abbreviation;
+    isATS && odds
+      ? `${team.abbreviation} ${formatOdds(odds)}`
+      : team.abbreviation;
 
   return (
     <button

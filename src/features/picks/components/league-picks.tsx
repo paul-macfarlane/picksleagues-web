@@ -152,7 +152,6 @@ export function LeaguePicks({
         phases={phases}
         selectedPhaseId={phase.id}
         onSelect={handlePhaseSelect}
-        disableFuture={false}
       />
 
       <div className="space-y-4">

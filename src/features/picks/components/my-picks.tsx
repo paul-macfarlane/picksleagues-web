@@ -6,6 +6,7 @@ import { InteractivePickDisplay } from "./interactive-pick-display";
 import { WeekSwitcher } from "./week-switcher";
 import type { PopulatedPickResponse } from "../picks.types";
 import type { PopulatedPhaseResponse } from "../../phases/phases.types";
+import { LIVE_SCORE_STATUSES } from "../../events/events.type";
 
 interface MyPicksProps {
   phase: PopulatedPhaseResponse;
@@ -30,11 +31,48 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
   // Create a map of event ID to user pick for easy lookup
   const userPickMap = new Map(userPicks.map((pick) => [pick.eventId, pick]));
 
+  // Filter events that haven't started yet for pick making
+  const currentEvents = phase.events || [];
+  const pickableEvents = currentEvents.filter((event) => {
+    // If there's an outcome, the game is finished
+    if (event.outcome) return false;
+
+    // If there's a live score, check its status
+    if (event.liveScore) {
+      // If status is not "in_progress", the game hasn't started yet
+      return event.liveScore.status !== LIVE_SCORE_STATUSES.IN_PROGRESS;
+    }
+
+    // No outcome and no live score means game hasn't started
+    return true;
+  });
+
+  const requiredPicks = Math.min(pickableEvents.length, 5); // Assuming 5 picks per week
+
   const handlePick = (eventId: string, teamId: string) => {
-    setSelectedPicks((prev) => ({
-      ...prev,
-      [eventId]: teamId,
-    }));
+    setSelectedPicks((prev) => {
+      if (teamId === "") {
+        // Remove the pick if teamId is empty
+        const newPicks = { ...prev };
+        delete newPicks[eventId];
+        return newPicks;
+      } else {
+        // Check if we're already at the maximum number of picks
+        const currentPickCount = Object.keys(prev).length;
+        const isAlreadySelected = prev[eventId];
+
+        // If we're at max picks and this isn't already selected, don't allow selection
+        if (currentPickCount >= requiredPicks && !isAlreadySelected) {
+          return prev;
+        }
+
+        // Add or update the pick
+        return {
+          ...prev,
+          [eventId]: teamId,
+        };
+      }
+    });
   };
 
   const handleSubmitPicks = () => {
@@ -75,13 +113,6 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
     });
   }
 
-  // Filter events that haven't started yet for pick making
-  const currentEvents = phase.events || [];
-  const pickableEvents = currentEvents.filter(
-    (event) => !event.liveScore && !event.outcome,
-  );
-
-  const requiredPicks = Math.min(pickableEvents.length, 5); // Assuming 5 picks per week
   const hasEnoughPicks = Object.keys(selectedPicks).length >= requiredPicks;
 
   return (
@@ -90,7 +121,6 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
         phases={phases}
         selectedPhaseId={phase.id}
         onSelect={handlePhaseSelect}
-        disableFuture={true}
       />
 
       {hasMadePicks ? (
@@ -110,30 +140,36 @@ export function MyPicks({ phase, userPicks, isATS = false }: MyPicksProps) {
         </div>
       ) : (
         // Show interactive pick making
-        <div className="space-y-4">
-          {pickableEvents.map((event) => (
-            <InteractivePickDisplay
-              key={event.id}
-              event={event}
-              userPick={userPickMap.get(event.id)}
-              isATS={isATS}
-              onPick={(teamId) => handlePick(event.id, teamId)}
-            />
-          ))}
-
+        <>
+          {/* Sticky submit button header */}
           {pickableEvents.length > 0 && (
-            <div className="flex justify-center pt-4">
-              <Button
-                onClick={handleSubmitPicks}
-                disabled={!hasEnoughPicks}
-                className="px-8"
-              >
-                Submit Picks ({Object.keys(selectedPicks).length}/
-                {requiredPicks})
-              </Button>
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border pb-4 mb-4">
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleSubmitPicks}
+                  disabled={!hasEnoughPicks}
+                  className="px-8"
+                  size="lg"
+                >
+                  Submit Picks ({Object.keys(selectedPicks).length}/
+                  {requiredPicks})
+                </Button>
+              </div>
             </div>
           )}
-        </div>
+
+          <div className="space-y-4">
+            {pickableEvents.map((event) => (
+              <InteractivePickDisplay
+                key={event.id}
+                event={event}
+                isATS={isATS}
+                onPick={(teamId) => handlePick(event.id, teamId)}
+                selectedTeamId={selectedPicks[event.id]}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

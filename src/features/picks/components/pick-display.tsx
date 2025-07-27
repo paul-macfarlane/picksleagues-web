@@ -1,6 +1,7 @@
 import type { PopulatedEventResponse } from "../../events/events.type";
 import type { PopulatedPickResponse } from "../picks.types";
 import type { TeamResponse } from "../../teams/teams.types";
+import { LIVE_SCORE_STATUSES } from "../../events/events.type";
 
 export function PickDisplay({
   event,
@@ -41,10 +42,24 @@ export function PickDisplay({
 
   // Determine status
   const status = event.liveScore
-    ? "LIVE"
+    ? event.liveScore.status === LIVE_SCORE_STATUSES.IN_PROGRESS
+      ? "LIVE"
+      : event.liveScore.status === LIVE_SCORE_STATUSES.NOT_STARTED
+        ? new Date(event.startTime).toLocaleString([], {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "PRE-GAME"
     : event.outcome
       ? "FINAL"
-      : "SCHEDULED";
+      : new Date(event.startTime).toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
 
   // Determine result based on user pick and event outcome
   let result: "WIN" | "LOSS" | "TIE" | null = null;
@@ -147,8 +162,18 @@ export function PickTeamBox({
   if (picked && result === "LOSS") borderColor = "border-red-500";
   if (picked && result === "TIE") borderColor = "border-yellow-400";
 
+  // Format odds to add + for positive spreads and trim extra 0s
+  const formatOdds = (odds: string) => {
+    const num = parseFloat(odds);
+    if (isNaN(num)) return odds;
+    const trimmedOdds = num.toString(); // This removes trailing 0s
+    return num > 0 ? `+${trimmedOdds}` : trimmedOdds;
+  };
+
   const displayText =
-    isATS && odds ? `${team.abbreviation} ${odds}` : team.abbreviation;
+    isATS && odds
+      ? `${team.abbreviation} ${formatOdds(odds)}`
+      : team.abbreviation;
 
   return (
     <div

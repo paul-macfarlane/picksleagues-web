@@ -6,7 +6,6 @@ export function WeekSwitcher({
   phases,
   selectedPhaseId,
   onSelect,
-  disableFuture = false,
 }: {
   phases: PopulatedPhaseResponse[];
   selectedPhaseId: string;
@@ -48,12 +47,7 @@ export function WeekSwitcher({
         variant="outline"
         size="icon"
         onClick={handleNext}
-        disabled={
-          !canGoForward ||
-          (disableFuture &&
-            selectedPhase?.startDate &&
-            new Date(selectedPhase.startDate) > new Date())
-        }
+        disabled={!canGoForward}
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
