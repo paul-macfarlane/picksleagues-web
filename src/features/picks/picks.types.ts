@@ -1,3 +1,4 @@
+import z from "zod";
 import type { PopulatedEventResponse } from "../events/events.type";
 import type { ProfileResponse } from "../profiles/profiles.types";
 import type { TeamResponse } from "../teams/teams.types";
@@ -33,3 +34,14 @@ export type PopulatedPickResponse = PickResponse & {
   team?: TeamResponse;
   event?: PopulatedEventResponse;
 };
+
+// validation types
+
+export const SubmitPickSchema = z.object({
+  eventId: z.string().uuid(),
+  teamId: z.string().uuid(),
+});
+
+export const SubmitPicksSchema = z.object({
+  picks: z.array(SubmitPickSchema).min(1, "At least one pick is required"),
+});

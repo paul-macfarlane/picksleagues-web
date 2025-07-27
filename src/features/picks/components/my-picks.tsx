@@ -7,6 +7,8 @@ import { WeekSwitcher } from "./week-switcher";
 import type { PopulatedPickResponse } from "../picks.types";
 import type { PopulatedPhaseResponse } from "../../phases/phases.types";
 import { LIVE_SCORE_STATUSES } from "../../events/events.type";
+import { useSubmitPicksMutation } from "../picks.api";
+import { toast } from "sonner";
 
 interface MyPicksProps {
   phase: PopulatedPhaseResponse;
@@ -30,6 +32,8 @@ export function MyPicks({
   const [selectedPicks, setSelectedPicks] = useState<Record<string, string>>(
     {},
   );
+  const { mutate: submitPicksMutation, isPending: isSubmittingPicks } =
+    useSubmitPicksMutation();
 
   // Determine if this is the current phase based on start/end dates
   const now = new Date();
@@ -39,9 +43,6 @@ export function MyPicks({
 
   // Check if user has made picks for this phase
   const hasMadePicks = userPicks.length > 0;
-
-  // Create a map of event ID to user pick for easy lookup
-  const userPickMap = new Map(userPicks.map((pick) => [pick.eventId, pick]));
 
   // Filter events that haven't started yet for pick making
   const currentEvents = phase.events || [];
@@ -91,8 +92,28 @@ export function MyPicks({
   };
 
   const handleSubmitPicks = () => {
-    // TODO: Implement submit picks logic
-    console.log("Submitting picks:", selectedPicks);
+    const picks = Object.entries(selectedPicks).map(([eventId, teamId]) => ({
+      eventId,
+      teamId,
+    }));
+
+    submitPicksMutation(
+      {
+        leagueId,
+        phaseId: phase.id,
+        picks: { picks },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Picks submitted successfully!");
+          setSelectedPicks({});
+        },
+        onError: (e) => {
+          const error = e as Error;
+          toast.error(`Failed to submit picks. ${error.message}`);
+        },
+      },
+    );
   };
 
   const handlePhaseSelect = (phaseId: string) => {
@@ -146,10 +167,12 @@ export function MyPicks({
           </p>
         </div>
       ) : hasMadePicks ? (
-        // Show existing picks
+        // Show only the events where user made picks
         <div className="space-y-4">
-          {currentEvents.map((event) => {
-            const userPick = userPickMap.get(event.id);
+          {userPicks.map((userPick) => {
+            const event = currentEvents.find((e) => e.id === userPick.eventId);
+            if (!event) return null; // Skip if event not found
+
             return (
               <PickDisplay
                 key={event.id}
@@ -187,12 +210,13 @@ export function MyPicks({
               <div className="flex justify-center">
                 <Button
                   onClick={handleSubmitPicks}
-                  disabled={!hasEnoughPicks}
+                  disabled={!hasEnoughPicks || isSubmittingPicks}
                   className="px-8"
                   size="lg"
                 >
-                  Submit Picks ({Object.keys(selectedPicks).length}/
-                  {requiredPicks})
+                  {isSubmittingPicks
+                    ? "Submitting..."
+                    : `Submit Picks (${Object.keys(selectedPicks).length}/${requiredPicks})`}
                 </Button>
               </div>
             </div>

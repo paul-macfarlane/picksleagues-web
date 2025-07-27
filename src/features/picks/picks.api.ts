@@ -1,6 +1,15 @@
-import type { PICK_INCLUDES, PopulatedPickResponse } from "./picks.types";
+import type {
+  PICK_INCLUDES,
+  PopulatedPickResponse,
+  SubmitPicksSchema,
+} from "./picks.types";
 import { authenticatedFetch, API_BASE } from "@/lib/api";
-import { queryOptions } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { z } from "zod";
 
 export async function getMyPicksForLeagueAndPhase(
   leagueId: string,
@@ -99,3 +108,50 @@ export const GetPicksForLeagueAndCurrentPhaseQueryOptions = (
     queryKey: GetPicksForLeagueAndCurrentPhaseQueryKey(leagueId, includes),
     queryFn: () => getPicksForLeagueAndCurrentPhase(leagueId, includes),
   });
+
+export async function submitPicksForCurrentPhase(
+  leagueId: string,
+  picks: z.infer<typeof SubmitPicksSchema>,
+) {
+  return await authenticatedFetch(
+    `${API_BASE}/v1/leagues/${leagueId}/current-phase/picks`,
+    {
+      method: "POST",
+      body: JSON.stringify(picks),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+}
+
+export const useSubmitPicksMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      leagueId,
+      picks,
+    }: {
+      leagueId: string;
+      phaseId: string;
+      picks: z.infer<typeof SubmitPicksSchema>;
+    }) => submitPicksForCurrentPhase(leagueId, picks),
+    onSuccess: (_, { leagueId, phaseId }) => {
+      // Invalidate both current phase and specific phase queries
+      queryClient.invalidateQueries({
+        queryKey: GetMyPicksForLeagueAndCurrentPhaseQueryKey(leagueId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetPicksForLeagueAndCurrentPhaseQueryKey(leagueId),
+      });
+      // Also invalidate the specific phase query using the provided phaseId
+      queryClient.invalidateQueries({
+        queryKey: GetMyPicksForLeagueAndPhaseQueryKey(leagueId, phaseId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GetPicksForLeagueAndPhaseQueryKey(leagueId, phaseId),
+      });
+    },
+  });
+};

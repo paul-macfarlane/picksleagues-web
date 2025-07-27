@@ -158,9 +158,18 @@ export function PickTeamBox({
   odds?: string;
 }) {
   let borderColor = "border-border";
-  if (picked && result === "WIN") borderColor = "border-green-500";
-  if (picked && result === "LOSS") borderColor = "border-red-500";
-  if (picked && result === "TIE") borderColor = "border-yellow-400";
+  if (picked) {
+    if (result === "WIN") {
+      borderColor = "border-green-500";
+    } else if (result === "LOSS") {
+      borderColor = "border-red-500";
+    } else if (result === "TIE") {
+      borderColor = "border-yellow-400";
+    } else {
+      // Game hasn't completed yet - show blue border for selected pick
+      borderColor = "border-blue-500";
+    }
+  }
 
   // Format odds to add + for positive spreads and trim extra 0s
   const formatOdds = (odds: string) => {
