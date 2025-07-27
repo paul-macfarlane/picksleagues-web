@@ -1,73 +1,216 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Lock } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, getRouteApi } from "@tanstack/react-router";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ChevronDown, ChevronUp, InfoIcon } from "lucide-react";
+import { PickDisplay } from "./pick-display";
+import { WeekSwitcher } from "./week-switcher";
+import type { PopulatedPickResponse } from "../picks.types";
+import type { PopulatedPhaseResponse } from "../../phases/phases.types";
+import type { PopulatedEventResponse } from "../../events/events.type";
+import type { ProfileResponse } from "../../profiles/profiles.types";
 
-// Mock data
-const mockWeek = {
-  name: "Week 12",
-  isLocked: false,
-};
-const mockPicks = [
-  { member: "Alice", game: "Team A @ Team B", pick: "Team A", status: "WIN" },
-  { member: "Bob", game: "Team A @ Team B", pick: "Team B", status: "LOSS" },
-  { member: "Alice", game: "Team C @ Team D", pick: "Team D", status: "WIN" },
-  { member: "Bob", game: "Team C @ Team D", pick: "Team D", status: "WIN" },
-];
+interface LeaguePicksProps {
+  phase: PopulatedPhaseResponse;
+  allPicks: PopulatedPickResponse[];
+  isATS?: boolean;
+}
 
-export function LeaguePicks() {
-  if (!mockWeek.isLocked) {
-    return (
-      <div className="text-center text-muted-foreground py-12 flex flex-col items-center gap-4">
-        <Lock className="h-12 w-12" />
-        <h3 className="text-xl font-semibold">Picks are Locked</h3>
-        <p>
-          Picks for {mockWeek.name} will be revealed after the pick lock time.
-        </p>
-      </div>
-    );
-  }
+interface MemberPicksCardProps {
+  member: {
+    profile: ProfileResponse;
+    picks: Array<{
+      event: PopulatedEventResponse;
+      pick: PopulatedPickResponse;
+    }>;
+  };
+  isATS?: boolean;
+}
+
+function MemberPicksCard({ member, isATS }: MemberPicksCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>League Picks for {mockWeek.name}</CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">
+            {member.profile.firstName} {member.profile.lastName}
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {isExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Member</TableHead>
-              <TableHead>Game</TableHead>
-              <TableHead>Pick</TableHead>
-              <TableHead className="text-right">Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mockPicks.map((pick, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">{pick.member}</TableCell>
-                <TableCell>{pick.game}</TableCell>
-                <TableCell>{pick.pick}</TableCell>
-                <TableCell className="text-right">
-                  <Badge
-                    variant={pick.status === "WIN" ? "default" : "destructive"}
-                  >
-                    {pick.status}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
+      {isExpanded && (
+        <CardContent className="space-y-4">
+          {member.picks.map(({ event, pick }) => (
+            <PickDisplay
+              key={event.id}
+              event={event}
+              userPick={pick}
+              isATS={isATS}
+            />
+          ))}
+        </CardContent>
+      )}
     </Card>
+  );
+}
+
+const routeApi = getRouteApi(
+  "/_authenticated/football/pick-em/$leagueId/league-picks",
+);
+
+export function LeaguePicks({
+  phase,
+  allPicks,
+  isATS = false,
+}: LeaguePicksProps) {
+  const navigate = useNavigate();
+  const { leagueId } = routeApi.useParams();
+
+  // Check if picks are locked for this phase
+  const now = new Date();
+  const pickLockTime = new Date(phase.pickLockTime);
+  const isPicksLocked = now >= pickLockTime;
+
+  const handlePhaseSelect = (phaseId: string) => {
+    // Navigate to the new phase
+    navigate({
+      to: "/football/pick-em/$leagueId/league-picks",
+      params: { leagueId },
+      search: { phaseId },
+    });
+  };
+
+  // Build the phases array for the WeekSwitcher
+  // We'll include the current phase and any previous/next phases if available
+  const phases: PopulatedPhaseResponse[] = [];
+
+  if (phase.previousPhase) {
+    phases.push({
+      ...phase.previousPhase,
+      previousPhase: undefined,
+      nextPhase: phase,
+      events: [],
+    });
+  }
+
+  phases.push(phase);
+
+  if (phase.nextPhase) {
+    phases.push({
+      ...phase.nextPhase,
+      previousPhase: phase,
+      nextPhase: undefined,
+      events: [],
+    });
+  }
+
+  // Group picks by user
+  const picksByUser = new Map<string, PopulatedPickResponse[]>();
+
+  allPicks.forEach((pick) => {
+    if (pick.profile) {
+      const userId = pick.profile.userId;
+      if (!picksByUser.has(userId)) {
+        picksByUser.set(userId, []);
+      }
+      picksByUser.get(userId)!.push(pick);
+    }
+  });
+
+  // Check if there are any events at all in this phase
+  const hasAnyEvents = (phase.events || []).length > 0;
+
+  // Create member data for display
+  const members = Array.from(picksByUser.entries()).map(([, picks]) => {
+    const firstPick = picks[0];
+    const profile = firstPick.profile!;
+
+    // Map picks to events
+    const picksWithEvents = picks
+      .map((pick) => {
+        const event = phase.events?.find((e) => e.id === pick.eventId);
+        return {
+          event: event!,
+          pick,
+        };
+      })
+      .filter((item) => item.event); // Filter out picks without events
+
+    return {
+      profile,
+      picks: picksWithEvents,
+    };
+  });
+
+  return (
+    <div className="space-y-6">
+      <WeekSwitcher
+        phases={phases}
+        selectedPhaseId={phase.id}
+        onSelect={handlePhaseSelect}
+      />
+
+      {/* Pick lock time warning */}
+      {!isPicksLocked && (
+        <Alert>
+          <InfoIcon className="h-4 w-4" />
+          <AlertDescription>
+            <span>
+              League member picks will be visible after the pick lock time:{" "}
+              <span className="font-semibold">
+                {pickLockTime.toLocaleString()}
+              </span>
+            </span>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!hasAnyEvents ? (
+        // No events in this phase
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            This phase doesn't have any games yet.
+          </p>
+        </div>
+      ) : !isPicksLocked ? (
+        // Picks are not yet visible
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            League member picks will be visible after the pick lock time.
+          </p>
+        </div>
+      ) : members.length === 0 ? (
+        // No picks made yet
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            No picks have been made for this phase yet.
+          </p>
+        </div>
+      ) : (
+        // Show member picks
+        <div className="space-y-4">
+          {members.map((member) => (
+            <MemberPicksCard
+              key={member.profile.userId}
+              member={member}
+              isATS={isATS}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

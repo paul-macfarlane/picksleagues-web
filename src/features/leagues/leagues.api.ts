@@ -14,6 +14,10 @@ import type {
 import z from "zod";
 import { LEAGUE_INCLUDES } from "./leagues.types";
 import type { LEAGUE_TYPE_SLUGS } from "../leagueTypes/leagueTypes.types";
+import type {
+  PHASE_INCLUDES,
+  PopulatedPhaseResponse,
+} from "../phases/phases.types";
 
 export async function getMyLeagues<T extends PopulatedLeagueResponse>(
   includes: LEAGUE_INCLUDES[] = [],
@@ -187,3 +191,52 @@ export function useDeleteLeague() {
     },
   });
 }
+
+export async function getLeagueCurrentPhase(
+  leagueId: string,
+  includes: PHASE_INCLUDES[] = [],
+): Promise<PopulatedPhaseResponse> {
+  return await authenticatedFetch<PopulatedPhaseResponse>(
+    `${API_BASE}/v1/leagues/${leagueId}/current-phase${includes.length > 0 ? `?include=${includes.join(",")}` : ""}`,
+  );
+}
+
+export const GetLeagueCurrentPhaseQueryKey = (
+  leagueId: string,
+  includes: PHASE_INCLUDES[] = [],
+) => ["league-current-phase", leagueId, ...includes];
+
+export const GetLeagueCurrentPhaseQueryOptions = (
+  leagueId: string,
+  includes: PHASE_INCLUDES[] = [],
+) =>
+  queryOptions({
+    queryKey: GetLeagueCurrentPhaseQueryKey(leagueId, includes),
+    queryFn: () => getLeagueCurrentPhase(leagueId, includes),
+  });
+
+export async function getLeaguePhase(
+  leagueId: string,
+  phaseId: string,
+  includes: PHASE_INCLUDES[] = [],
+): Promise<PopulatedPhaseResponse> {
+  return await authenticatedFetch<PopulatedPhaseResponse>(
+    `${API_BASE}/v1/leagues/${leagueId}/phases/${phaseId}${includes.length > 0 ? `?include=${includes.join(",")}` : ""}`,
+  );
+}
+
+export const GetLeaguePhaseQueryKey = (
+  leagueId: string,
+  phaseId: string,
+  includes: PHASE_INCLUDES[] = [],
+) => ["league-phase", leagueId, phaseId, ...includes];
+
+export const GetLeaguePhaseQueryOptions = (
+  leagueId: string,
+  phaseId: string,
+  includes: PHASE_INCLUDES[] = [],
+) =>
+  queryOptions({
+    queryKey: GetLeaguePhaseQueryKey(leagueId, phaseId, includes),
+    queryFn: () => getLeaguePhase(leagueId, phaseId, includes),
+  });
