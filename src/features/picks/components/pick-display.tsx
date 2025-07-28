@@ -44,14 +44,16 @@ export function PickDisplay({
   const status = event.liveScore
     ? event.liveScore.status === LIVE_SCORE_STATUSES.IN_PROGRESS
       ? "LIVE"
-      : event.liveScore.status === LIVE_SCORE_STATUSES.NOT_STARTED
-        ? new Date(event.startTime).toLocaleString([], {
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "PRE-GAME"
+      : event.liveScore.status === LIVE_SCORE_STATUSES.FINAL
+        ? "FINAL"
+        : event.liveScore.status === LIVE_SCORE_STATUSES.NOT_STARTED
+          ? new Date(event.startTime).toLocaleString([], {
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "PRE-GAME"
     : event.outcome
       ? "FINAL"
       : new Date(event.startTime).toLocaleString([], {
@@ -63,20 +65,59 @@ export function PickDisplay({
 
   // Determine result based on user pick and event outcome
   let result: "WIN" | "LOSS" | "TIE" | null = null;
-  if (userPick && event.outcome) {
-    // For now, we'll determine result based on scores - this logic needs to be refined
-    // based on the actual business logic for determining wins/losses
-    const homeScore = event.outcome.homeScore;
-    const awayScore = event.outcome.awayScore;
+  if (
+    userPick &&
+    (event.outcome || event.liveScore?.status === LIVE_SCORE_STATUSES.FINAL)
+  ) {
+    // Use live score if available and final, otherwise use outcome
+    const homeScore =
+      event.liveScore?.status === LIVE_SCORE_STATUSES.FINAL
+        ? event.liveScore.homeScore
+        : event.outcome?.homeScore;
+    const awayScore =
+      event.liveScore?.status === LIVE_SCORE_STATUSES.FINAL
+        ? event.liveScore.awayScore
+        : event.outcome?.awayScore;
 
-    if (homeScore === awayScore) {
-      result = "TIE";
-    } else if (userPick.teamId === event.homeTeamId && homeScore > awayScore) {
-      result = "WIN";
-    } else if (userPick.teamId === event.awayTeamId && awayScore > homeScore) {
-      result = "WIN";
-    } else {
-      result = "LOSS";
+    if (homeScore !== undefined && awayScore !== undefined) {
+      if (isATS && event.odds) {
+        // ATS logic: account for spread
+        const spread = parseFloat(event.odds.spreadHome || "0");
+        const adjustedHomeScore = homeScore + spread;
+
+        if (adjustedHomeScore === awayScore) {
+          result = "TIE";
+        } else if (
+          userPick.teamId === event.homeTeamId &&
+          adjustedHomeScore > awayScore
+        ) {
+          result = "WIN";
+        } else if (
+          userPick.teamId === event.awayTeamId &&
+          awayScore > adjustedHomeScore
+        ) {
+          result = "WIN";
+        } else {
+          result = "LOSS";
+        }
+      } else {
+        // Straight up logic
+        if (homeScore === awayScore) {
+          result = "TIE";
+        } else if (
+          userPick.teamId === event.homeTeamId &&
+          homeScore > awayScore
+        ) {
+          result = "WIN";
+        } else if (
+          userPick.teamId === event.awayTeamId &&
+          awayScore > homeScore
+        ) {
+          result = "WIN";
+        } else {
+          result = "LOSS";
+        }
+      }
     }
   }
 
@@ -114,7 +155,7 @@ export function PickDisplay({
           team={awayTeam}
           picked={userPick?.teamId === awayTeam.id}
           result={result}
-          score={event.liveScore?.awayScore || null}
+          score={event.liveScore?.awayScore || event.outcome?.awayScore || null}
           side="left"
           isATS={isATS}
           odds={event.odds?.spreadAway || undefined}
@@ -124,7 +165,7 @@ export function PickDisplay({
           team={homeTeam}
           picked={userPick?.teamId === homeTeam.id}
           result={result}
-          score={event.liveScore?.homeScore || null}
+          score={event.liveScore?.homeScore || event.outcome?.homeScore || null}
           side="right"
           isATS={isATS}
           odds={event.odds?.spreadHome || undefined}
@@ -158,23 +199,30 @@ export function PickTeamBox({
   odds?: string;
 }) {
   let borderColor = "border-border";
+  let backgroundColor = "bg-muted";
+
   if (picked) {
     if (result === "WIN") {
-      borderColor = "border-green-500"; // Keep green for win - no CSS variable available
+      borderColor = "border-green-500";
+      backgroundColor = "bg-green-500/10";
     } else if (result === "LOSS") {
-      borderColor = "border-destructive"; // Use destructive CSS variable for loss
+      borderColor = "border-destructive";
+      backgroundColor = "bg-destructive/10";
     } else if (result === "TIE") {
-      borderColor = "border-yellow-400"; // Keep yellow for tie - no CSS variable available
+      borderColor = "border-yellow-400";
+      backgroundColor = "bg-yellow-400/10";
     } else {
       // Game hasn't completed yet - show primary border for selected pick
-      borderColor = "border-primary"; // Use primary CSS variable for selected
+      borderColor = "border-primary";
+      backgroundColor = "bg-primary/10";
     }
   }
 
-  // Format odds to add + for positive spreads and trim extra 0s
+  // Format odds to add + for positive spreads, show "even" for 0, and trim extra 0s
   const formatOdds = (odds: string) => {
     const num = parseFloat(odds);
     if (isNaN(num)) return odds;
+    if (num === 0) return "even";
     const trimmedOdds = num.toString(); // This removes trailing 0s
     return num > 0 ? `+${trimmedOdds}` : trimmedOdds;
   };
@@ -186,7 +234,7 @@ export function PickTeamBox({
 
   return (
     <div
-      className={`flex-1 flex items-center rounded-lg border ${borderColor} bg-muted px-4 py-3 min-w-0`}
+      className={`flex-1 flex items-center rounded-lg border ${borderColor} ${backgroundColor} px-4 py-3 min-w-0`}
     >
       {/* Away team (left) */}
       {side === "left" && (

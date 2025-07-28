@@ -15,10 +15,12 @@ import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/lea
 import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
 import {
   canLeaveLeagueAndIsSoleMember,
-  canManageMembers,
+  canRemoveMembers,
+  canEditMemberRoles,
 } from "@/features/leagueMembers/leagueMembers.utils";
 import { canManageInvites } from "@/features/leagueInvites/leagueInvites.utils";
-import { Route as LeagueLayoutRoute } from "./$leagueId";
+import { LEAGUE_INCLUDES } from "@/features/leagues/leagues.types";
+import type { PopulatedPickEmLeagueResponse } from "@/features/leagues/leagues.types";
 
 export const Route = createFileRoute(
   "/_authenticated/football/pick-em/$leagueId/members",
@@ -29,7 +31,11 @@ export const Route = createFileRoute(
     params: { leagueId },
   }) => {
     const league = await queryClient.ensureQueryData(
-      GetLeagueQueryOptions(leagueId),
+      GetLeagueQueryOptions(leagueId, [
+        LEAGUE_INCLUDES.MEMBERS,
+        LEAGUE_INCLUDES.IS_IN_SEASON,
+        LEAGUE_INCLUDES.LEAGUE_TYPE,
+      ]),
     );
 
     const members = await queryClient.ensureQueryData(
@@ -71,7 +77,14 @@ function MembersComponent() {
     from: "/_authenticated/football/pick-em/$leagueId/members",
   });
   const { session } = Route.useRouteContext();
-  const league = LeagueLayoutRoute.useLoaderData();
+  const { data: leagueData } = useSuspenseQuery(
+    GetLeagueQueryOptions(leagueId, [
+      LEAGUE_INCLUDES.MEMBERS,
+      LEAGUE_INCLUDES.IS_IN_SEASON,
+      LEAGUE_INCLUDES.LEAGUE_TYPE,
+    ]),
+  );
+  const league = leagueData as PopulatedPickEmLeagueResponse;
 
   const { data: members } = useSuspenseQuery(
     GetLeagueMembersQueryOptions(leagueId, [LEAGUE_MEMBER_INCLUDES.PROFILE]),
@@ -82,7 +95,8 @@ function MembersComponent() {
     league,
     members,
   );
-  const userCanManageMembers = canManageMembers(session!.userId, league);
+  const userCanRemoveMembers = canRemoveMembers(session!.userId, league);
+  const userCanEditMemberRoles = canEditMemberRoles(session!.userId, league);
   const { canLeave: userCanLeaveLeague, isSoleMember } =
     canLeaveLeagueAndIsSoleMember(session!.userId, league);
 
@@ -95,7 +109,8 @@ function MembersComponent() {
         <CardContent>
           <MembersList
             members={members}
-            canManageMembers={userCanManageMembers}
+            canRemoveMembers={userCanRemoveMembers}
+            canEditMemberRoles={userCanEditMemberRoles}
             canLeaveLeague={userCanLeaveLeague}
             isSoleMember={isSoleMember}
             userId={session!.userId}

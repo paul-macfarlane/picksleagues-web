@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, getRouteApi } from "@tanstack/react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChevronDown, ChevronUp, InfoIcon } from "lucide-react";
 import { PickDisplay } from "./pick-display";
 import { WeekSwitcher } from "./week-switcher";
+import { UserDisplay } from "@/components/ui/user-display";
 import type { PopulatedPickResponse } from "../picks.types";
 import type { PopulatedPhaseResponse } from "../../phases/phases.types";
 import type { PopulatedEventResponse } from "../../events/events.type";
@@ -35,9 +36,12 @@ function MemberPicksCard({ member, isATS }: MemberPicksCardProps) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">
-            {member.profile.firstName} {member.profile.lastName}
-          </CardTitle>
+          <UserDisplay
+            profile={member.profile}
+            showUsername={true}
+            showFullName={true}
+            avatarSize="md"
+          />
           <Button
             variant="ghost"
             size="sm"
