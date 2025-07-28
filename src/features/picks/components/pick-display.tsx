@@ -218,10 +218,11 @@ export function PickTeamBox({
     }
   }
 
-  // Format odds to add + for positive spreads and trim extra 0s
+  // Format odds to add + for positive spreads, show "even" for 0, and trim extra 0s
   const formatOdds = (odds: string) => {
     const num = parseFloat(odds);
     if (isNaN(num)) return odds;
+    if (num === 0) return "even";
     const trimmedOdds = num.toString(); // This removes trailing 0s
     return num > 0 ? `+${trimmedOdds}` : trimmedOdds;
   };

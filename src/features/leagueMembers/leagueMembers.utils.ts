@@ -1,7 +1,7 @@
 import type { PopulatedLeagueResponse } from "../leagues/leagues.types";
 import { LEAGUE_MEMBER_ROLES } from "./leagueMembers.types";
 
-export function canManageMembers(
+export function canRemoveMembers(
   userId: string,
   league: PopulatedLeagueResponse,
 ) {
@@ -12,6 +12,16 @@ export function canManageMembers(
     currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER &&
     !league.isInSeason
   );
+}
+
+export function canEditMemberRoles(
+  userId: string,
+  league: PopulatedLeagueResponse,
+) {
+  const currentUserMemberInfo = league.members?.find(
+    (member) => member.userId === userId,
+  );
+  return currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER;
 }
 
 export function canLeaveLeagueAndIsSoleMember(

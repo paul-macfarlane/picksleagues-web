@@ -7,9 +7,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserRound, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { PopulatedLeagueInviteResponse } from "../leagueInvites.types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserDisplay } from "@/components/ui/user-display";
 
 function DirectInviteRow({
   invite,
@@ -21,25 +21,12 @@ function DirectInviteRow({
   return (
     <TableRow key={invite.id}>
       <TableCell>
-        <div className="flex items-center gap-2">
-          <Avatar className="h-6 w-6">
-            <AvatarImage
-              src={invite.invitee?.avatarUrl ?? undefined}
-              alt={invite.invitee?.username}
-            />
-            <AvatarFallback>
-              <UserRound className="h-4 w-4 text-primary" />
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <span>
-              {invite.invitee?.firstName} {invite.invitee?.lastName}
-            </span>
-            <div className="text-sm text-muted-foreground">
-              @{invite.invitee?.username}
-            </div>
-          </div>
-        </div>
+        <UserDisplay
+          profile={invite.invitee!}
+          showUsername={true}
+          showFullName={true}
+          avatarSize="sm"
+        />
       </TableCell>
       <TableCell>
         {invite.role.charAt(0).toUpperCase() + invite.role.slice(1)}

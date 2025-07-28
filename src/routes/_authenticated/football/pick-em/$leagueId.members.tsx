@@ -15,7 +15,8 @@ import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/lea
 import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
 import {
   canLeaveLeagueAndIsSoleMember,
-  canManageMembers,
+  canRemoveMembers,
+  canEditMemberRoles,
 } from "@/features/leagueMembers/leagueMembers.utils";
 import { canManageInvites } from "@/features/leagueInvites/leagueInvites.utils";
 import { LEAGUE_INCLUDES } from "@/features/leagues/leagues.types";
@@ -94,7 +95,8 @@ function MembersComponent() {
     league,
     members,
   );
-  const userCanManageMembers = canManageMembers(session!.userId, league);
+  const userCanRemoveMembers = canRemoveMembers(session!.userId, league);
+  const userCanEditMemberRoles = canEditMemberRoles(session!.userId, league);
   const { canLeave: userCanLeaveLeague, isSoleMember } =
     canLeaveLeagueAndIsSoleMember(session!.userId, league);
 
@@ -107,7 +109,8 @@ function MembersComponent() {
         <CardContent>
           <MembersList
             members={members}
-            canManageMembers={userCanManageMembers}
+            canRemoveMembers={userCanRemoveMembers}
+            canEditMemberRoles={userCanEditMemberRoles}
             canLeaveLeague={userCanLeaveLeague}
             isSoleMember={isSoleMember}
             userId={session!.userId}

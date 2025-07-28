@@ -6,10 +6,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UserRound, MoreVertical } from "lucide-react";
+import { MoreVertical } from "lucide-react";
+import { UserDisplay } from "@/components/ui/user-display";
 import {
   LEAGUE_MEMBER_ROLES,
   type PopulatedLeagueMemberResponse,
@@ -38,7 +38,8 @@ import { useRouter } from "@tanstack/react-router";
 
 type MembersListProps = {
   members: PopulatedLeagueMemberResponse[];
-  canManageMembers: boolean;
+  canRemoveMembers: boolean;
+  canEditMemberRoles: boolean;
   canLeaveLeague: boolean;
   isSoleMember: boolean;
   userId: string;
@@ -47,7 +48,8 @@ type MembersListProps = {
 
 export function MembersList({
   members,
-  canManageMembers,
+  canRemoveMembers,
+  canEditMemberRoles,
   canLeaveLeague,
   isSoleMember,
   userId,
@@ -112,28 +114,34 @@ export function MembersList({
         {members.map((member) => (
           <TableRow key={member.userId}>
             <TableCell className="font-medium">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage
-                    src={member.profile?.avatarUrl ?? undefined}
-                    alt={`${member.profile?.firstName} ${member.profile?.lastName}`}
-                  />
-                  <AvatarFallback>
-                    <UserRound className="h-4 w-4 text-primary" />
-                  </AvatarFallback>
-                </Avatar>
-                <span>
-                  {member.profile?.firstName} {member.profile?.lastName}
-                </span>
-              </div>
+              <UserDisplay
+                profile={member.profile!}
+                showUsername={true}
+                showFullName={true}
+                avatarSize="md"
+              />
             </TableCell>
             <TableCell>
-              {member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER && (
-                <Badge>{member.role}</Badge>
-              )}
+              <Badge
+                variant={
+                  member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER
+                    ? "default"
+                    : "secondary"
+                }
+                className={
+                  member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER
+                    ? "bg-blue-600 hover:bg-blue-700"
+                    : "bg-gray-600 hover:bg-gray-700"
+                }
+              >
+                {member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER
+                  ? "Commissioner"
+                  : "Member"}
+              </Badge>
             </TableCell>
             <TableCell className="text-right">
-              {(canManageMembers ||
+              {(canRemoveMembers ||
+                canEditMemberRoles ||
                 (member.userId === userId && canLeaveLeague)) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -142,70 +150,70 @@ export function MembersList({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    {canManageMembers && (
-                      <>
-                        {member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER ? (
-                          <DropdownMenuItem
-                            disabled={
-                              isSoleCommissioner && member.userId === userId
-                            }
-                            onClick={() =>
-                              handleUpdateMember(
-                                member.userId,
-                                LEAGUE_MEMBER_ROLES.MEMBER,
-                              )
-                            }
-                          >
-                            Make Member
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleUpdateMember(
-                                member.userId,
-                                LEAGUE_MEMBER_ROLES.COMMISSIONER,
-                              )
-                            }
-                          >
-                            Make Commissioner
-                          </DropdownMenuItem>
-                        )}
-                        {member.userId !== userId && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onSelect={(e) => e.preventDefault()}
+                    <>
+                      {canEditMemberRoles &&
+                      member.role === LEAGUE_MEMBER_ROLES.COMMISSIONER ? (
+                        <DropdownMenuItem
+                          disabled={
+                            isSoleCommissioner && member.userId === userId
+                          }
+                          onClick={() =>
+                            handleUpdateMember(
+                              member.userId,
+                              LEAGUE_MEMBER_ROLES.MEMBER,
+                            )
+                          }
+                        >
+                          Make Member
+                        </DropdownMenuItem>
+                      ) : canEditMemberRoles &&
+                        member.role === LEAGUE_MEMBER_ROLES.MEMBER ? (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleUpdateMember(
+                              member.userId,
+                              LEAGUE_MEMBER_ROLES.COMMISSIONER,
+                            )
+                          }
+                        >
+                          Make Commissioner
+                        </DropdownMenuItem>
+                      ) : null}
+                      {member.userId !== userId && canRemoveMembers && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              Remove Member
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you sure you want to remove this member?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                The member will be removed from the league and
+                                an invite will be requested to be sent to them
+                                to re-join the league.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() =>
+                                  handleRemoveMember(member.userId)
+                                }
                               >
-                                Remove Member
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you sure you want to remove this member?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  The member will be removed from the league and
-                                  an invite will be requested to be sent to them
-                                  to re-join the league.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() =>
-                                    handleRemoveMember(member.userId)
-                                  }
-                                >
-                                  Remove
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </>
-                    )}
+                                Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </>
                     {member.userId === userId && canLeaveLeague && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>

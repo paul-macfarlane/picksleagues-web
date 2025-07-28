@@ -18,7 +18,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search, UserRound, X } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import {
   useGetProfileByUserId,
   useSearchProfiles,
@@ -26,9 +26,9 @@ import {
 import { useState, useEffect, useRef } from "react";
 import type { LeagueMemberResponse } from "@/features/leagueMembers/leagueMembers.types";
 import z from "zod";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { useDelayedLoader } from "@/hooks/useDelayedLoader";
+import { UserDisplay } from "@/components/ui/user-display";
 import { LEAGUE_MEMBER_ROLES } from "@/features/leagueMembers/leagueMembers.types";
 
 const DirectInviteFormSchema = CreateLeagueInviteObjectSchema.extend({
@@ -206,14 +206,13 @@ function UserSearchCombobox({
                       onSelect={() => handleSelect(profile.userId)}
                       value={`@${profile.username} (${profile.firstName} ${profile.lastName})`}
                     >
-                      <Avatar className="mr-2 h-6 w-6">
-                        <AvatarImage src={profile.avatarUrl ?? undefined} />
-                        <AvatarFallback>
-                          <UserRound className="h-5 w-5 text-primary" />
-                        </AvatarFallback>
-                      </Avatar>
-                      @{profile.username} ({profile.firstName}{" "}
-                      {profile.lastName})
+                      <UserDisplay
+                        profile={profile}
+                        showUsername={true}
+                        showFullName={true}
+                        avatarSize="sm"
+                        className="mr-2"
+                      />
                     </CommandItem>
                   ))}
                 </CommandGroup>
