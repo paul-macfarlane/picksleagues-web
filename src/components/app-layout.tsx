@@ -163,7 +163,7 @@ function Navbar({ rightContent }: { rightContent: React.ReactNode }) {
         </div>
         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
           <span className="font-bold text-lg select-none flex items-center gap-2">
-            Picks Leagues
+            PicksLeagues
             <Trophy className="w-8 h-8 text-primary" />
           </span>
         </div>

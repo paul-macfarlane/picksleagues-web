@@ -55,7 +55,7 @@ export function LoginCard() {
           <Trophy className="h-12 w-12 text-primary" />
         </div>
         <CardTitle className="text-center text-2xl font-bold">
-          Sign in to Picks Leagues
+          Sign in to PicksLeagues
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
