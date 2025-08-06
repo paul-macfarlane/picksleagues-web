@@ -1,0 +1,12 @@
+---
+description: Shadcn Usage
+alwaysApply: false
+---
+
+# shadcn usage
+
+Use the canary version of Shadcn to install new components, like this command to add a button component:
+
+```bash
+npx shadcn@canary add button
+```

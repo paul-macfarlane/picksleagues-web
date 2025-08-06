@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as Sentry from "@sentry/react";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
@@ -23,6 +24,10 @@ const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
+});
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
 });
 
 // Register the router instance for type safety
