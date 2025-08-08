@@ -1,0 +1,12 @@
+---
+description: Mutations must invalidate caches in feature `.api.ts`
+globs:
+  - src/features/**/**.api.ts
+alwaysApply: false
+---
+
+- Perform cache invalidation in `useMutation` `onSuccess` callbacks.
+- Invalidate with partial query keys as needed (e.g., `['leagues', leagueId, 'invites']`).
+- Accept necessary context in mutation variables to compute query keys.
+- Prefer `queryClient.invalidateQueries({ queryKey: SomeQueryOptions(...).queryKey })` to keep keys consistent.
+

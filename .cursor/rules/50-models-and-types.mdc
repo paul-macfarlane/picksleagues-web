@@ -1,0 +1,10 @@
+---
+description: Models, types and zod schemas live with features
+globs:
+  - src/features/**/**.types.ts
+alwaysApply: false
+---
+
+- Co-locate API-related `type` definitions and `zod` schemas in `[feature].types.ts` in the same feature.
+- Keep types close to usage; avoid central type buckets.
+

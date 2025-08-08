@@ -1,0 +1,13 @@
+---
+description: Forms standard — @tanstack/react-form + Zod, with shared form components
+globs:
+  - src/components/form/**
+  - src/features/**/**.types.ts
+  - src/features/**/components/**
+alwaysApply: false
+---
+
+- Use `@tanstack/react-form` for forms; validate with Zod schemas from the feature `types.ts`.
+- Prefer shared form inputs from `src/components/form/*`.
+- Do not embed validation schema definitions in components; import from feature `types.ts`.
+

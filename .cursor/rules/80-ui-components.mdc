@@ -1,0 +1,12 @@
+---
+description: UI component placement and reuse
+globs:
+  - src/components/ui/**
+  - src/features/**/components/**
+alwaysApply: false
+---
+
+- Feature-specific UI belongs in the feature `components/` folder.
+- Generic, reusable UI primitives belong in `src/components/ui`.
+- Prefer composition and reuse; avoid duplicating primitives inside features.
+

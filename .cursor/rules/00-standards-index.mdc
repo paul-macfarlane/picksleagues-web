@@ -1,0 +1,39 @@
+---
+description: PicksLeagues Frontend Standards — Index and guardrails
+globs:
+alwaysApply: true
+---
+
+Use these standards when editing this codebase. Focused rules below will auto-attach by file path to reduce noise.
+
+- Architecture
+  - Hybrid feature-sliced architecture in `src/features/**`; routes in `src/routes/**` compose features.
+  - Shared primitives: `src/components/ui`, `src/components/form`, `src/hooks`, `src/lib`.
+
+- Data fetching and routing (TanStack Query + Router)
+  - Define reusable `queryOptions` in each feature `.api.ts`.
+  - Use route `loader` to orchestrate server-state via `queryClient.ensureQueryData`.
+  - Read data in components with `useSuspenseQuery(queryOptions)`.
+  - Set `pendingMs: 300`, provide a `pendingComponent` and use a standardized `errorComponent`.
+
+- Mutations & cache invalidation
+  - Invalidate in `.api.ts` using `onSuccess` and partial query keys.
+
+- API client
+  - Centralized in `src/lib/api.ts`; adhere to API Design Guide.
+  - Parse structured error shape `{ error: { message: string, code: string } }`.
+
+- Models & types
+  - Co-locate feature types and zod schemas in `src/features/*/*.types.ts`.
+
+- Forms
+  - Use `@tanstack/react-form` + Zod; schemas imported from the feature `types.ts`.
+
+- Explicit return types
+  - Required for exported API functions and most custom hooks (see detailed rule).
+
+- Loading UX
+  - Route-level pending with delay; component-level skeletons with `useDelayedLoader(300)`.
+
+See full narrative in @STANDARDS.md for background and rationale.
+

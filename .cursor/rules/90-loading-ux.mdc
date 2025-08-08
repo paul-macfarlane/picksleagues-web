@@ -1,0 +1,13 @@
+---
+description: Loading states — route pending vs component skeletons
+globs:
+  - src/routes/**
+  - src/hooks/useDelayedLoader.ts
+  - src/components/**
+alwaysApply: false
+---
+
+- For route-level data: use Router `pendingMs: 300` and a `pendingComponent` with the page shell + skeletons.
+- For component-level data: show skeletons that match layout and dimensions.
+- Use `useDelayedLoader(300)` to avoid flicker for fast loads.
+

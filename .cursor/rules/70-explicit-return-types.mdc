@@ -1,0 +1,14 @@
+---
+description: Explicit return types — where required vs inferred
+globs:
+  - src/features/**/**.api.ts
+  - src/hooks/**
+alwaysApply: false
+---
+
+- Required:
+  - Exported async API functions in `.api.ts` must declare `Promise<T>`.
+  - Custom hooks should have explicit return types unless they simply return TanStack Query hooks/options where inference is excellent.
+- Not required:
+  - Route loaders, React component return types.
+

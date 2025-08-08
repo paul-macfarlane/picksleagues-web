@@ -1,0 +1,22 @@
+---
+description: Architecture & directory structure for feature-sliced + routes
+globs:
+  - src/features/**
+  - src/routes/**
+  - src/components/**
+  - src/hooks/**
+  - src/lib/**
+  - STANDARDS.md
+alwaysApply: false
+---
+
+- Use hybrid feature-sliced architecture.
+- Routes in `src/routes/**` must compose feature UI from `src/features/**`.
+- Shared logic lives in `src/components/ui`, `src/components/form`, `src/hooks`, `src/lib`.
+- Feature slice layout:
+  - `src/features/[feature]/[feature].api.ts` — queryOptions + mutations
+  - `src/features/[feature]/components/**`
+  - `src/features/[feature]/[feature].types.ts` — types + zod
+  - `src/features/[feature]/hooks/**`
+  - `src/features/[feature]/[feature].utils.ts`
+

@@ -1,0 +1,13 @@
+---
+description: API client and error handling
+globs:
+  - src/lib/api.ts
+  - src/lib/errors.ts
+alwaysApply: false
+---
+
+- Centralize fetch/auth logic in `src/lib/api.ts`.
+- Follow API Design Guide.
+- Parse structured errors of shape `{ error: { message: string, code: string } }` and throw typed errors.
+- Do not duplicate client logic in features; import from `src/lib/api.ts`.
+

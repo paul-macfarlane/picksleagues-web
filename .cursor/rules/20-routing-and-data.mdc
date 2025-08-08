@@ -1,0 +1,15 @@
+---
+description: TanStack Router + TanStack Query orchestration (loader + suspense)
+globs:
+  - src/routes/**
+  - src/features/**/**.api.ts
+  - src/components/route-error-boundary.tsx
+alwaysApply: false
+---
+
+- Define `queryOptions` in feature `.api.ts` files. Example fields: `queryKey`, `queryFn`.
+- In route `loader`, call `await queryClient.ensureQueryData(queryOptions)` for critical data; fire-and-forget for non-critical.
+- In components, read with `useSuspenseQuery(queryOptions)`.
+- Set `pendingMs: 300` and provide a `pendingComponent` with structural shell + skeletons.
+- Use `RouteErrorBoundary` at `src/components/route-error-boundary.tsx` as the `errorComponent`.
+
