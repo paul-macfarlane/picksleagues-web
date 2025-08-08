@@ -57,7 +57,7 @@ export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
         endPhaseTemplate?.sequence &&
         startPhaseTemplate.sequence > endPhaseTemplate.sequence
       ) {
-        setSubmitError("Start week must be before end week");
+        setSubmitError(`Start week cannot be after end week`);
         return;
       }
 
