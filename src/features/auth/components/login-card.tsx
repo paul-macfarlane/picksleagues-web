@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import googleLogo from "@/assets/google.svg";
 import appleBlack from "@/assets/apple-black.svg";
 import appleWhite from "@/assets/apple-white.svg";
+import discordLogo from "@/assets/discord.svg";
 import { authClient } from "@/lib/auth-client";
 import { useTheme } from "@/components/theme-provider";
 import { Trophy } from "lucide-react";
@@ -48,6 +49,22 @@ export function LoginCard() {
     }
   }
 
+  async function signInWithDiscord() {
+    try {
+      await authClient.signIn.social({
+        provider: "discord",
+        callbackURL: "/api/v1/profiles/onboard",
+      });
+    } catch (error) {
+      const errorMessage = "Error signing in with Discord";
+      if (error instanceof Error) {
+        toast.error(`${errorMessage}: ${error.message}`);
+      } else {
+        toast.error(errorMessage);
+      }
+    }
+  }
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="space-y-3">
@@ -79,6 +96,14 @@ export function LoginCard() {
             style={{ filter: isDarkMode ? "brightness(1.5)" : "none" }}
           />
           Sign in with Apple
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full flex items-center gap-2 py-6 text-base font-semibold"
+          onClick={signInWithDiscord}
+        >
+          <img src={discordLogo} alt="Discord" className="h-6 w-6" />
+          Sign in with Discord
         </Button>
       </CardContent>
     </Card>
