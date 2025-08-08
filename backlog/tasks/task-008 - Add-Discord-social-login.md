@@ -1,9 +1,11 @@
 ---
 id: task-008
 title: Add Discord social login
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@assistant'
 created_date: '2025-08-08'
+updated_date: '2025-08-08'
 labels: []
 dependencies: []
 ---
@@ -22,3 +24,7 @@ Users can log into Picks Leagues using the following Social Login Providers: Goo
 - [ ] Existing users are redirected to home after login
 - [ ] New users are redirected to profile setup after first login
 - [ ] Type-checks and lints pass
+
+## Implementation Plan
+
+1) Add Discord provider button to login card\n2) Wire up auth client to call social sign-in with provider 'discord' and callback to /api/v1/profiles/onboard\n3) Add Discord logo asset and styling consistent with existing buttons\n4) Verify redirects: existing users -> home, new users -> profile setup\n5) Ensure multiple providers with same email map to the same account at auth backend (assumed configured)\n6) Type-check and lint
