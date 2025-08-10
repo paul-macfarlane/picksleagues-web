@@ -15,6 +15,7 @@ export enum LEAGUE_INCLUDES {
 
 export const MIN_PICKS_PER_PHASE = 1;
 export const MAX_PICKS_PER_PHASE = 16;
+export const DEFAULT_PICKS_PER_PHASE = 5;
 
 export enum PICK_EM_PICK_TYPES {
   SPREAD = "spread",

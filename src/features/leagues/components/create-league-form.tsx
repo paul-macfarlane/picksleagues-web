@@ -10,11 +10,11 @@ import { useCreateLeague } from "@/features/leagues/leagues.api";
 import z from "zod";
 import {
   LEAGUE_VISIBILITIES,
-  MIN_PICKS_PER_PHASE,
   PICK_EM_PICK_TYPES,
   CreatePickEmLeagueSchema,
   PICK_EM_PICK_TYPE_LABELS,
   DEFAULT_LEAGUE_SIZE,
+  DEFAULT_PICKS_PER_PHASE,
 } from "@/features/leagues/leagues.types";
 
 type CreateLeagueFormProps = {
@@ -38,7 +38,7 @@ export function CreateLeagueForm({ phaseTemplates }: CreateLeagueFormProps) {
       visibility: LEAGUE_VISIBILITIES.PRIVATE,
       size: DEFAULT_LEAGUE_SIZE,
       settings: {
-        picksPerPhase: Number(MIN_PICKS_PER_PHASE),
+        picksPerPhase: Number(DEFAULT_PICKS_PER_PHASE),
         pickType: PICK_EM_PICK_TYPES.SPREAD,
       },
     } as z.infer<typeof CreatePickEmLeagueSchema>,
