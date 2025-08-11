@@ -167,7 +167,7 @@ export function MyPicks({
         // No events in this phase
         <div className="text-center py-8">
           <p className="text-muted-foreground">
-            This phase doesn't have any games yet.
+            This week doesn't have any games yet.
           </p>
         </div>
       ) : hasMadePicks ? (
@@ -192,7 +192,7 @@ export function MyPicks({
         <div className="space-y-4">
           <div className="text-center py-4">
             <p className="text-muted-foreground mb-4">
-              This phase hasn't started yet. Picks will be available when it
+              This week hasn't started yet. Picks will be available when it
               becomes the current phase.
             </p>
           </div>

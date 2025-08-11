@@ -186,7 +186,7 @@ export function LeaguePicks({
         // No events in this phase
         <div className="text-center py-8">
           <p className="text-muted-foreground">
-            This phase doesn't have any games yet.
+            This week doesn't have any games yet.
           </p>
         </div>
       ) : !isPicksLocked ? (
@@ -200,7 +200,7 @@ export function LeaguePicks({
         // No picks made yet
         <div className="text-center py-8">
           <p className="text-muted-foreground">
-            No picks have been made for this phase yet.
+            No picks have been made for this week yet.
           </p>
         </div>
       ) : (
