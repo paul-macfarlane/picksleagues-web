@@ -96,6 +96,11 @@ export function JoinLeagueCard({
           Join League
         </Button>
       </CardFooter>
+      <CardContent className="pt-0 text-center">
+        <Button asChild variant="link" className="w-full justify-center mt-2">
+          <Link to="/">Back to Home</Link>
+        </Button>
+      </CardContent>
     </Card>
   );
 }
