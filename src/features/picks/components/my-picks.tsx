@@ -193,7 +193,7 @@ export function MyPicks({
           <div className="text-center py-4">
             <p className="text-muted-foreground mb-4">
               This week hasn't started yet. Picks will be available when it
-              becomes the current phase.
+              becomes the current week.
             </p>
           </div>
           {currentEvents.map((event) => (
@@ -217,7 +217,7 @@ export function MyPicks({
             <AlertDescription>
               {isPicksLocked ? (
                 <span className="font-semibold">
-                  Picks are now locked for this phase.
+                  Picks are now locked for this week.
                 </span>
               ) : (
                 <span>
@@ -275,10 +275,10 @@ export function MyPicks({
             <div className="text-center py-8">
               <div className="text-muted-foreground">
                 <p className="text-lg font-medium mb-2">
-                  Picks are locked for this phase
+                  Picks are locked for this week
                 </p>
                 <p>
-                  You can no longer make picks for this phase. Picks locked at{" "}
+                  You can no longer make picks for this week. Picks locked at{" "}
                   {pickLockTime.toLocaleString()}.
                 </p>
               </div>
