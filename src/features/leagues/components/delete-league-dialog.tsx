@@ -36,7 +36,7 @@ export function DeleteLeagueDialog({
       {
         onSuccess: () => {
           onOpenChange(false);
-          navigate({ to: "/football/pick-em" });
+          navigate({ to: "/" });
           toast.success("League deleted successfully");
         },
         onError: (error) => {
