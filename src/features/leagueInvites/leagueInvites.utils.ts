@@ -1,10 +1,10 @@
 import type { PopulatedLeagueMemberResponse } from "@/features/leagueMembers/leagueMembers.types";
 import { LEAGUE_MEMBER_ROLES } from "@/features/leagueMembers/leagueMembers.types";
-import type { LeagueResponse } from "@/features/leagues/leagues.types";
+import type { PopulatedLeagueResponse } from "@/features/leagues/leagues.types";
 
 export function canManageInvites(
   userId: string,
-  league: LeagueResponse,
+  league: PopulatedLeagueResponse,
   members: PopulatedLeagueMemberResponse[],
 ) {
   const currentUserMemberInfo = members.find(
@@ -12,6 +12,7 @@ export function canManageInvites(
   );
   return (
     currentUserMemberInfo?.role === LEAGUE_MEMBER_ROLES.COMMISSIONER &&
-    members.length < league.size
+    members.length < league.size &&
+    !league.isInSeason
   );
 }
