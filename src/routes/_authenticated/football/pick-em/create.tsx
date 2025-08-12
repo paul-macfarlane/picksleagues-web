@@ -12,7 +12,10 @@ export const Route = createFileRoute("/_authenticated/football/pick-em/create")(
     component: RouteComponent,
     loader: async ({ context: { queryClient } }) => {
       await queryClient.ensureQueryData(
-        GetPhaseTemplatesByLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
+        GetPhaseTemplatesByLeagueTypeQueryOptions({
+          typeIdOrSlug: LEAGUE_TYPE_SLUGS.PICK_EM,
+          excludeStarted: true,
+        }),
       );
     },
     pendingComponent: CreateLeaguePageSkeleton,
@@ -23,7 +26,10 @@ export const Route = createFileRoute("/_authenticated/football/pick-em/create")(
 
 function RouteComponent() {
   const { data: phaseTemplates } = useSuspenseQuery(
-    GetPhaseTemplatesByLeagueTypeQueryOptions(LEAGUE_TYPE_SLUGS.PICK_EM),
+    GetPhaseTemplatesByLeagueTypeQueryOptions({
+      typeIdOrSlug: LEAGUE_TYPE_SLUGS.PICK_EM,
+      excludeStarted: true,
+    }),
   );
 
   return (

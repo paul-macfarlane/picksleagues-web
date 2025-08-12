@@ -4,6 +4,7 @@ import {
   type LeagueTypeResponse,
 } from "../leagueTypes/leagueTypes.types";
 import type { LeagueMemberResponse } from "../leagueMembers/leagueMembers.types";
+import type { PhaseTemplateResponse } from "../phaseTemplates/phaseTemplates.types";
 
 // constants
 
@@ -11,6 +12,8 @@ export enum LEAGUE_INCLUDES {
   IS_IN_SEASON = "is_in_season",
   LEAGUE_TYPE = "league_type",
   MEMBERS = "members",
+  START_PHASE_TEMPLATE = "start_phase_template",
+  END_PHASE_TEMPLATE = "end_phase_template",
 }
 
 export const MIN_PICKS_PER_PHASE = 1;
@@ -63,12 +66,16 @@ export type PopulatedLeagueResponse = LeagueResponse & {
   isInSeason?: boolean;
   leagueType?: LeagueTypeResponse;
   members?: LeagueMemberResponse[];
+  startPhaseTemplate?: PhaseTemplateResponse | null;
+  endPhaseTemplate?: PhaseTemplateResponse | null;
 };
 
 export type PopulatedPickEmLeagueResponse = PickEmLeagueResponse & {
   isInSeason?: boolean;
   leagueType?: LeagueTypeResponse;
   members?: LeagueMemberResponse[];
+  startPhaseTemplate?: PhaseTemplateResponse | null;
+  endPhaseTemplate?: PhaseTemplateResponse | null;
 };
 
 // schemas
