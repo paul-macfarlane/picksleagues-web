@@ -6,13 +6,11 @@ export async function getPhaseTemplatesForLeagueType(
   typeIdOrSlug: string,
   excludeStarted: boolean = false,
 ): Promise<PhaseTemplateResponse[]> {
-  const url = new URL(
-    `${API_BASE}/v1/league-types/${typeIdOrSlug}/phase-templates`,
-  );
+  let url = `${API_BASE}/v1/league-types/${typeIdOrSlug}/phase-templates`;
   if (excludeStarted) {
-    url.searchParams.set("excludeStarted", "true");
+    url += "?excludeStarted=true";
   }
-  return await authenticatedFetch<PhaseTemplateResponse[]>(url.toString());
+  return await authenticatedFetch<PhaseTemplateResponse[]>(url);
 }
 
 export const GetPhaseTemplatesByLeagueTypeQueryKey = (
