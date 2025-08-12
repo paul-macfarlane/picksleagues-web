@@ -42,13 +42,13 @@ export function InteractivePickTeamBox({
       {/* Away team (left) */}
       {side === "left" && (
         <>
-          <span className="hidden md:block text-lg font-bold text-white min-w-[2ch] text-left"></span>
+          <span className="hidden md:block text-lg font-bold text-primary-background min-w-[2ch] text-left"></span>
           <div className="hidden md:flex flex-1 items-center justify-between w-full">
             <span></span>
             <div className="flex items-center gap-2 ml-auto">
               <span
                 className={`font-bold text-lg ${
-                  selected ? "text-white" : "text-muted-foreground"
+                  selected ? "text-primary-background" : "text-muted-foreground"
                 }`}
               >
                 {displayText}
@@ -69,13 +69,13 @@ export function InteractivePickTeamBox({
               />
               <span
                 className={`font-bold text-lg ${
-                  selected ? "text-white" : "text-muted-foreground"
+                  selected ? "text-primary-background" : "text-muted-foreground"
                 }`}
               >
                 {displayText}
               </span>
             </div>
-            <span className="text-lg font-bold text-white min-w-[2ch] text-right ml-auto"></span>
+            <span className="text-lg font-bold text-primary-background min-w-[2ch] text-right ml-auto"></span>
           </div>
         </>
       )}
@@ -91,14 +91,14 @@ export function InteractivePickTeamBox({
             />
             <span
               className={`font-bold text-lg ${
-                selected ? "text-white" : "text-muted-foreground"
+                selected ? "text-primary-background" : "text-muted-foreground"
               }`}
             >
               {displayText}
             </span>
           </div>
-          <span className="hidden md:block text-lg font-bold text-white min-w-[2ch] text-right"></span>
-          <span className="block md:hidden text-lg font-bold text-white min-w-[2ch] text-right ml-auto"></span>
+          <span className="hidden md:block text-lg font-bold text-primary-background min-w-[2ch] text-right"></span>
+          <span className="block md:hidden text-lg font-bold text-primary-background min-w-[2ch] text-right ml-auto"></span>
         </>
       )}
     </button>

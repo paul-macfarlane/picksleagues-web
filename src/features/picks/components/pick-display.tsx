@@ -239,14 +239,14 @@ export function PickTeamBox({
       {/* Away team (left) */}
       {side === "left" && (
         <>
-          <span className="hidden md:block text-lg font-bold text-white min-w-[2ch] text-left">
+          <span className="hidden md:block text-lg font-bold text-primary-background min-w-[2ch] text-left">
             {score !== null ? score : ""}
           </span>
           <div className="hidden md:flex flex-1 items-center justify-between w-full">
             <span></span>
             <div className="flex items-center gap-2 ml-auto">
               <span
-                className={`font-bold text-lg ${picked ? "text-white" : "text-muted-foreground"}`}
+                className={`font-bold text-lg ${picked ? "text-primary-background" : "text-muted-foreground"}`}
               >
                 {displayText}
               </span>
@@ -265,12 +265,12 @@ export function PickTeamBox({
                 className="w-8 h-8 object-contain"
               />
               <span
-                className={`font-bold text-lg ${picked ? "text-white" : "text-muted-foreground"}`}
+                className={`font-bold text-lg ${picked ? "text-primary-background" : "text-muted-foreground"}`}
               >
                 {displayText}
               </span>
             </div>
-            <span className="text-lg font-bold text-white min-w-[2ch] text-right ml-auto">
+            <span className="text-lg font-bold text-primary-background min-w-[2ch] text-right ml-auto">
               {score !== null ? score : ""}
             </span>
           </div>
@@ -286,15 +286,15 @@ export function PickTeamBox({
               className="w-8 h-8 object-contain"
             />
             <span
-              className={`font-bold text-lg ${picked ? "text-white" : "text-muted-foreground"}`}
+              className={`font-bold text-lg ${picked ? "text-primary-background" : "text-muted-foreground"}`}
             >
               {displayText}
             </span>
           </div>
-          <span className="hidden md:block text-lg font-bold text-white min-w-[2ch] text-right">
+          <span className="hidden md:block text-lg font-bold text-primary-background min-w-[2ch] text-right">
             {score !== null ? score : ""}
           </span>
-          <span className="block md:hidden text-lg font-bold text-white min-w-[2ch] text-right ml-auto">
+          <span className="block md:hidden text-lg font-bold text-primary-background min-w-[2ch] text-right ml-auto">
             {score !== null ? score : ""}
           </span>
         </>
