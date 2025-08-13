@@ -239,7 +239,9 @@ export function PickTeamBox({
       {/* Away team (left) */}
       {side === "left" && (
         <>
-          <span className="hidden md:block text-lg font-bold text-primary-background min-w-[2ch] text-left">
+          <span
+            className={`hidden md:block text-lg font-bold min-w-[2ch] text-left ${picked ? "text-primary-background" : "text-muted-foreground"}`}
+          >
             {score !== null ? score : ""}
           </span>
           <div className="hidden md:flex flex-1 items-center justify-between w-full">
@@ -270,7 +272,9 @@ export function PickTeamBox({
                 {displayText}
               </span>
             </div>
-            <span className="text-lg font-bold text-primary-background min-w-[2ch] text-right ml-auto">
+            <span
+              className={`text-lg font-bold min-w-[2ch] text-right ml-auto ${picked ? "text-primary-background" : "text-muted-foreground"}`}
+            >
               {score !== null ? score : ""}
             </span>
           </div>
@@ -291,10 +295,14 @@ export function PickTeamBox({
               {displayText}
             </span>
           </div>
-          <span className="hidden md:block text-lg font-bold text-primary-background min-w-[2ch] text-right">
+          <span
+            className={`hidden md:block text-lg font-bold min-w-[2ch] text-right ${picked ? "text-primary-background" : "text-muted-foreground"}`}
+          >
             {score !== null ? score : ""}
           </span>
-          <span className="block md:hidden text-lg font-bold text-primary-background min-w-[2ch] text-right ml-auto">
+          <span
+            className={`block md:hidden text-lg font-bold min-w-[2ch] text-right ml-auto ${picked ? "text-primary-background" : "text-muted-foreground"}`}
+          >
             {score !== null ? score : ""}
           </span>
         </>
