@@ -5,6 +5,12 @@ import { LeagueLayoutPendingComponent } from "@/features/leagues/components/leag
 import { RouteErrorBoundary } from "@/components/route-error-boundary";
 import { LEAGUE_INCLUDES } from "@/features/leagues/leagues.types";
 
+export const LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES = [
+  LEAGUE_INCLUDES.MEMBERS,
+  LEAGUE_INCLUDES.IS_IN_SEASON,
+  LEAGUE_INCLUDES.LEAGUE_TYPE,
+];
+
 export const Route = createFileRoute(
   "/_authenticated/football/pick-em/$leagueId",
 )({
@@ -14,10 +20,6 @@ export const Route = createFileRoute(
   pendingMs: 300,
   loader: ({ context: { queryClient }, params: { leagueId } }) =>
     queryClient.ensureQueryData(
-      GetLeagueQueryOptions(leagueId, [
-        LEAGUE_INCLUDES.MEMBERS,
-        LEAGUE_INCLUDES.IS_IN_SEASON,
-        LEAGUE_INCLUDES.LEAGUE_TYPE,
-      ]),
+      GetLeagueQueryOptions(leagueId, LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES),
     ),
 });

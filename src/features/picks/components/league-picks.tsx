@@ -9,7 +9,6 @@ import { WeekSwitcher } from "./week-switcher";
 import { UserDisplay } from "@/components/ui/user-display";
 import type { PopulatedPickResponse } from "../picks.types";
 import type { PopulatedPhaseResponse } from "../../phases/phases.types";
-import type { PopulatedEventResponse } from "../../events/events.type";
 import type { ProfileResponse } from "../../profiles/profiles.types";
 
 interface LeaguePicksProps {
@@ -21,10 +20,7 @@ interface LeaguePicksProps {
 interface MemberPicksCardProps {
   member: {
     profile: ProfileResponse;
-    picks: Array<{
-      event: PopulatedEventResponse;
-      pick: PopulatedPickResponse;
-    }>;
+    picks: PopulatedPickResponse[];
   };
   isATS?: boolean;
 }
@@ -57,10 +53,10 @@ function MemberPicksCard({ member, isATS }: MemberPicksCardProps) {
       </CardHeader>
       {isExpanded && (
         <CardContent className="space-y-4">
-          {member.picks.map(({ event, pick }) => (
+          {member.picks.map((pick) => (
             <PickDisplay
-              key={event.id}
-              event={event}
+              key={pick.id}
+              event={pick.event!}
               userPick={pick}
               isATS={isATS}
             />
@@ -106,7 +102,6 @@ export function LeaguePicks({
       ...phase.previousPhase,
       previousPhase: undefined,
       nextPhase: phase,
-      events: [],
     });
   }
 
@@ -117,13 +112,11 @@ export function LeaguePicks({
       ...phase.nextPhase,
       previousPhase: phase,
       nextPhase: undefined,
-      events: [],
     });
   }
 
   // Group picks by user
   const picksByUser = new Map<string, PopulatedPickResponse[]>();
-
   allPicks.forEach((pick) => {
     if (pick.profile) {
       const userId = pick.profile.userId;
@@ -138,26 +131,17 @@ export function LeaguePicks({
   const hasAnyEvents = (phase.events || []).length > 0;
 
   // Create member data for display
-  const members = Array.from(picksByUser.entries()).map(([, picks]) => {
-    const firstPick = picks[0];
-    const profile = firstPick.profile!;
+  const membersWithPicks = Array.from(picksByUser.entries()).map(
+    ([, picks]) => {
+      const firstPick = picks[0];
+      const profile = firstPick.profile!;
 
-    // Map picks to events
-    const picksWithEvents = picks
-      .map((pick) => {
-        const event = phase.events?.find((e) => e.id === pick.eventId);
-        return {
-          event: event!,
-          pick,
-        };
-      })
-      .filter((item) => item.event); // Filter out picks without events
-
-    return {
-      profile,
-      picks: picksWithEvents,
-    };
-  });
+      return {
+        profile,
+        picks,
+      };
+    },
+  );
 
   return (
     <div className="space-y-6">
@@ -196,7 +180,7 @@ export function LeaguePicks({
             League member picks will be visible after the pick lock time.
           </p>
         </div>
-      ) : members.length === 0 ? (
+      ) : membersWithPicks.length === 0 ? (
         // No picks made yet
         <div className="text-center py-8">
           <p className="text-muted-foreground">
@@ -206,7 +190,7 @@ export function LeaguePicks({
       ) : (
         // Show member picks
         <div className="space-y-4">
-          {members.map((member) => (
+          {membersWithPicks.map((member) => (
             <MemberPicksCard
               key={member.profile.userId}
               member={member}

@@ -14,15 +14,22 @@ import {
 import { PHASE_INCLUDES } from "@/features/phases/phases.types";
 import { PICK_INCLUDES } from "@/features/picks/picks.types";
 import type { PopulatedPickEmLeagueResponse } from "@/features/leagues/leagues.types";
-import {
-  LEAGUE_INCLUDES,
-  PICK_EM_PICK_TYPES,
-} from "@/features/leagues/leagues.types";
+import { PICK_EM_PICK_TYPES } from "@/features/leagues/leagues.types";
 import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
+import { LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES } from "./$leagueId";
 
 const searchSchema = z.object({
   phaseId: z.string().optional(),
 });
+
+const LEAGUE_PICKS_PHASE_INCLUDES = [
+  PHASE_INCLUDES.EVENTS,
+  PHASE_INCLUDES.PREVIOUS_PHASE,
+  PHASE_INCLUDES.NEXT_PHASE,
+  PHASE_INCLUDES.PHASE_TEMPLATE,
+];
+
+const LEAGUE_PICKS_PICK_INCLUDES = Object.values(PICK_INCLUDES);
 
 export const Route = createFileRoute(
   "/_authenticated/football/pick-em/$leagueId/league-picks",
@@ -39,14 +46,14 @@ export const Route = createFileRoute(
         GetPhaseForLeagueQueryOptions(
           leagueId,
           phaseId,
-          Object.values(PHASE_INCLUDES),
+          LEAGUE_PICKS_PHASE_INCLUDES,
         ),
       );
       await queryClient.ensureQueryData(
         GetPicksForLeagueAndPhaseQueryOptions(
           leagueId,
           phaseId,
-          Object.values(PICK_INCLUDES),
+          LEAGUE_PICKS_PICK_INCLUDES,
         ),
       );
     } else {
@@ -54,13 +61,13 @@ export const Route = createFileRoute(
       await queryClient.ensureQueryData(
         GetCurrentPhaseForLeagueQueryOptions(
           leagueId,
-          Object.values(PHASE_INCLUDES),
+          LEAGUE_PICKS_PHASE_INCLUDES,
         ),
       );
       await queryClient.ensureQueryData(
         GetPicksForLeagueAndCurrentPhaseQueryOptions(
           leagueId,
-          Object.values(PICK_INCLUDES),
+          LEAGUE_PICKS_PICK_INCLUDES,
         ),
       );
     }
@@ -72,11 +79,10 @@ export const Route = createFileRoute(
 
 function LeaguePicksPage() {
   const { data: leagueData } = useSuspenseQuery(
-    GetLeagueQueryOptions(Route.useParams().leagueId, [
-      LEAGUE_INCLUDES.MEMBERS,
-      LEAGUE_INCLUDES.IS_IN_SEASON,
-      LEAGUE_INCLUDES.LEAGUE_TYPE,
-    ]),
+    GetLeagueQueryOptions(
+      Route.useParams().leagueId,
+      LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES,
+    ),
   );
   const league = leagueData as PopulatedPickEmLeagueResponse;
 
@@ -88,11 +94,11 @@ function LeaguePicksPage() {
       ? GetPhaseForLeagueQueryOptions(
           league.id,
           phaseId,
-          Object.values(PHASE_INCLUDES),
+          LEAGUE_PICKS_PHASE_INCLUDES,
         )
       : GetCurrentPhaseForLeagueQueryOptions(
           league.id,
-          Object.values(PHASE_INCLUDES),
+          LEAGUE_PICKS_PHASE_INCLUDES,
         ),
   );
 
@@ -101,11 +107,11 @@ function LeaguePicksPage() {
       ? GetPicksForLeagueAndPhaseQueryOptions(
           league.id,
           phaseId,
-          Object.values(PICK_INCLUDES),
+          LEAGUE_PICKS_PICK_INCLUDES,
         )
       : GetPicksForLeagueAndCurrentPhaseQueryOptions(
           league.id,
-          Object.values(PICK_INCLUDES),
+          LEAGUE_PICKS_PICK_INCLUDES,
         ),
   );
 

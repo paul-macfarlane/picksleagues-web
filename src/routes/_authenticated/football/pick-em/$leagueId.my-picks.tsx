@@ -14,15 +14,22 @@ import {
 import { PHASE_INCLUDES } from "@/features/phases/phases.types";
 import { PICK_INCLUDES } from "@/features/picks/picks.types";
 import {
-  LEAGUE_INCLUDES,
   PICK_EM_PICK_TYPES,
   type PopulatedPickEmLeagueResponse,
 } from "@/features/leagues/leagues.types";
 import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
+import { LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES } from "./$leagueId";
 
 const searchSchema = z.object({
   phaseId: z.string().optional(),
 });
+
+const MY_PICKS_PICK_INCLUDES = Object.values(PICK_INCLUDES);
+const MY_PICKS_PHASE_INCLUDES_PICKS_NOT_MADE = Object.values(PHASE_INCLUDES);
+const MY_PICKS_PHASE_INCLUDES_PICKS_MADE =
+  MY_PICKS_PHASE_INCLUDES_PICKS_NOT_MADE.filter(
+    (include) => include !== PHASE_INCLUDES.EVENTS_EXCLUDE_STARTED,
+  );
 
 export const Route = createFileRoute(
   "/_authenticated/football/pick-em/$leagueId/my-picks",
@@ -34,41 +41,42 @@ export const Route = createFileRoute(
     const { phaseId } = deps;
 
     await queryClient.ensureQueryData(
-      GetLeagueQueryOptions(leagueId, [
-        LEAGUE_INCLUDES.MEMBERS,
-        LEAGUE_INCLUDES.IS_IN_SEASON,
-        LEAGUE_INCLUDES.LEAGUE_TYPE,
-      ]),
+      GetLeagueQueryOptions(leagueId, LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES),
     );
 
     // If phaseId is specified, fetch that specific phase, otherwise fetch current phase
     if (phaseId) {
+      const myPicks = await queryClient.ensureQueryData(
+        GetMyPicksForLeagueAndPhaseQueryOptions(
+          leagueId,
+          phaseId,
+          MY_PICKS_PICK_INCLUDES,
+        ),
+      );
+
       await queryClient.ensureQueryData(
         GetPhaseForLeagueQueryOptions(
           leagueId,
           phaseId,
-          Object.values(PHASE_INCLUDES),
-        ),
-      );
-      await queryClient.ensureQueryData(
-        GetMyPicksForLeagueAndPhaseQueryOptions(
-          leagueId,
-          phaseId,
-          Object.values(PICK_INCLUDES),
+          myPicks.length > 0
+            ? MY_PICKS_PHASE_INCLUDES_PICKS_MADE
+            : MY_PICKS_PHASE_INCLUDES_PICKS_NOT_MADE,
         ),
       );
     } else {
+      const myPicks = await queryClient.ensureQueryData(
+        GetMyPicksForLeagueAndCurrentPhaseQueryOptions(
+          leagueId,
+          MY_PICKS_PICK_INCLUDES,
+        ),
+      );
       // Fetch current phase and user picks
       await queryClient.ensureQueryData(
         GetCurrentPhaseForLeagueQueryOptions(
           leagueId,
-          Object.values(PHASE_INCLUDES),
-        ),
-      );
-      await queryClient.ensureQueryData(
-        GetMyPicksForLeagueAndCurrentPhaseQueryOptions(
-          leagueId,
-          Object.values(PICK_INCLUDES),
+          myPicks.length > 0
+            ? MY_PICKS_PHASE_INCLUDES_PICKS_MADE
+            : MY_PICKS_PHASE_INCLUDES_PICKS_NOT_MADE,
         ),
       );
     }
@@ -80,14 +88,26 @@ export const Route = createFileRoute(
 
 function MyPicksPage() {
   const { data: leagueData } = useSuspenseQuery(
-    GetLeagueQueryOptions(Route.useParams().leagueId, [
-      LEAGUE_INCLUDES.MEMBERS,
-      LEAGUE_INCLUDES.IS_IN_SEASON,
-      LEAGUE_INCLUDES.LEAGUE_TYPE,
-    ]),
+    GetLeagueQueryOptions(
+      Route.useParams().leagueId,
+      LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES,
+    ),
   );
   const league = leagueData as PopulatedPickEmLeagueResponse;
   const { phaseId } = Route.useSearch();
+
+  const { data: userPicks } = useSuspenseQuery(
+    phaseId
+      ? GetMyPicksForLeagueAndPhaseQueryOptions(
+          league.id,
+          phaseId,
+          MY_PICKS_PICK_INCLUDES,
+        )
+      : GetMyPicksForLeagueAndCurrentPhaseQueryOptions(
+          league.id,
+          MY_PICKS_PICK_INCLUDES,
+        ),
+  );
 
   // Use the appropriate query based on whether phaseId is specified
   const { data: phase } = useSuspenseQuery(
@@ -95,24 +115,15 @@ function MyPicksPage() {
       ? GetPhaseForLeagueQueryOptions(
           league.id,
           phaseId,
-          Object.values(PHASE_INCLUDES),
+          userPicks.length > 0
+            ? MY_PICKS_PHASE_INCLUDES_PICKS_MADE
+            : MY_PICKS_PHASE_INCLUDES_PICKS_NOT_MADE,
         )
       : GetCurrentPhaseForLeagueQueryOptions(
           league.id,
-          Object.values(PHASE_INCLUDES),
-        ),
-  );
-
-  const { data: userPicks } = useSuspenseQuery(
-    phaseId
-      ? GetMyPicksForLeagueAndPhaseQueryOptions(
-          league.id,
-          phaseId,
-          Object.values(PICK_INCLUDES),
-        )
-      : GetMyPicksForLeagueAndCurrentPhaseQueryOptions(
-          league.id,
-          Object.values(PICK_INCLUDES),
+          userPicks.length > 0
+            ? MY_PICKS_PHASE_INCLUDES_PICKS_MADE
+            : MY_PICKS_PHASE_INCLUDES_PICKS_NOT_MADE,
         ),
   );
 
