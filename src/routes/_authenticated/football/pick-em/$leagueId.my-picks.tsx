@@ -19,6 +19,9 @@ import {
 } from "@/features/leagues/leagues.types";
 import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
 import { LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES } from "./$leagueId";
+import { GetMyStandingsForLeagueAndCurrentSeasonQueryOptions } from "@/features/standings/standings.api";
+import { STANDINGS_INCLUDES } from "@/features/standings/standings.types";
+import type { PopulatedPickEmStandingsResponse } from "@/features/standings/standings.types";
 
 const searchSchema = z.object({
   phaseId: z.string().optional(),
@@ -42,6 +45,13 @@ export const Route = createFileRoute(
 
     await queryClient.ensureQueryData(
       GetLeagueQueryOptions(leagueId, LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES),
+    );
+
+    await queryClient.ensureQueryData(
+      GetMyStandingsForLeagueAndCurrentSeasonQueryOptions<PopulatedPickEmStandingsResponse>(
+        leagueId,
+        [STANDINGS_INCLUDES.PROFILE],
+      ),
     );
 
     // If phaseId is specified, fetch that specific phase, otherwise fetch current phase
@@ -127,6 +137,13 @@ function MyPicksPage() {
         ),
   );
 
+  const { data: standings } = useSuspenseQuery(
+    GetMyStandingsForLeagueAndCurrentSeasonQueryOptions<PopulatedPickEmStandingsResponse>(
+      league.id,
+      [STANDINGS_INCLUDES.PROFILE],
+    ),
+  );
+
   const isATS = league.settings.pickType === PICK_EM_PICK_TYPES.SPREAD;
 
   return (
@@ -134,6 +151,7 @@ function MyPicksPage() {
       phase={phase}
       userPicks={userPicks || []}
       picksPerPhase={league.settings.picksPerPhase}
+      standings={standings}
       isATS={isATS}
     />
   );

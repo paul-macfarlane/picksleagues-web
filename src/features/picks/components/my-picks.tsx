@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useNavigate, getRouteApi } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PickDisplay } from "./pick-display";
 import { InteractivePickDisplay } from "./interactive-pick-display";
 import { WeekSwitcher } from "./week-switcher";
 import type { PopulatedPickResponse } from "../picks.types";
 import type { PopulatedPhaseResponse } from "../../phases/phases.types";
+import type { PopulatedPickEmStandingsResponse } from "../../standings/standings.types";
 import { LIVE_SCORE_STATUSES } from "../../events/events.type";
 import { useSubmitPicksMutation } from "../picks.api";
 import { toast } from "sonner";
@@ -16,6 +18,7 @@ interface MyPicksProps {
   phase: PopulatedPhaseResponse;
   userPicks: PopulatedPickResponse[];
   picksPerPhase: number;
+  standings?: PopulatedPickEmStandingsResponse;
   isATS?: boolean;
 }
 
@@ -28,6 +31,7 @@ export function MyPicks({
   userPicks,
   picksPerPhase,
   isATS = false,
+  standings,
 }: MyPicksProps) {
   const navigate = useNavigate();
   const { leagueId } = routeApi.useParams();
@@ -157,6 +161,37 @@ export function MyPicks({
 
   return (
     <div className="space-y-6">
+      {standings && (
+        <Card>
+          <CardHeader>
+            <CardTitle>My Ranking</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <div className="flex items-center bg-secondary/50 rounded-full px-3 py-1">
+                <span className="text-xs text-muted-foreground mr-2">RANK</span>
+                <span className="font-semibold">#{standings.rank}</span>
+              </div>
+              <div className="flex items-center bg-secondary/50 rounded-full px-3 py-1">
+                <span className="text-xs text-muted-foreground mr-2">
+                  RECORD
+                </span>
+                <span className="font-semibold">
+                  {standings.metadata.wins}-{standings.metadata.losses}-
+                  {standings.metadata.pushes}
+                </span>
+              </div>
+              <div className="flex items-center bg-secondary/50 rounded-full px-3 py-1">
+                <span className="text-xs text-muted-foreground mr-2">
+                  POINTS
+                </span>
+                <span className="font-semibold">{standings.points}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <WeekSwitcher
         phases={phases}
         selectedPhaseId={phase.id}
