@@ -13,14 +13,14 @@ export function InteractivePickTeamBox({
   onClick: () => void;
   side: "left" | "right";
   isATS?: boolean;
-  odds?: string;
+  odds?: number;
 }) {
   // Format odds to add + for positive spreads and trim extra 0s
-  const formatOdds = (odds: string) => {
-    const num = parseFloat(odds);
-    if (isNaN(num)) return odds;
-    const trimmedOdds = num.toString(); // This removes trailing 0s
-    return num > 0 ? `+${trimmedOdds}` : trimmedOdds;
+  const formatOdds = (odds: number) => {
+    if (isNaN(odds)) return odds;
+    if (odds === 0) return "even";
+    const trimmedOdds = odds.toString(); // This removes trailing 0s
+    return odds > 0 ? `+${trimmedOdds}` : trimmedOdds;
   };
 
   const displayText =
