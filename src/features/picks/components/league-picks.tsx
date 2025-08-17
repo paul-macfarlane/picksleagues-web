@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, getRouteApi } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChevronDown, ChevronUp, InfoIcon } from "lucide-react";
 import { PickDisplay } from "./pick-display";
@@ -10,10 +9,12 @@ import { UserDisplay } from "@/components/ui/user-display";
 import type { PopulatedPickResponse } from "../picks.types";
 import type { PopulatedPhaseResponse } from "../../phases/phases.types";
 import type { ProfileResponse } from "../../profiles/profiles.types";
+import type { PopulatedPickEmStandingsResponse } from "@/features/standings/standings.types";
 
 interface LeaguePicksProps {
   phase: PopulatedPhaseResponse;
   allPicks: PopulatedPickResponse[];
+  standings: PopulatedPickEmStandingsResponse[];
   isATS?: boolean;
 }
 
@@ -21,34 +22,63 @@ interface MemberPicksCardProps {
   member: {
     profile: ProfileResponse;
     picks: PopulatedPickResponse[];
+    standings?: PopulatedPickEmStandingsResponse;
   };
   isATS?: boolean;
 }
 
 function MemberPicksCard({ member, isATS }: MemberPicksCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const standings = member.standings;
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <UserDisplay
-            profile={member.profile}
-            showUsername={true}
-            showFullName={true}
-            avatarSize="md"
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
+      <CardHeader
+        className={`pb-3 cursor-pointer transition-colors hover:bg-secondary/40 rounded-t-lg ${isExpanded ? "bg-secondary/20" : ""}`}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
+            <UserDisplay
+              profile={member.profile}
+              showUsername={true}
+              showFullName={true}
+              avatarSize="md"
+            />
+            {standings && (
+              <div className="flex flex-wrap items-center gap-3 text-sm mt-2 sm:mt-0 w-full sm:w-auto">
+                <div className="flex items-center bg-secondary/50 rounded-full px-3 py-1">
+                  <span className="text-xs text-muted-foreground mr-2">
+                    RANK
+                  </span>
+                  <span className="font-semibold">#{standings.rank}</span>
+                </div>
+                <div className="flex items-center bg-secondary/50 rounded-full px-3 py-1">
+                  <span className="text-xs text-muted-foreground mr-2">
+                    RECORD
+                  </span>
+                  <span className="font-semibold">
+                    {standings.metadata.wins}-{standings.metadata.losses}-
+                    {standings.metadata.pushes}
+                  </span>
+                </div>
+                <div className="flex items-center bg-secondary/50 rounded-full px-3 py-1">
+                  <span className="text-xs text-muted-foreground mr-2">
+                    POINTS
+                  </span>
+                  <span className="font-semibold">{standings.points}</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground sm:self-center">
+            <span>{isExpanded ? "Hide" : "Show"} Picks</span>
             {isExpanded ? (
               <ChevronUp className="h-4 w-4" />
             ) : (
               <ChevronDown className="h-4 w-4" />
             )}
-          </Button>
+          </div>
         </div>
       </CardHeader>
       {isExpanded && (
@@ -74,12 +104,12 @@ const routeApi = getRouteApi(
 export function LeaguePicks({
   phase,
   allPicks,
+  standings,
   isATS = false,
 }: LeaguePicksProps) {
   const navigate = useNavigate();
   const { leagueId } = routeApi.useParams();
 
-  // Check if picks are locked for this phase
   const now = new Date();
   const pickLockTime = new Date(phase.pickLockTime);
   const isPicksLocked = now >= pickLockTime;
@@ -132,13 +162,15 @@ export function LeaguePicks({
 
   // Create member data for display
   const membersWithPicks = Array.from(picksByUser.entries()).map(
-    ([, picks]) => {
+    ([userId, picks]) => {
       const firstPick = picks[0];
       const profile = firstPick.profile!;
+      const userStandings = standings.find((s) => s.userId === userId);
 
       return {
         profile,
         picks,
+        standings: userStandings,
       };
     },
   );

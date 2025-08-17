@@ -17,6 +17,9 @@ import type { PopulatedPickEmLeagueResponse } from "@/features/leagues/leagues.t
 import { PICK_EM_PICK_TYPES } from "@/features/leagues/leagues.types";
 import { GetLeagueQueryOptions } from "@/features/leagues/leagues.api";
 import { LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES } from "./$leagueId";
+import { GetStandingsForLeagueAndCurrentSeasonQueryOptions } from "@/features/standings/standings.api";
+import { STANDINGS_INCLUDES } from "@/features/standings/standings.types";
+import type { PopulatedPickEmStandingsResponse } from "@/features/standings/standings.types";
 
 const searchSchema = z.object({
   phaseId: z.string().optional(),
@@ -72,6 +75,13 @@ export const Route = createFileRoute(
       );
     }
 
+    await queryClient.ensureQueryData(
+      GetStandingsForLeagueAndCurrentSeasonQueryOptions<PopulatedPickEmStandingsResponse>(
+        leagueId,
+        [STANDINGS_INCLUDES.PROFILE],
+      ),
+    );
+
     return { leagueId, phaseId };
   },
   component: LeaguePicksPage,
@@ -115,7 +125,21 @@ function LeaguePicksPage() {
         ),
   );
 
+  const { data: standings } = useSuspenseQuery(
+    GetStandingsForLeagueAndCurrentSeasonQueryOptions<PopulatedPickEmStandingsResponse>(
+      league.id,
+      [STANDINGS_INCLUDES.PROFILE],
+    ),
+  );
+
   const isATS = league.settings.pickType === PICK_EM_PICK_TYPES.SPREAD;
 
-  return <LeaguePicks phase={phase} allPicks={allPicks || []} isATS={isATS} />;
+  return (
+    <LeaguePicks
+      phase={phase}
+      allPicks={allPicks || []}
+      standings={standings || []}
+      isATS={isATS}
+    />
+  );
 }
