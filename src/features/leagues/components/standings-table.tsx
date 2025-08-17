@@ -26,18 +26,9 @@ import { GetStandingsForLeagueAndCurrentSeasonQueryOptions } from "@/features/st
 import { STANDINGS_INCLUDES } from "@/features/standings/standings.types";
 import type { PopulatedPickEmStandingsResponse } from "@/features/standings/standings.types";
 
-type StandingData = {
-  rank: number;
-  profile: NonNullable<PopulatedPickEmStandingsResponse["profile"]>;
-  points: number;
-  wins: number;
-  losses: number;
-  pushes: number;
-};
-
 // Helper function to create sortable headers
 const createSortableHeader = (label: string) => {
-  return ({ column }: { column: Column<StandingData> }) => {
+  return ({ column }: { column: Column<PopulatedPickEmStandingsResponse> }) => {
     return (
       <Button
         variant="ghost"
@@ -57,7 +48,7 @@ const createSortableHeader = (label: string) => {
   };
 };
 
-const columns: ColumnDef<StandingData>[] = [
+const columns: ColumnDef<PopulatedPickEmStandingsResponse>[] = [
   {
     accessorKey: "rank",
     header: createSortableHeader("Rank"),
@@ -84,21 +75,24 @@ const columns: ColumnDef<StandingData>[] = [
     ),
   },
   {
-    accessorKey: "wins",
+    accessorFn: (row) => row.metadata?.wins ?? 0,
+    id: "wins",
     header: createSortableHeader("Wins"),
     cell: ({ row }) => (
       <div className="text-center font-medium">{row.getValue("wins")}</div>
     ),
   },
   {
-    accessorKey: "losses",
+    accessorFn: (row) => row.metadata?.losses ?? 0,
+    id: "losses",
     header: createSortableHeader("Losses"),
     cell: ({ row }) => (
       <div className="text-center font-medium">{row.getValue("losses")}</div>
     ),
   },
   {
-    accessorKey: "pushes",
+    accessorFn: (row) => row.metadata?.pushes ?? 0,
+    id: "pushes",
     header: createSortableHeader("Pushes"),
     cell: ({ row }) => (
       <div className="text-center font-medium">{row.getValue("pushes")}</div>
@@ -112,40 +106,15 @@ export function StandingsTable() {
   });
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const {
-    data: standings,
-    isLoading,
-    error,
-  } = useQuery(
+  const { data, isLoading, error } = useQuery(
     GetStandingsForLeagueAndCurrentSeasonQueryOptions<PopulatedPickEmStandingsResponse>(
       leagueId,
       [STANDINGS_INCLUDES.PROFILE],
     ),
   );
 
-  // Transform data for the table
-  const tableData: StandingData[] = React.useMemo(() => {
-    return (
-      standings?.map((standing, index) => {
-        const metadata = standing.metadata as {
-          wins: number;
-          losses: number;
-          pushes: number;
-        };
-        return {
-          rank: index + 1,
-          profile: standing.profile!,
-          points: standing.points,
-          wins: metadata.wins,
-          losses: metadata.losses,
-          pushes: metadata.pushes,
-        };
-      }) || []
-    );
-  }, [standings]);
-
   const table = useReactTable({
-    data: tableData,
+    data: data || [],
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),

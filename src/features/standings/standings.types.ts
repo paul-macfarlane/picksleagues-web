@@ -13,6 +13,7 @@ export type StandingsResponse = {
   leagueId: string;
   seasonId: string;
   points: number;
+  rank: number;
   metadata: unknown;
 };
 

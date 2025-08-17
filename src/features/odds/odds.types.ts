@@ -15,11 +15,11 @@ export type OddsResponse = {
   metadata: unknown;
   eventId: string;
   sportsbookId: string;
-  spreadHome: string | null;
-  spreadAway: string | null;
+  spreadHome: number | null;
+  spreadAway: number | null;
   moneylineHome: number | null;
   moneylineAway: number | null;
-  total: string | null;
+  total: number | null;
 };
 
 export type PopulatedOddsResponse = OddsResponse & {
