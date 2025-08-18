@@ -8,18 +8,44 @@ import {
 } from "@/components/ui/card";
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
+import { ApiError } from "@/lib/errors";
 
 type RouteErrorBoundaryProps = {
-  title?: string;
-  message?: string;
+  error?: Error;
 };
 
-export function RouteErrorBoundary({
-  title = "Something went wrong",
-  message = "There was an issue loading this page. Please try again.",
-}: RouteErrorBoundaryProps) {
+function extractErrorData(error: Error): {
+  title: string;
+  message: string;
+  isRetryable: boolean;
+} {
+  let title = "Something went wrong";
+  let message = "There was an unexpected error.";
+  let isRetryable = true;
+  if (error instanceof ApiError) {
+    title = error.title;
+    message = error.message;
+    isRetryable = error.retryable;
+  } else if (!(error instanceof ApiError) && error.cause instanceof ApiError) {
+    title = error.cause.title;
+    message = error.cause.message;
+    isRetryable = error.cause.retryable;
+  }
+
+  return {
+    title,
+    message,
+    isRetryable,
+  };
+}
+
+export function RouteErrorBoundary({ error }: RouteErrorBoundaryProps) {
   const router = useRouter();
   const { reset } = useQueryErrorResetBoundary();
+
+  const { title, message, isRetryable } = extractErrorData(
+    error ?? new Error(),
+  );
 
   return (
     <div className="container flex flex-col justify-center items-center h-full p-4 gap-4">
@@ -31,21 +57,22 @@ export function RouteErrorBoundary({
           <p>{message}</p>
         </CardContent>
 
-        <CardFooter>
-          <Button
-            onClick={() => {
-              reset();
-              router.invalidate();
-            }}
-          >
-            Try again
+        <CardFooter className="flex gap-2">
+          {isRetryable && (
+            <Button
+              onClick={() => {
+                reset();
+                router.invalidate();
+              }}
+            >
+              Try again
+            </Button>
+          )}
+          <Button variant="outline" asChild>
+            <Link to="/">Back to Home</Link>
           </Button>
         </CardFooter>
       </Card>
-
-      <Button variant="outline" asChild>
-        <Link to="/">Back to Home</Link>
-      </Button>
     </div>
   );
 }

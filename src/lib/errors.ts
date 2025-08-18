@@ -48,37 +48,39 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public retryable = false,
+    public title = "Something went wrong",
   ) {
     super(message);
   }
 }
 
 export class BadRequestError extends ApiError {
-  constructor(message: string) {
-    super(message, 400);
+  constructor(message: string, title = "Bad Request") {
+    super(message, 400, false, title);
   }
 }
 
 export class UnauthorizedError extends ApiError {
-  constructor(message: string) {
-    super(message, 401);
+  constructor(message: string, title = "Unauthorized") {
+    super(message, 401, false, title);
   }
 }
 
 export class ForbiddenError extends ApiError {
-  constructor(message: string) {
-    super(message, 403);
+  constructor(message: string, title = "Forbidden") {
+    super(message, 403, false, title);
   }
 }
 
 export class NotFoundError extends ApiError {
-  constructor(message: string) {
-    super(message, 404);
+  constructor(message: string, title = "Not Found") {
+    super(message, 404, false, title);
   }
 }
 
 export class InternalServerError extends ApiError {
-  constructor(message: string) {
-    super(message, 500);
+  constructor(message: string, title = "Something went wrong") {
+    super(message, 500, true, title);
   }
 }
