@@ -5,7 +5,7 @@ import { LeagueLayoutPendingComponent } from "@/features/leagues/components/leag
 import { RouteErrorBoundary } from "@/components/route-error-boundary";
 import { LEAGUE_INCLUDES } from "@/features/leagues/leagues.types";
 import { z } from "zod";
-import { BadRequestError, NotFoundError } from "@/lib/errors";
+import { AppError, NotFoundError } from "@/lib/errors";
 
 export const LEAGUE_PAGE_LAYOUT_LEAGUE_INCLUDES = [
   LEAGUE_INCLUDES.MEMBERS,
@@ -29,7 +29,7 @@ export const Route = createFileRoute(
         .safeParse(params);
 
       if (!parsed.success) {
-        throw new BadRequestError("Invalid league ID format");
+        throw new AppError("Invalid league ID format", 400, false, "Bad Url");
       }
 
       return parsed.data;

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
-import { ApiError } from "@/lib/errors";
+import { AppError } from "@/lib/errors";
 
 type RouteErrorBoundaryProps = {
   error?: Error;
@@ -22,11 +22,11 @@ function extractErrorData(error: Error): {
   let title = "Something went wrong";
   let message = "There was an unexpected error.";
   let isRetryable = true;
-  if (error instanceof ApiError) {
+  if (error instanceof AppError) {
     title = error.title;
     message = error.message;
     isRetryable = error.retryable;
-  } else if (!(error instanceof ApiError) && error.cause instanceof ApiError) {
+  } else if (error.cause instanceof AppError) {
     title = error.cause.title;
     message = error.cause.message;
     isRetryable = error.cause.retryable;

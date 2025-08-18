@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LeaguePicks } from "@/features/picks/components/league-picks";
 import { z } from "zod";
-import { zodValidator } from "@tanstack/zod-adapter";
+import { AppError, NotFoundError } from "@/lib/errors";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   GetCurrentPhaseForLeagueQueryOptions,
@@ -22,7 +22,7 @@ import { STANDINGS_INCLUDES } from "@/features/standings/standings.types";
 import type { PopulatedPickEmStandingsResponse } from "@/features/standings/standings.types";
 
 const searchSchema = z.object({
-  phaseId: z.string().optional(),
+  phaseId: z.string().uuid("Invalid phase ID format").optional(),
 });
 
 const LEAGUE_PICKS_PHASE_INCLUDES = [
@@ -37,50 +37,69 @@ const LEAGUE_PICKS_PICK_INCLUDES = Object.values(PICK_INCLUDES);
 export const Route = createFileRoute(
   "/_authenticated/football/pick-em/$leagueId/league-picks",
 )({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: (search) => {
+    const parsed = searchSchema.safeParse(search);
+    if (!parsed.success) {
+      throw new AppError("Invalid phase ID format", 400, false, "Bad Url");
+    }
+
+    return parsed.data;
+  },
   loaderDeps: ({ search: { phaseId } }) => ({ phaseId }),
   loader: async ({ context: { queryClient }, params, deps }) => {
     const { leagueId } = params;
     const { phaseId } = deps;
 
-    // If phaseId is specified, fetch that specific phase, otherwise fetch current phase
-    if (phaseId) {
-      await queryClient.ensureQueryData(
-        GetPhaseForLeagueQueryOptions(
-          leagueId,
-          phaseId,
-          LEAGUE_PICKS_PHASE_INCLUDES,
-        ),
-      );
-      await queryClient.ensureQueryData(
-        GetPicksForLeagueAndPhaseQueryOptions(
-          leagueId,
-          phaseId,
-          LEAGUE_PICKS_PICK_INCLUDES,
-        ),
-      );
-    } else {
-      // Fetch current phase and all picks for the league
-      await queryClient.ensureQueryData(
-        GetCurrentPhaseForLeagueQueryOptions(
-          leagueId,
-          LEAGUE_PICKS_PHASE_INCLUDES,
-        ),
-      );
-      await queryClient.ensureQueryData(
-        GetPicksForLeagueAndCurrentPhaseQueryOptions(
-          leagueId,
-          LEAGUE_PICKS_PICK_INCLUDES,
-        ),
-      );
-    }
+    try {
+      // If phaseId is specified, fetch that specific phase, otherwise fetch current phase
+      if (phaseId) {
+        await queryClient.ensureQueryData(
+          GetPhaseForLeagueQueryOptions(
+            leagueId,
+            phaseId,
+            LEAGUE_PICKS_PHASE_INCLUDES,
+          ),
+        );
+        await queryClient.ensureQueryData(
+          GetPicksForLeagueAndPhaseQueryOptions(
+            leagueId,
+            phaseId,
+            LEAGUE_PICKS_PICK_INCLUDES,
+          ),
+        );
+      } else {
+        // Fetch current phase and all picks for the league
+        await queryClient.ensureQueryData(
+          GetCurrentPhaseForLeagueQueryOptions(
+            leagueId,
+            LEAGUE_PICKS_PHASE_INCLUDES,
+          ),
+        );
+        await queryClient.ensureQueryData(
+          GetPicksForLeagueAndCurrentPhaseQueryOptions(
+            leagueId,
+            LEAGUE_PICKS_PICK_INCLUDES,
+          ),
+        );
+      }
 
-    await queryClient.ensureQueryData(
-      GetStandingsForLeagueAndCurrentSeasonQueryOptions<PopulatedPickEmStandingsResponse>(
-        leagueId,
-        [STANDINGS_INCLUDES.PROFILE],
-      ),
-    );
+      await queryClient.ensureQueryData(
+        GetStandingsForLeagueAndCurrentSeasonQueryOptions<PopulatedPickEmStandingsResponse>(
+          leagueId,
+          [STANDINGS_INCLUDES.PROFILE],
+        ),
+      );
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw new NotFoundError(
+          phaseId
+            ? `Phase ${phaseId} not found`
+            : "No current phase found for this league",
+          "Phase Not Found",
+        );
+      }
+      throw error;
+    }
 
     return { leagueId, phaseId };
   },

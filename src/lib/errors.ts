@@ -44,7 +44,7 @@ export async function detectAndThrowError(response: Response) {
   }
 }
 
-export class ApiError extends Error {
+export class AppError extends Error {
   constructor(
     message: string,
     public status: number,
@@ -55,31 +55,31 @@ export class ApiError extends Error {
   }
 }
 
-export class BadRequestError extends ApiError {
+export class BadRequestError extends AppError {
   constructor(message: string, title = "Bad Request") {
     super(message, 400, false, title);
   }
 }
 
-export class UnauthorizedError extends ApiError {
+export class UnauthorizedError extends AppError {
   constructor(message: string, title = "Unauthorized") {
     super(message, 401, false, title);
   }
 }
 
-export class ForbiddenError extends ApiError {
+export class ForbiddenError extends AppError {
   constructor(message: string, title = "Forbidden") {
     super(message, 403, false, title);
   }
 }
 
-export class NotFoundError extends ApiError {
+export class NotFoundError extends AppError {
   constructor(message: string, title = "Not Found") {
     super(message, 404, false, title);
   }
 }
 
-export class InternalServerError extends ApiError {
+export class InternalServerError extends AppError {
   constructor(message: string, title = "Something went wrong") {
     super(message, 500, true, title);
   }
