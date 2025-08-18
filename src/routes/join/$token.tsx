@@ -25,12 +25,7 @@ export const Route = createFileRoute("/join/$token")({
   },
   pendingMs: 300,
   pendingComponent: JoinLeagueSkeleton,
-  errorComponent: () => (
-    <RouteErrorBoundary
-      title="Invite Not Found"
-      message="This invite link is either invalid or has expired."
-    />
-  ),
+  errorComponent: () => <RouteErrorBoundary />,
   component: RouteComponent,
 });
 
