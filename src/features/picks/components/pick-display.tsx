@@ -158,7 +158,11 @@ export function PickDisplay({
           score={event.liveScore?.awayScore || event.outcome?.awayScore || null}
           side="left"
           isATS={isATS}
-          odds={event.odds?.spreadAway || undefined}
+          odds={
+            userPick?.teamId === awayTeam.id && userPick?.spread
+              ? parseFloat(userPick.spread)
+              : event.odds?.spreadAway || undefined
+          }
         />
         {/* Home Team */}
         <PickTeamBox
@@ -168,13 +172,25 @@ export function PickDisplay({
           score={event.liveScore?.homeScore || event.outcome?.homeScore || null}
           side="right"
           isATS={isATS}
-          odds={event.odds?.spreadHome || undefined}
+          odds={
+            userPick?.teamId === homeTeam.id && userPick?.spread
+              ? parseFloat(userPick.spread)
+              : event.odds?.spreadHome || undefined
+          }
         />
       </div>
-      {isATS && event.odds?.sportsbook && (
+      {isATS && (userPick?.spread || event.odds?.sportsbook) && (
         <div className="text-xs italic text-muted-foreground text-right mt-2">
-          Odds presented by{" "}
-          <span className="font-semibold">{event.odds.sportsbook.name}</span>
+          {userPick?.spread ? (
+            "Odds shown are from when pick was made"
+          ) : (
+            <>
+              Odds presented by{" "}
+              <span className="font-semibold">
+                {event.odds?.sportsbook?.name}
+              </span>
+            </>
+          )}
         </div>
       )}
     </div>
