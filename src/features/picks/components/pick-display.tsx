@@ -80,22 +80,18 @@ export function PickDisplay({
         : event.outcome?.awayScore;
 
     if (homeScore !== undefined && awayScore !== undefined) {
-      if (isATS && event.odds) {
-        // ATS logic: account for spread
-        const spread = event.odds.spreadHome ?? 0;
-        const adjustedHomeScore = homeScore + spread;
+      if (isATS && userPick.spread) {
+        // ATS logic: use the spread from when the pick was made
+        const spread = parseFloat(userPick.spread);
+        const pickedTeam =
+          userPick.teamId === event.homeTeamId ? "home" : "away";
+        const pickedScore = pickedTeam === "home" ? homeScore : awayScore;
+        const opposingScore = pickedTeam === "home" ? awayScore : homeScore;
+        const adjustedPickedScore = pickedScore + spread;
 
-        if (adjustedHomeScore === awayScore) {
+        if (adjustedPickedScore === opposingScore) {
           result = "TIE";
-        } else if (
-          userPick.teamId === event.homeTeamId &&
-          adjustedHomeScore > awayScore
-        ) {
-          result = "WIN";
-        } else if (
-          userPick.teamId === event.awayTeamId &&
-          awayScore > adjustedHomeScore
-        ) {
+        } else if (adjustedPickedScore > opposingScore) {
           result = "WIN";
         } else {
           result = "LOSS";
@@ -159,8 +155,10 @@ export function PickDisplay({
           side="left"
           isATS={isATS}
           odds={
-            userPick?.teamId === awayTeam.id && userPick?.spread
-              ? parseFloat(userPick.spread)
+            userPick?.spread
+              ? userPick.teamId === awayTeam.id
+                ? parseFloat(userPick.spread)
+                : -parseFloat(userPick.spread)
               : event.odds?.spreadAway || undefined
           }
         />
@@ -173,8 +171,10 @@ export function PickDisplay({
           side="right"
           isATS={isATS}
           odds={
-            userPick?.teamId === homeTeam.id && userPick?.spread
-              ? parseFloat(userPick.spread)
+            userPick?.spread
+              ? userPick.teamId === homeTeam.id
+                ? parseFloat(userPick.spread)
+                : -parseFloat(userPick.spread)
               : event.odds?.spreadHome || undefined
           }
         />
